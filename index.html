@@ -18,7 +18,7 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px;overflow:auto}
 
 /* SIDEBAR */
-#sb{width:var(--sw);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;overflow-y:auto;overflow-x:hidden}
+#sb{width:var(--sw);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:200;overflow-y:auto;overflow-x:hidden;transition:transform .25s cubic-bezier(.4,0,.2,1)}
 #sb::-webkit-scrollbar{width:3px}
 #sb::-webkit-scrollbar-thumb{background:var(--border)}
 .sb-logo{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer}
@@ -34,25 +34,139 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .sb-footer{margin-top:auto;padding:10px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3)}
 .pwa{display:inline-block;background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25);border-radius:20px;padding:2px 7px;font-size:9px;font-weight:600;margin-top:3px}
 
+/* SIDEBAR OVERLAY (mobile) */
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:199;backdrop-filter:blur(2px)}
+
 /* MAIN */
-#main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-y:auto;overflow-x:hidden}
+#main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-y:auto;overflow-x:hidden;transition:margin .25s}
 #main::-webkit-scrollbar{width:5px}
 #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 /* TOPBAR */
-#topbar{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;position:sticky;top:0;z-index:50;flex-shrink:0}
+#topbar{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;position:sticky;top:0;z-index:50;flex-shrink:0}
 .tb-icon{font-size:16px}
 .tb-title{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 .date-chip{background:var(--accent);color:#000;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif}
-.ico-btn{width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);transition:all .12s;flex-shrink:0}
+.ico-btn{width:32px;height:32px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2);transition:all .12s;flex-shrink:0}
 .ico-btn:hover{background:var(--surface3);color:var(--text)}
 
+/* HAMBURGER BUTTON */
+#hamburger{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;flex-direction:column;gap:4px;padding:8px}
+#hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;transition:all .2s;width:100%}
+#hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+#hamburger.open span:nth-child(2){opacity:0}
+#hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
 /* CONTENT */
-#content{padding:20px;flex:1}
+#content{padding:16px;flex:1}
 .page{display:none}
 .page.active{display:block;animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* BOTTOM NAV (mobile only) */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,6px)}
+.bn-grid{display:grid;grid-template-columns:repeat(5,1fr)}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;cursor:pointer;color:var(--text3);transition:all .12s;font-size:9px;font-weight:500}
+.bn-item.active{color:var(--accent)}
+.bn-item .bn-ico{font-size:18px;line-height:1}
+.bn-more-menu{display:none;position:fixed;bottom:56px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:101;max-height:65vh;overflow-y:auto;padding:8px}
+.bn-more-menu.open{display:block}
+.bn-more-section{margin-bottom:8px}
+.bn-more-label{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;padding:6px 10px 4px}
+.bn-more-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 6px}
+.bn-more-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .12s}
+.bn-more-item:active{background:var(--surface3)}
+.bn-more-item .bmi-ico{font-size:20px;margin-bottom:4px}
+.bn-more-item .bmi-txt{font-size:9.5px;color:var(--text2);font-weight:500;line-height:1.2}
+
+/* ════════════════════════════════
+   MOBILE RESPONSIVE  ≤ 768px
+   ════════════════════════════════ */
+@media(max-width:768px){
+
+  :root{ --sw:78vw; }
+
+  /* Sidebar hidden off-screen by default */
+  #sb{ transform:translateX(-100%); box-shadow:none; }
+  #sb.open{ transform:translateX(0); box-shadow:4px 0 24px rgba(0,0,0,.5); }
+
+  /* Overlay visible when sidebar open */
+  body.sb-open #sb-overlay{ display:block; }
+
+  /* Main takes full width */
+  #main{ margin-left:0 !important; padding-bottom:66px; }
+
+  /* Hamburger visible */
+  #hamburger{ display:flex; }
+
+  /* Bottom nav visible */
+  #bottom-nav{ display:block; }
+
+  /* Hide date chip on small screens */
+  .date-chip{ display:none; }
+
+  /* Content padding smaller */
+  #content{ padding:12px; }
+
+  /* Stat cards - 2 columns on mobile */
+  .sc-grid{ grid-template-columns:repeat(2,1fr) !important; gap:8px; }
+  .sc{ padding:12px; }
+  .sc-val{ font-size:16px !important; }
+
+  /* Two-col goes single col */
+  .two-col,.two-col-eq{ grid-template-columns:1fr !important; }
+
+  /* Table scroll */
+  .tbl-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table{ min-width:500px; }
+  th,td{ padding:8px 10px; font-size:11px; }
+
+  /* Forms full width */
+  .fr2,.fr3{ grid-template-columns:1fr !important; }
+  .settings-grid{ grid-template-columns:1fr !important; }
+  .kanban-grid{ grid-template-columns:repeat(2,1fr) !important; }
+
+  /* Tab bar scrollable */
+  .tab-bar{ overflow-x:auto; width:100%; -webkit-overflow-scrolling:touch; padding:3px; }
+  .tab-bar::-webkit-scrollbar{ display:none; }
+  .tab{ white-space:nowrap; padding:5px 11px; font-size:11px; }
+
+  /* Sub-tabs scroll */
+  .sub-tabs{ overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; }
+  .sub-tabs::-webkit-scrollbar{ display:none; }
+
+  /* Card header wrap */
+  .card-h{ flex-wrap:wrap; gap:8px; }
+
+  /* Page header smaller */
+  .ph h1{ font-size:17px; }
+
+  /* Topbar */
+  #topbar{ padding:0 10px; gap:8px; }
+  .tb-title{ font-size:13px; }
+
+  /* Bigger touch targets */
+  .btn{ padding:8px 14px; font-size:12px; }
+  .fi,.fs{ padding:9px 12px; font-size:13px; }
+  .ni{ padding:9px 10px; font-size:13px; }
+
+  /* Modal full screen on mobile */
+  .mo-box{ width:100% !important; max-width:100% !important; border-radius:16px 16px 0 0; position:fixed; bottom:0; left:0; right:0; max-height:90vh; }
+  .mo{ align-items:flex-end !important; }
+
+  /* Pack rows single col */
+  #pack-rows-container .pack-row-wrap > div:last-child{
+    grid-template-columns:1fr 1fr 1fr !important;
+  }
+}
+
+/* Very small phones */
+@media(max-width:380px){
+  .sc-grid{ grid-template-columns:1fr 1fr !important; gap:6px; }
+  .sc-val{ font-size:15px !important; }
+  #content{ padding:8px; }
+}
 .ph{margin-bottom:18px}
 .ph h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
 .ph p{color:var(--text2);font-size:12px;margin-top:3px}
@@ -223,6 +337,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 </head>
 <body>
 
+<!-- SIDEBAR OVERLAY -->
+<div id="sb-overlay" onclick="closeSidebar()"></div>
+
 <!-- SIDEBAR -->
 <nav id="sb">
   <div class="sb-logo" onclick="nav('dashboard')">
@@ -283,6 +400,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 <!-- MAIN -->
 <div id="main">
   <div id="topbar">
+    <div id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </div>
     <span class="tb-icon" id="tb-ico">📊</span>
     <span class="tb-title" id="tb-title">Dashboard</span>
     <div class="tb-right">
@@ -1595,6 +1715,67 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
   </div><!-- /content -->
 </div><!-- /main -->
 
+<!-- BOTTOM NAV (mobile) -->
+<nav id="bottom-nav">
+  <div class="bn-grid">
+    <div class="bn-item active" id="bn-dashboard" onclick="navMobile('dashboard')">
+      <div class="bn-ico">📊</div><span>Home</span>
+    </div>
+    <div class="bn-item" id="bn-sales" onclick="navMobile('sales')">
+      <div class="bn-ico">🧾</div><span>Sales</span>
+    </div>
+    <div class="bn-item" id="bn-products" onclick="navMobile('products')">
+      <div class="bn-ico">📦</div><span>Stock</span>
+    </div>
+    <div class="bn-item" id="bn-customers" onclick="navMobile('customers')">
+      <div class="bn-ico">👥</div><span>Customers</span>
+    </div>
+    <div class="bn-item" id="bn-more" onclick="toggleMoreMenu()">
+      <div class="bn-ico">☰</div><span>More</span>
+    </div>
+  </div>
+</nav>
+
+<!-- MORE MENU (mobile) -->
+<div id="bn-more-menu" class="bn-more-menu">
+  <div class="bn-more-section">
+    <div class="bn-more-label">Businesses</div>
+    <div class="bn-more-grid">
+      <div class="bn-more-item" onclick="navMore('teashop')"><div class="bmi-ico">☕</div><div class="bmi-txt">Tea Shop</div></div>
+      <div class="bn-more-item" onclick="navMore('tuition')"><div class="bmi-ico">🎓</div><div class="bmi-txt">Tuition</div></div>
+      <div class="bn-more-item" onclick="navMore('orders')"><div class="bmi-ico">🚚</div><div class="bmi-txt">Orders</div></div>
+      <div class="bn-more-item" onclick="navMore('whatsapp')"><div class="bmi-ico">💬</div><div class="bmi-txt">WhatsApp</div></div>
+    </div>
+  </div>
+  <div class="bn-more-section">
+    <div class="bn-more-label">Intelligence</div>
+    <div class="bn-more-grid">
+      <div class="bn-more-item" onclick="navMore('inventory')"><div class="bmi-ico">🔍</div><div class="bmi-txt">Inventory</div></div>
+      <div class="bn-more-item" onclick="navMore('smartprofit')"><div class="bmi-ico">✅</div><div class="bmi-txt">Profit</div></div>
+      <div class="bn-more-item" onclick="navMore('demand')"><div class="bmi-ico">📈</div><div class="bmi-txt">Demand</div></div>
+      <div class="bn-more-item" onclick="navMore('autoreport')"><div class="bmi-ico">🤖</div><div class="bmi-txt">Report</div></div>
+    </div>
+  </div>
+  <div class="bn-more-section">
+    <div class="bn-more-label">CRM</div>
+    <div class="bn-more-grid">
+      <div class="bn-more-item" onclick="navMore('reminders')"><div class="bmi-ico">🔔</div><div class="bmi-txt">Reminders</div></div>
+      <div class="bn-more-item" onclick="navMore('bulkwa')"><div class="bmi-ico">📢</div><div class="bmi-txt">Bulk WA</div></div>
+      <div class="bn-more-item" onclick="navMore('target')"><div class="bmi-ico">🎯</div><div class="bmi-txt">Target</div></div>
+      <div class="bn-more-item" onclick="navMore('loyalty')"><div class="bmi-ico">⭐</div><div class="bmi-txt">Loyalty</div></div>
+    </div>
+  </div>
+  <div class="bn-more-section">
+    <div class="bn-more-label">Reports</div>
+    <div class="bn-more-grid">
+      <div class="bn-more-item" onclick="navMore('salesforecast')"><div class="bmi-ico">🧠</div><div class="bmi-txt">Forecast</div></div>
+      <div class="bn-more-item" onclick="navMore('supplier')"><div class="bmi-ico">🚛</div><div class="bmi-txt">Suppliers</div></div>
+      <div class="bn-more-item" onclick="navMore('bizanalytics')"><div class="bmi-ico">📊</div><div class="bmi-txt">Analytics</div></div>
+      <div class="bn-more-item" onclick="navMore('settings')"><div class="bmi-ico">⚙️</div><div class="bmi-txt">Settings</div></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODALS -->
 <div class="mo" id="edit-product-modal">
   <div class="mo-box">
@@ -1654,8 +1835,85 @@ function nav(page){
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='supplier'){ renderSuppliers(); }
   if(page==='settings'){ renderCategoryChips(); refreshBackupList(); loadGsSettings(); }
+  // Close sidebar on mobile after navigation
+  closeSidebar();
+  // Update bottom nav active state
+  updateBottomNav(page);
+  document.getElementById('main').scrollTo(0,0);
   window.scrollTo(0,0);
 }
+
+// ===== MOBILE SIDEBAR =====
+function toggleSidebar(){
+  const sb  = document.getElementById('sb');
+  const hbg = document.getElementById('hamburger');
+  const isOpen = sb.classList.contains('open');
+  if(isOpen){ closeSidebar(); } else { openSidebar(); }
+}
+
+function openSidebar(){
+  document.getElementById('sb').classList.add('open');
+  document.getElementById('hamburger').classList.add('open');
+  document.body.classList.add('sb-open');
+}
+
+function closeSidebar(){
+  document.getElementById('sb').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.classList.remove('sb-open');
+}
+
+// ===== BOTTOM NAV =====
+const BN_PAGES = ['dashboard','sales','products','customers'];
+
+function updateBottomNav(page){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  const bn = document.getElementById('bn-'+page);
+  if(bn) bn.classList.add('active');
+  else {
+    // It's a "more" page — highlight More button
+    const more = document.getElementById('bn-more');
+    if(more) more.classList.add('active');
+  }
+}
+
+function navMobile(page){
+  closeMoreMenu();
+  nav(page);
+}
+
+function navMore(page){
+  closeMoreMenu();
+  nav(page);
+}
+
+function toggleMoreMenu(){
+  const m = document.getElementById('bn-more-menu');
+  if(m.classList.contains('open')){ closeMoreMenu(); }
+  else {
+    m.classList.add('open');
+    document.getElementById('bn-more').classList.add('active');
+  }
+}
+
+function closeMoreMenu(){
+  const m = document.getElementById('bn-more-menu');
+  if(m) m.classList.remove('open');
+  // Re-sync active state
+  const page = document.querySelector('.page.active')?.id?.replace('p-','');
+  if(page) updateBottomNav(page);
+}
+
+// Close more menu when tapping outside
+document.addEventListener('click', function(e){
+  const menu = document.getElementById('bn-more-menu');
+  const moreBtn = document.getElementById('bn-more');
+  if(menu && menu.classList.contains('open')){
+    if(!menu.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)){
+      closeMoreMenu();
+    }
+  }
+});
 
 // ===== TAB HELPERS =====
 function dTab(el,id){
@@ -3434,24 +3692,62 @@ async function gsConnectTest(){
   const btn = document.getElementById('gs-connect-btn');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Testing...'; }
   updateGsStatus('testing');
-  gsLog('Testing connection to Google Apps Script...','info');
+  const logEl = document.getElementById('gs-log');
+  if(logEl) logEl.innerHTML = ''; // clear old log
+  gsLog('Step 1/3 — Testing connection...','info');
+
   try {
+    // Step 1: Test connection
     const res = await gsGet('test');
-    S.gs.connected = true;
-    const name = res.data?.spreadsheet || 'Google Sheet';
+    const name   = res.data?.spreadsheet || 'Google Sheet';
     const sheets = res.data?.sheets || [];
+    gsLog('✅ Connected to: "' + name + '"','ok');
+    gsLog('📋 Existing sheets: ' + (sheets.length ? sheets.join(', ') : 'none yet'),'info');
+
+    // Step 2: Auto-create all required sheets
+    gsLog('Step 2/3 — Creating required sheet tabs...','info');
+    const setupRes = await gsPost('setup', {});
+    const created = setupRes.data?.created || [];
+    if(created.length > 0){
+      gsLog('✅ Created new sheets: ' + created.join(', '),'ok');
+    } else {
+      gsLog('✅ All sheets already exist — nothing to create','ok');
+    }
+
+    // Step 3: Verify sheets
+    gsLog('Step 3/3 — Verifying all 14 sheets...','info');
+    const verify = await gsGet('test');
+    const finalSheets = verify.data?.sheets || [];
+    const required = ['DAILY SALES','Products','Customers','Orders','Tea Shop',
+      'Tuition','Staff','Suppliers','Reminders','Product Rules',
+      'Loyalty Points','Birthday Gifts','Referrals','Daily Report'];
+    const missing = required.filter(s => !finalSheets.includes(s));
+    if(missing.length === 0){
+      gsLog('✅ All 14 sheets verified: ' + required.join(', '),'ok');
+    } else {
+      gsLog('⚠️ Still missing: ' + missing.join(', '),'err');
+    }
+
+    // Mark as connected
+    S.gs.connected = true;
     const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
     S.gs.lastSync = now;
     updateGsStatus('connected', now);
-    gsLog('✅ Connected! Spreadsheet: "' + name + '"','ok');
-    gsLog('📋 Sheets found: ' + sheets.join(', '),'ok');
-    toast('✅ Connected to Google Sheets!');
+    toast('✅ Connected! All sheets ready in Google Sheets.');
+    gsLog('🎉 Setup complete! You can now Sync All Data.','ok');
+
   } catch(err){
     S.gs.connected = false;
     updateGsStatus('error', err.message);
-    gsLog('❌ Connection failed: ' + err.message,'err');
-    gsLog('💡 Make sure you deployed as Web App with "Anyone" access','info');
-    toast('❌ Connection failed — see log below');
+    gsLog('❌ Failed: ' + err.message,'err');
+    gsLog('','info');
+    gsLog('💡 Checklist to fix:','info');
+    gsLog('   1. Deployed as Web App? (Deploy → New Deployment → Web App)','info');
+    gsLog('   2. Execute as: Me','info');
+    gsLog('   3. Who has access: Anyone','info');
+    gsLog('   4. Did you authorize the script? (Run any function once from editor)','info');
+    gsLog('   5. Is the URL exactly as copied from deployment?','info');
+    toast('❌ Connection failed — check log below');
   }
   if(btn){ btn.disabled=false; btn.textContent='🔗 Connect & Test'; }
 }
