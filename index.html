@@ -2328,8 +2328,7 @@ function sendBirthdayWA(name){
     .replace('{name}',name)
     .replace('{product}',gift?.product||'')
     .replace('{qty}',gift?.qty||'');
-  const phone=(c.phone||'').replace(/\D/g,'');
-  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  openWA(c.phone, msg);
   toast('🎂 Birthday message sent to '+name);
 }
 
@@ -2360,11 +2359,10 @@ function sendProductUpdateWA(sale){
   const pts=c?.points||0;
   const msg=`🏪 *Meenatchi Traders*\nHi ${sale.customer}! ✅ Your order has been recorded.\n\n📦 Products: ${products}\n💰 Total: ₹${sale.total.toFixed(0)}\n💳 Mode: ${sale.mode}${pending}\n⭐ Your Points: ${pts}\n\nThank you for shopping! 🙏`;
   // Open WA automatically
-  const phone=sale.phone.replace(/\D/g,'');
-  if(phone){
+  if(sale.phone){
     setTimeout(()=>{
       if(confirm(`Send order confirmation to ${sale.customer} via WhatsApp?\n\n${msg.replace(/\*/g,'')}`)){
-        window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+        openWA(sale.phone, msg);
       }
     },300);
   }
@@ -2376,7 +2374,7 @@ function sendLoyaltyWA(name){
   const redeemVal=+document.getElementById('pts-redeem-val')?.value||10;
   const discount=((( c.points||0)/100)*redeemVal).toFixed(0);
   const msg=`⭐ *Meenatchi Traders — Loyalty Update*\nHi ${name}!\n\nYour current points: *${c.points||0} pts*\nRedeemable for: *₹${discount} discount*\n\nShop more to earn more points! 🛍️`;
-  window.open('https://wa.me/'+c.phone.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+  openWA(c.phone, msg);
 }
 
 function sendPointsWA(name){sendLoyaltyWA(name);}
@@ -3102,6 +3100,66 @@ function updateOrderStatus(id,status){
 function deleteOrder(id){S.orders=S.orders.filter(o=>o.id!==id);renderOrders();autoSave();toast('🗑️ Order removed');}
 
 // ===== WHATSAPP =====
+
+/**
+ * cleanPhone(raw) — converts any phone input into a valid WhatsApp number
+ *
+ * Rules for Indian numbers:
+ *   9600729707       → 919600729707   (10 digits, add 91)
+ *   +91 9600729707   → 919600729707   (strip + and spaces)
+ *   91 9600729707    → 919600729707   (already has 91)
+ *   09600729707      → 919600729707   (leading 0 → 91)
+ *   +919600729707    → 919600729707   (strip +)
+ *
+ * Other countries — kept as-is after stripping non-digits.
+ */
+function cleanPhone(raw){
+  if(!raw) return '';
+  // 1. Remove EVERYTHING except digits and leading +
+  //    Keep the + temporarily to detect country code format
+  let p = String(raw).trim();
+
+  // Remove +, spaces, dashes, brackets, dots
+  p = p.replace(/[\s\-\(\)\.]/g, '');   // strip spaces/dashes/brackets
+  p = p.replace(/^\+/, '');              // remove leading +
+
+  // Now p is digits only (possibly with leading zeros)
+  // Remove ALL non-digit characters
+  p = p.replace(/\D/g, '');
+
+  if(!p) return '';
+
+  // ── Indian number logic ──
+  // 10-digit number starting with 6,7,8,9 → add country code 91
+  if(p.length === 10 && /^[6-9]/.test(p)){
+    return '91' + p;
+  }
+  // 11-digit starting with 0 (like 09600729707) → strip 0, add 91
+  if(p.length === 11 && p.startsWith('0')){
+    return '91' + p.slice(1);
+  }
+  // 12-digit starting with 91 → correct Indian format
+  if(p.length === 12 && p.startsWith('91')){
+    return p;
+  }
+  // If it already starts with a country code (11+ digits, not Indian)
+  if(p.length >= 11){
+    return p;
+  }
+
+  // Fallback: return as-is (let WhatsApp handle it)
+  return p;
+}
+
+function openWA(phone, msg){
+  const clean = cleanPhone(phone);
+  if(!clean){
+    toast('⚠️ No phone number found');
+    return;
+  }
+  const url = 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
 function renderWA(){
   const list=S.customers.filter(c=>c.pending>0);
   const tb=document.getElementById('wa-tbody');
@@ -3110,7 +3168,7 @@ function renderWA(){
 }
 function sendWA(name,amount,phone){
   const msg=`Dear ${name}, you have a pending payment of ₹${amount} at Meenatchi Traders. Please clear at your earliest convenience. Thank you!`;
-  window.open('https://wa.me/'+(phone||'').replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+  openWA(phone, msg);
 }
 
 // ===== TEA SHOP =====
@@ -3547,8 +3605,7 @@ function sendReminderWA(id){
   const r = S.reminders.find(x=>x.id===id);
   if(!r) return;
   const msg = r.msg.replace('{name}',r.custName).replace('{product}',r.product);
-  const phone = r.phone.replace(/\D/g,'');
-  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  openWA(r.phone, msg);
   markReminderSent(id);
 }
 
@@ -3785,8 +3842,7 @@ function bulkSendReminders(type){
     if(i>=list.length){ toast('✅ Opened WhatsApp for '+list.length+' customers'); return; }
     const r = list[i++];
     const msg = r.msg.replace('{name}',r.custName).replace('{product}',r.product);
-    const phone = r.phone.replace(/\D/g,'');
-    if(phone) window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+    if(r.phone) openWA(r.phone, msg);
     markReminderSent(r.id);
     setTimeout(sendNext, 800);
   }
