@@ -419,6 +419,25 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 /* SETTINGS */
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+/* Customer dropdown */
+.cust-drop-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.cust-drop-item:last-child{border-bottom:none}
+.cust-drop-item:hover,.cust-drop-item:active{background:var(--surface2)}
+/* Clickable stat cards */
+.nav-card{cursor:pointer;transition:transform .12s,box-shadow .12s}
+.nav-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.nav-card:active{transform:scale(.97)}
+/* Quick action buttons */
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 6px;cursor:pointer;transition:all .12s;text-align:center}
+.qa-btn:hover{background:var(--surface3);border-color:var(--accent)}
+.qa-btn:active{transform:scale(.95)}
+.qa-ico{font-size:22px;line-height:1}
+.qa-lbl{font-size:10px;font-weight:600;color:var(--text2);line-height:1.2}
+/* Target progress bar */
+.tgt-bar-wrap{margin-bottom:14px}
+.tgt-bar-label{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;margin-bottom:4px}
+.tgt-bar-track{background:var(--surface3);border-radius:20px;height:10px;overflow:hidden}
+.tgt-bar-fill{height:100%;border-radius:20px;transition:width .5s ease;background:linear-gradient(90deg,var(--accent),var(--green))}
 .settings-section h3{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .gs-info{background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.2);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
@@ -530,68 +549,154 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
     <!-- ===== DASHBOARD ===== -->
     <div class="page active" id="p-dashboard">
-      <div class="ph"><h1>📊 Dashboard</h1><p id="dash-date-sub"></p></div>
-      <div class="tab-bar">
+      <div class="ph" style="margin-bottom:10px">
+        <h1>📊 Dashboard</h1><p id="dash-date-sub"></p>
+      </div>
+
+      <div class="tab-bar" style="margin-bottom:14px">
         <div class="tab active" onclick="dTab(this,'dt-biz')"><span class="t-ico">💼</span>Business</div>
         <div class="tab" onclick="dTab(this,'dt-tui')"><span class="t-ico">🎓</span>Tuition</div>
         <div class="tab" onclick="dTab(this,'dt-com')"><span class="t-ico">📊</span>Combined</div>
+        <div class="tab" id="dt-tab-target" onclick="dTab(this,'dt-target')"><span class="t-ico">🎯</span>Target</div>
+        <div class="tab" id="dt-tab-pending" onclick="dTab(this,'dt-pending')"><span class="t-ico">⏳</span>Pending</div>
       </div>
+
+      <!-- ── Business Tab ── -->
       <div id="dt-biz">
         <div class="sc-grid">
-          <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Business Income</div><div class="sc-val" id="d-income">₹0.00</div><div class="sc-sub">This month</div></div>
-          <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Business Profit</div><div class="sc-val" id="d-profit">₹0.00</div><div class="sc-sub">This month</div></div>
-          <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Pending Payments</div><div class="sc-val" id="d-pending">₹0.00</div><div class="sc-sub">Outstanding</div></div>
-          <div class="sc b"><div class="sc-ico">🛒</div><div class="sc-label">Today's Sales</div><div class="sc-val" id="d-today">₹0.00</div><div class="sc-sub">Today</div></div>
-          <div class="sc p"><div class="sc-ico">📅</div><div class="sc-label">Monthly Sales</div><div class="sc-val" id="d-monthly">₹0.00</div><div class="sc-sub">This month</div></div>
-          <div class="sc y"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop Income</div><div class="sc-val" id="d-tea">₹0.00</div><div class="sc-sub">This month</div></div>
+          <div class="sc y nav-card" onclick="nav('sales')"><div class="sc-ico">₹</div><div class="sc-label">Business Income</div><div class="sc-val" id="d-income">₹0.00</div><div class="sc-sub">This month · tap to add sale ›</div></div>
+          <div class="sc g nav-card" onclick="nav('smartprofit')"><div class="sc-ico">📈</div><div class="sc-label">Business Profit</div><div class="sc-val" id="d-profit">₹0.00</div><div class="sc-sub">This month · tap for details ›</div></div>
+          <div class="sc r nav-card" onclick="dTab(document.getElementById('dt-tab-pending'),'dt-pending')"><div class="sc-ico">⏳</div><div class="sc-label">Pending Payments</div><div class="sc-val" id="d-pending">₹0.00</div><div class="sc-sub">Outstanding · tap to collect ›</div></div>
+          <div class="sc b nav-card" onclick="nav('sales')"><div class="sc-ico">🛒</div><div class="sc-label">Today's Sales</div><div class="sc-val" id="d-today">₹0.00</div><div class="sc-sub">Today · tap to record ›</div></div>
+          <div class="sc p nav-card" onclick="nav('reports')"><div class="sc-ico">📅</div><div class="sc-label">Monthly Sales</div><div class="sc-val" id="d-monthly">₹0.00</div><div class="sc-sub">This month · tap for report ›</div></div>
+          <div class="sc y nav-card" onclick="nav('teashop')"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop Income</div><div class="sc-val" id="d-tea">₹0.00</div><div class="sc-sub">This month · tap to enter ›</div></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h" style="padding:10px 14px"><h3>⚡ Quick Actions</h3></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 14px">
+            <div class="qa-btn" onclick="nav('sales')"><span class="qa-ico">🧾</span><span class="qa-lbl">New Sale</span></div>
+            <div class="qa-btn" onclick="nav('customers')"><span class="qa-ico">👥</span><span class="qa-lbl">Customers</span></div>
+            <div class="qa-btn" onclick="nav('products')"><span class="qa-ico">📦</span><span class="qa-lbl">Stock</span></div>
+            <div class="qa-btn" onclick="nav('orders')"><span class="qa-ico">🚚</span><span class="qa-lbl">Orders</span></div>
+            <div class="qa-btn" onclick="nav('reminders')"><span class="qa-ico">🔔</span><span class="qa-lbl">Reminders</span></div>
+            <div class="qa-btn" onclick="nav('whatsapp')"><span class="qa-ico">💬</span><span class="qa-lbl">WhatsApp</span></div>
+            <div class="qa-btn" onclick="nav('inventory')"><span class="qa-ico">🔍</span><span class="qa-lbl">Inventory</span></div>
+            <div class="qa-btn" onclick="dTab(document.getElementById('dt-tab-target'),'dt-target')"><span class="qa-ico">🎯</span><span class="qa-lbl">Targets</span></div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>📊 Weekly Sales</h3></div>
+            <div class="card-b"><div class="bar-chart" id="weekly-chart"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>📦 Stock Overview</h3><button class="btn btn-o" style="font-size:10px" onclick="nav('inventory')">Full →</button></div>
+            <div class="card-b" id="stock-overview"></div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>🤖 AI Sales Forecast</h3><button class="btn btn-b" style="font-size:10px" onclick="nav('salesforecast')">Full →</button></div>
+            <div class="card-b" id="ai-fc-dash"><div class="empty"><div class="ei">🤖</div><p>Record sales to see forecast.</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>🧾 Recent Orders</h3><button class="btn btn-o" style="font-size:10px" onclick="nav('orders')">All →</button></div>
+            <div class="card-b">
+              <div class="tbl-wrap"><table>
+                <thead><tr><th>Customer</th><th>Product</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody id="dash-orders"><tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr></tbody>
+              </table></div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- ── Tuition Tab ── -->
       <div id="dt-tui" style="display:none">
         <div class="sc-grid">
-          <div class="sc p"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="d-stu">0</div><div class="sc-sub">Enrolled</div></div>
-          <div class="sc g"><div class="sc-ico">💰</div><div class="sc-label">Total Fees</div><div class="sc-val" id="d-tfees">₹0.00</div><div class="sc-sub">Collected</div></div>
-          <div class="sc r"><div class="sc-ico">⚠️</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="d-tpend">₹0.00</div><div class="sc-sub">Due</div></div>
-          <div class="sc b"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="d-staff">0</div><div class="sc-sub">Members</div></div>
-          <div class="sc o"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="d-sal">₹0.00</div><div class="sc-sub">This month</div></div>
+          <div class="sc p nav-card" onclick="nav('tuition')"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="d-stu">0</div><div class="sc-sub">Tap to manage ›</div></div>
+          <div class="sc g nav-card" onclick="nav('tuition')"><div class="sc-ico">💰</div><div class="sc-label">Total Fees</div><div class="sc-val" id="d-tfees">₹0.00</div><div class="sc-sub">Collected ›</div></div>
+          <div class="sc r nav-card" onclick="nav('tuition')"><div class="sc-ico">⚠️</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="d-tpend">₹0.00</div><div class="sc-sub">Tap to collect ›</div></div>
+          <div class="sc b nav-card" onclick="nav('tuition')"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="d-staff">0</div><div class="sc-sub">Members ›</div></div>
+          <div class="sc o nav-card" onclick="nav('tuition')"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="d-sal">₹0.00</div><div class="sc-sub">Tap to pay ›</div></div>
         </div>
       </div>
+
+      <!-- ── Combined Tab ── -->
       <div id="dt-com" style="display:none">
         <div class="sc-grid">
-          <div class="sc y"><div class="sc-ico">🏦</div><div class="sc-label">Total Income</div><div class="sc-val" id="d-ctotal">₹0.00</div><div class="sc-sub">All businesses</div></div>
-          <div class="sc g"><div class="sc-ico">💎</div><div class="sc-label">Net Profit</div><div class="sc-val" id="d-cprofit">₹0.00</div><div class="sc-sub">Combined</div></div>
+          <div class="sc y nav-card" onclick="nav('reports')"><div class="sc-ico">🏦</div><div class="sc-label">Total Income</div><div class="sc-val" id="d-ctotal">₹0.00</div><div class="sc-sub">All businesses ›</div></div>
+          <div class="sc g nav-card" onclick="nav('smartprofit')"><div class="sc-ico">💎</div><div class="sc-label">Net Profit</div><div class="sc-val" id="d-cprofit">₹0.00</div><div class="sc-sub">Combined ›</div></div>
         </div>
       </div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-h"><h3>📊 Weekly Sales</h3><button class="btn btn-o" style="font-size:10px">Export</button></div>
-          <div class="card-b"><div class="bar-chart" id="weekly-chart"></div></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>📦 Product Stock</h3></div>
-          <div class="card-b" id="stock-overview"></div>
-        </div>
-      </div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-h"><h3>🤖 AI Sales Forecast</h3><button class="btn btn-b" onclick="nav('salesforecast')">Full Report →</button></div>
-          <div class="card-b" id="ai-fc-dash"><div class="empty"><div class="ei">🤖</div><p>Record sales to see tomorrow's forecast.</p></div></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>⚠️ Pending Payments</h3><button class="btn btn-r">🔔 Remind All</button></div>
-          <div class="card-b" id="dash-pending"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-h"><h3>🧾 Recent Orders</h3></div>
-        <div class="card-b">
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Customer</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-            <tbody id="dash-orders"><tr><td colspan="5"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr></tbody>
-          </table></div>
-        </div>
-      </div>
-    </div>
 
+      <!-- ── 🎯 TARGET TAB ── -->
+      <div id="dt-target" style="display:none">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h"><h3>🎯 Set Monthly Targets</h3><button class="btn btn-y" style="font-size:11px" onclick="saveDashTarget()">💾 Save Targets</button></div>
+          <div class="card-b">
+            <div class="fr3">
+              <div class="fg"><label class="fl">Sales Target (₹)</label><input class="fi" id="dt-tgt-sales" type="number" placeholder="e.g. 50000" oninput="updateTargetBars()"></div>
+              <div class="fg"><label class="fl">Profit Target (₹)</label><input class="fi" id="dt-tgt-profit" type="number" placeholder="e.g. 15000" oninput="updateTargetBars()"></div>
+              <div class="fg"><label class="fl">Orders Target</label><input class="fi" id="dt-tgt-orders" type="number" placeholder="e.g. 100" oninput="updateTargetBars()"></div>
+            </div>
+          </div>
+        </div>
+        <div id="dt-target-cards" class="sc-grid" style="margin-bottom:14px"></div>
+        <div class="card">
+          <div class="card-h"><h3>📊 Achievement Progress</h3><button class="btn btn-b" style="font-size:10px" onclick="nav('target')">Full Tracker →</button></div>
+          <div class="card-b" id="dt-target-bars"><div class="empty"><div class="ei">🎯</div><p>Set targets above to track progress.</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── ⏳ PENDING PAYMENTS TAB ── -->
+      <div id="dt-pending" style="display:none">
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Total Pending</div><div class="sc-val" id="dp-total">₹0</div><div class="sc-sub">All customers</div></div>
+          <div class="sc o"><div class="sc-ico">👥</div><div class="sc-label">Customers</div><div class="sc-val" id="dp-count">0</div><div class="sc-sub">With dues</div></div>
+          <div class="sc y"><div class="sc-ico">🔴</div><div class="sc-label">Overdue >30d</div><div class="sc-val" id="dp-overdue">0</div><div class="sc-sub">High priority</div></div>
+          <div class="sc g"><div class="sc-ico">💬</div><div class="sc-label">Reminded Today</div><div class="sc-val" id="dp-reminded">0</div><div class="sc-sub">Sent</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>⏳ Pending Payments</h3>
+            <div style="display:flex;gap:8px;margin-left:auto">
+              <button class="btn btn-g" style="font-size:11px" onclick="bulkRemindPending()">📢 Remind All</button>
+              <button class="btn btn-b" style="font-size:11px" onclick="nav('whatsapp')">💬 WA Page →</button>
+            </div>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Customer</th><th>Phone</th><th style="color:var(--red)">Pending ₹</th><th>Days Since Sale</th><th>Actions</th></tr></thead>
+              <tbody id="dp-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>✅ Record Payment Received</h3></div>
+          <div class="card-b">
+            <div class="fr3">
+              <div class="fg">
+                <label class="fl">Customer Name</label>
+                <input class="fi" id="dp-cust" placeholder="Select customer..." list="dp-cust-dl" autocomplete="off" oninput="onDpCustInput(this.value)">
+                <datalist id="dp-cust-dl"></datalist>
+              </div>
+              <div class="fg"><label class="fl">Pending Amount ₹</label><input class="fi" id="dp-pending-amt" type="number" placeholder="0" readonly style="background:var(--surface3);color:var(--red);font-weight:700"></div>
+              <div class="fg"><label class="fl">Amount Received ₹</label><input class="fi" id="dp-recv-amt" type="number" placeholder="0"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Payment Mode</label><select class="fs" id="dp-mode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select></div>
+              <div class="fg"><label class="fl">Notes (optional)</label><input class="fi" id="dp-notes" placeholder="e.g. Partial payment"></div>
+            </div>
+            <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:6px" onclick="recordPayment()">✅ Record Payment & Clear Pending</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
     <!-- ===== SALES ENTRY ===== -->
     <div class="page" id="p-sales">
       <div class="ph"><h1>🧾 Sales Entry</h1><p>Record new sales and track transactions</p></div>
@@ -607,9 +712,18 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-b">
             <div class="fr2">
               <div class="fg"><label class="fl">Date</label><input class="fi" id="s-date" type="date"></div>
-              <div class="fg"><label class="fl">Customer Name</label><input class="fi" id="s-cust" placeholder="Type or select..."></div>
+              <div class="fg">
+                <label class="fl">Customer Name</label>
+                <div style="position:relative">
+                  <input class="fi" id="s-cust" placeholder="Type name or search..." autocomplete="off"
+                    oninput="onCustInput(this.value)" onfocus="onCustFocus()" onblur="hideCustDrop()" list="s-cust-dl">
+                  <datalist id="s-cust-dl"></datalist>
+                  <!-- Dropdown suggestions -->
+                  <div id="cust-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:0 0 8px 8px;z-index:500;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+                </div>
+              </div>
             </div>
-            <div class="fg"><label class="fl">Phone Number <span style="color:var(--red)">*</span> <span style="font-size:9px;color:var(--text3)">(mandatory)</span></label><input class="fi" id="s-phone" placeholder="9876543210" type="tel"></div>
+            <div class="fg"><label class="fl">Phone Number <span style="color:var(--red)">*</span> <span style="font-size:9px;color:var(--text3)">(auto-filled for existing customers)</span></label><input class="fi" id="s-phone" placeholder="9876543210" type="tel"></div>
             <div class="fr2">
               <div class="fg"><label class="fl">Payment Mode</label>
                 <select class="fs" id="s-pmode"><option>Cash</option><option>UPI</option><option>Credit (Pending)</option><option>Cheque</option><option>Bank Transfer</option></select>
@@ -2088,10 +2202,15 @@ document.addEventListener('click', function(e){
 
 // ===== TAB HELPERS =====
 function dTab(el,id){
+  if(!el) return;
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['dt-biz','dt-tui','dt-com'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
-  document.getElementById(id).style.display='block';
+  ['dt-biz','dt-tui','dt-com','dt-target','dt-pending'].forEach(i=>{
+    const e=document.getElementById(i);if(e)e.style.display='none';
+  });
+  const tab=document.getElementById(id);if(tab)tab.style.display='block';
+  if(id==='dt-pending') renderDashPending();
+  if(id==='dt-target')  renderDashTarget();
 }
 function pTab(el,id){
   document.querySelectorAll('#p-products .tab').forEach(t=>t.classList.remove('active'));
@@ -2925,6 +3044,129 @@ function calcPending(){
   document.getElementById('s-pend').value=Math.max(total-recv,0).toFixed(2);
 }
 
+
+// ===== CUSTOMER DROPDOWN IN SALES ENTRY =====
+let _custDropTimer = null;
+
+function buildCustDatalist(){
+  // Keep datalist in sync for native browser autocomplete fallback
+  const dl = document.getElementById('s-cust-dl');
+  if(!dl) return;
+  dl.innerHTML = S.customers.map(c=>`<option value="${c.name}">`).join('');
+}
+
+function onCustInput(val){
+  clearTimeout(_custDropTimer);
+  _custDropTimer = setTimeout(()=>{ showCustDrop(val); }, 80);
+  // Auto-fill phone if exact match
+  if(val.length > 1){
+    const exact = S.customers.find(c=>c.name.toLowerCase()===val.toLowerCase());
+    if(exact && exact.phone){
+      const ph = document.getElementById('s-phone');
+      if(ph && !ph.value) ph.value = exact.phone;
+    }
+  }
+}
+
+function onCustFocus(){
+  const val = document.getElementById('s-cust')?.value||'';
+  showCustDrop(val);
+}
+
+function showCustDrop(query){
+  const drop = document.getElementById('cust-drop');
+  if(!drop) return;
+
+  // Get recent unique customers from sales history (last 20, most recent first)
+  const recentNames = [...new Set(
+    S.sales.slice().reverse().map(s=>s.customer)
+  )].slice(0,20);
+
+  // Filter by query
+  const q = query.trim().toLowerCase();
+  let matches;
+  if(!q){
+    // Show recent customers when empty
+    matches = recentNames.map(name=>{
+      const c = S.customers.find(x=>x.name===name) || {name, phone:'', pending:0, points:0};
+      return c;
+    }).slice(0,10);
+    // If no sales yet, show all customers
+    if(!matches.length) matches = S.customers.slice(0,10);
+  } else {
+    // Search by name OR phone
+    const all = S.customers.filter(c=>
+      c.name.toLowerCase().includes(q) || (c.phone||'').includes(q)
+    );
+    // Sort: starts-with first, then contains
+    all.sort((a,b)=>{
+      const aStarts = a.name.toLowerCase().startsWith(q) ? 0 : 1;
+      const bStarts = b.name.toLowerCase().startsWith(q) ? 0 : 1;
+      return aStarts - bStarts;
+    });
+    matches = all.slice(0,10);
+  }
+
+  if(!matches.length){
+    drop.style.display = 'none';
+    return;
+  }
+
+  drop.style.display = 'block';
+  drop.innerHTML = matches.map(c=>{
+    const pending = c.pending > 0
+      ? `<span style="color:var(--red);font-size:9px">₹${c.pending.toFixed(0)} due</span>` : '';
+    const pts = c.points > 0
+      ? `<span style="color:var(--accent);font-size:9px">⭐${c.points}pts</span>` : '';
+    const lastProd = c.lastProd && c.lastProd!=='—'
+      ? `<span style="color:var(--text3);font-size:9px">Last: ${c.lastProd}</span>` : '';
+    return `<div class="cust-drop-item" onmousedown="selectCust('${c.name.replace(/'/g,"\\'")}','${(c.phone||'').replace(/'/g,"\\'")}')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <strong style="font-size:13px;color:var(--text)">${c.name}</strong>
+        <div style="display:flex;gap:6px;align-items:center">${pending}${pts}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:2px">
+        <span style="color:var(--text3);font-size:10px">${c.phone||''}</span>
+        ${lastProd}
+      </div>
+    </div>`;
+  }).join('');
+
+  // "Add as new" option when typing a name that doesn't exist
+  if(q && !S.customers.find(c=>c.name.toLowerCase()===q)){
+    drop.innerHTML += `<div class="cust-drop-item" style="border-top:1px solid var(--border);color:var(--blue)"
+      onmousedown="selectCust('${query.trim().replace(/'/g,"\\'")}','')">
+      <span style="font-size:12px">➕ Add "<strong>${query.trim()}</strong>" as new customer</span>
+    </div>`;
+  }
+}
+
+function selectCust(name, phone){
+  const custEl  = document.getElementById('s-cust');
+  const phoneEl = document.getElementById('s-phone');
+  if(custEl)  custEl.value  = name;
+  if(phoneEl && phone) phoneEl.value = phone;
+  hideCustDrop();
+  // Pre-fill payment mode from customer's usual mode
+  const c = S.customers.find(x=>x.name===name);
+  if(c && c.mode){
+    const modeEl = document.getElementById('s-pmode');
+    if(modeEl) modeEl.value = c.mode;
+  }
+  // Move focus to product row or amount
+  document.getElementById('product-rows')?.querySelector('select')?.focus();
+}
+
+function hideCustDrop(){
+  setTimeout(()=>{
+    const drop = document.getElementById('cust-drop');
+    if(drop) drop.style.display = 'none';
+  }, 150);
+}
+
+// Refresh datalist whenever customers change
+function refreshCustDatalist(){ buildCustDatalist(); }
+
 // ===== SAVE SALE =====
 function saveSale(){
   const cust=document.getElementById('s-cust').value.trim();
@@ -2978,6 +3220,7 @@ function saveSale(){
   sendProductUpdateWA(sale);
   gsMaybeSync('addSale', sale);
   autoSave();
+  refreshCustDatalist();
   toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);clearSale();
 }
 
@@ -3048,7 +3291,7 @@ function addCustomer(){
     S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:50});
   }
   ['c-name','c-phone','c-addr','c-bday','c-ref'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  renderCustomers();autoSave();toast('✅ Customer added!'+(bday?' Birthday saved 🎂':''));
+  renderCustomers();refreshCustDatalist();autoSave();toast('✅ Customer added!'+(bday?' Birthday saved 🎂':''));
 }
 
 function deleteCust(id){S.customers=S.customers.filter(c=>c.id!==id);renderCustomers();autoSave();toast('🗑️ Customer removed');}
@@ -3425,14 +3668,229 @@ function updateDashStats(){
   document.getElementById('d-monthly').textContent='₹'+mTotal.toFixed(2);
   document.getElementById('d-ctotal').textContent='₹'+(mTotal+S.teaEntries.reduce((a,e)=>a+e.income,0)).toFixed(2);
   document.getElementById('d-cprofit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
-  // Pending list
-  const pd=document.getElementById('dash-pending');
-  const pendCust=S.customers.filter(c=>c.pending>0);
-  pd.innerHTML=pendCust.length?pendCust.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(48,54,61,.4)"><div><div style="font-size:12.5px;font-weight:500">${c.name}</div><div style="font-size:10px;color:var(--text3)">${c.phone||'No phone'}</div></div><span style="color:var(--red);font-family:Poppins,sans-serif;font-weight:700">₹${c.pending.toFixed(2)}</span></div>`).join(''):'<div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div>';
   // Recent orders
   const otb=document.getElementById('dash-orders');
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
-  otb.innerHTML=S.orders.length?S.orders.slice().reverse().slice(0,8).map(o=>`<tr><td>${o.customer}</td><td>${o.product}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td><td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td><td>${o.date}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr>';
+  otb.innerHTML=S.orders.length?S.orders.slice().reverse().slice(0,8).map(o=>`<tr><td>${o.customer}</td><td>${o.product}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td><td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td></tr>`).join(''):'<tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr>';
+  // Also refresh pending tab data if visible
+  renderDashPending();
+  renderDashTarget();
+}
+
+// ═══════════════════════════════════════════
+//  PENDING PAYMENTS TAB (Dashboard)
+// ═══════════════════════════════════════════
+let _dpRemindedToday = 0;
+
+function renderDashPending(){
+  const pendCust = S.customers.filter(c=>c.pending>0);
+  const total    = pendCust.reduce((a,c)=>a+(c.pending||0),0);
+  const today    = new Date();
+
+  // Calculate days since last sale for each customer
+  const withDays = pendCust.map(c=>{
+    const lastSale = S.sales.filter(s=>s.customer===c.name).slice(-1)[0];
+    const daysSince = lastSale
+      ? Math.floor((today - new Date(lastSale.date)) / 86400000)
+      : 999;
+    return {...c, daysSince};
+  }).sort((a,b)=>b.pending - a.pending);
+
+  const overdue = withDays.filter(c=>c.daysSince>30).length;
+
+  // Update stat cards
+  const dpTotal = document.getElementById('dp-total');
+  const dpCount = document.getElementById('dp-count');
+  const dpOver  = document.getElementById('dp-overdue');
+  const dpRem   = document.getElementById('dp-reminded');
+  if(dpTotal) dpTotal.textContent = '₹'+total.toFixed(0);
+  if(dpCount) dpCount.textContent = pendCust.length;
+  if(dpOver)  dpOver.textContent  = overdue;
+  if(dpRem)   dpRem.textContent   = _dpRemindedToday;
+
+  // Populate datalist for payment form
+  const dl = document.getElementById('dp-cust-dl');
+  if(dl) dl.innerHTML = pendCust.map(c=>`<option value="${c.name}">`).join('');
+
+  // Table
+  const tb = document.getElementById('dp-tbody');
+  if(!tb) return;
+  if(!withDays.length){
+    tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear. 🎊</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML = withDays.map(c=>{
+    const urgency = c.daysSince>30 ? 'color:var(--red);font-weight:700'
+                  : c.daysSince>14 ? 'color:var(--orange);font-weight:600'
+                  : 'color:var(--text)';
+    const badge   = c.daysSince>30 ? '<span class="badge br" style="font-size:8px">Overdue</span>'
+                  : c.daysSince>14 ? '<span class="badge by" style="font-size:8px">Aging</span>' : '';
+    return `<tr>
+      <td><strong>${c.name}</strong> ${badge}</td>
+      <td>${c.phone||'—'}</td>
+      <td style="color:var(--red);font-weight:700;font-family:Poppins,sans-serif">₹${c.pending.toFixed(0)}</td>
+      <td style="${urgency}">${c.daysSince===999?'—':c.daysSince+'d ago'}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="quickCollect('${c.name.replace(/'/g,"\\'")}')">✅ Collect</button>
+        <button class="btn btn-b" style="font-size:10px;padding:3px 7px" onclick="sendWA('${c.name.replace(/'/g,"\\'")}',${c.pending},'${(c.phone||'').replace(/'/g,"\\'")}');_dpRemindedToday++;renderDashPending()">📱 WA</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function quickCollect(name){
+  // Pre-fill the payment form with this customer
+  const custEl = document.getElementById('dp-cust');
+  if(custEl){ custEl.value = name; onDpCustInput(name); }
+  // Scroll to form
+  document.getElementById('dp-recv-amt')?.focus();
+}
+
+function onDpCustInput(val){
+  const c = S.customers.find(x=>x.name.toLowerCase()===val.toLowerCase());
+  const pendEl = document.getElementById('dp-pending-amt');
+  if(pendEl) pendEl.value = c ? c.pending.toFixed(2) : '';
+}
+
+function recordPayment(){
+  const name    = document.getElementById('dp-cust')?.value.trim();
+  const recvAmt = +document.getElementById('dp-recv-amt')?.value||0;
+  const mode    = document.getElementById('dp-mode')?.value||'Cash';
+  const notes   = document.getElementById('dp-notes')?.value||'';
+  if(!name){ toast('⚠️ Select a customer'); return; }
+  if(!recvAmt){ toast('⚠️ Enter amount received'); return; }
+  const c = S.customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!c){ toast('⚠️ Customer not found: '+name); return; }
+  const before = c.pending;
+  c.pending = Math.max((c.pending||0) - recvAmt, 0);
+  c.paid    = (c.paid||0) + recvAmt;
+  // Log the payment in sales history as a credit note
+  S.sales.push({
+    id:Date.now(), date:new Date().toISOString().slice(0,10),
+    customer:name, phone:c.phone||'',
+    products:[{name:'Payment Received',qty:1,price:recvAmt,disc:0,total:recvAmt}],
+    total:0, recv:recvAmt, pending:c.pending,
+    mode, status:'Delivered', profit:0,
+    notes:'Payment received. Before: ₹'+before.toFixed(0)+' After: ₹'+c.pending.toFixed(0)+(notes?' · '+notes:'')
+  });
+  autoSave();
+  renderDashPending();
+  updateDashStats();
+  renderCustomers();
+  // Clear form
+  ['dp-cust','dp-recv-amt','dp-notes'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  document.getElementById('dp-pending-amt').value='';
+  const remaining = c.pending;
+  toast('✅ ₹'+recvAmt.toFixed(0)+' collected from '+name+(remaining>0?' · ₹'+remaining.toFixed(0)+' still pending':'· Fully cleared! 🎉'));
+  // Offer WA receipt
+  if(c.phone){
+    const msg=`✅ *Payment Received — Meenatchi Traders*\nDear ${name},\nWe received ₹${recvAmt.toFixed(0)} via ${mode}.\n${remaining>0?'Remaining balance: ₹'+remaining.toFixed(0):'Your account is fully cleared! 🎉'}\n\nThank you! 🙏`;
+    setTimeout(()=>showWAPrompt(c.phone, msg, name), 500);
+  }
+}
+
+function bulkRemindPending(){
+  const pendCust = S.customers.filter(c=>c.pending>0&&c.phone);
+  if(!pendCust.length){ toast('No customers with pending payments and phone numbers'); return; }
+  let i=0;
+  function next(){
+    if(i>=pendCust.length){ toast('✅ Opened WhatsApp for '+pendCust.length+' customers'); return; }
+    const c=pendCust[i++];
+    const msg=`Dear ${c.name}, you have a pending payment of ₹${c.pending.toFixed(0)} at Meenatchi Traders. Please clear at your earliest convenience. Thank you! 🙏`;
+    openWA(c.phone, msg);
+    _dpRemindedToday++;
+    renderDashPending();
+    setTimeout(next, 1800);
+  }
+  next();
+}
+
+// ═══════════════════════════════════════════
+//  TARGET ACHIEVEMENT TAB (Dashboard)
+// ═══════════════════════════════════════════
+function saveDashTarget(){
+  const sales   = +document.getElementById('dt-tgt-sales')?.value||0;
+  const profit  = +document.getElementById('dt-tgt-profit')?.value||0;
+  const orders  = +document.getElementById('dt-tgt-orders')?.value||0;
+  if(!sales && !profit && !orders){ toast('⚠️ Enter at least one target'); return; }
+  S.target = { sales, profit, orders, set:true };
+  autoSave();
+  renderDashTarget();
+  toast('🎯 Targets saved!');
+}
+
+function updateTargetBars(){
+  // Live preview while typing
+  renderDashTarget();
+}
+
+function renderDashTarget(){
+  const tgt = S.target;
+  // Load saved values into inputs if not already set
+  const si = document.getElementById('dt-tgt-sales');
+  const pi = document.getElementById('dt-tgt-profit');
+  const oi = document.getElementById('dt-tgt-orders');
+  if(si && tgt.sales  && !si.value) si.value  = tgt.sales;
+  if(pi && tgt.profit && !pi.value) pi.value  = tgt.profit;
+  if(oi && tgt.orders && !oi.value) oi.value  = tgt.orders;
+
+  const salesTgt   = +document.getElementById('dt-tgt-sales')?.value  || tgt.sales  || 0;
+  const profitTgt  = +document.getElementById('dt-tgt-profit')?.value || tgt.profit || 0;
+  const ordersTgt  = +document.getElementById('dt-tgt-orders')?.value || tgt.orders || 0;
+
+  const mSales  = S.sales.reduce((a,s)=>a+s.total,0);
+  const mProfit = S.sales.reduce((a,s)=>a+s.profit,0);
+  const mOrders = S.orders.length;
+
+  const sPct = salesTgt  > 0 ? Math.min((mSales/salesTgt)*100,100)   : 0;
+  const pPct = profitTgt > 0 ? Math.min((mProfit/profitTgt)*100,100) : 0;
+  const oPct = ordersTgt > 0 ? Math.min((mOrders/ordersTgt)*100,100) : 0;
+
+  // Stat cards
+  const cards = document.getElementById('dt-target-cards');
+  if(cards){
+    cards.innerHTML = `
+      <div class="sc ${sPct>=100?'g':sPct>=70?'y':'r'}">
+        <div class="sc-ico">₹</div><div class="sc-label">Sales</div>
+        <div class="sc-val">₹${mSales.toFixed(0)}</div>
+        <div class="sc-sub">${sPct.toFixed(0)}% of ₹${salesTgt.toFixed(0)}</div>
+      </div>
+      <div class="sc ${pPct>=100?'g':pPct>=70?'y':'r'}">
+        <div class="sc-ico">📈</div><div class="sc-label">Profit</div>
+        <div class="sc-val">₹${mProfit.toFixed(0)}</div>
+        <div class="sc-sub">${pPct.toFixed(0)}% of ₹${profitTgt.toFixed(0)}</div>
+      </div>
+      <div class="sc ${oPct>=100?'g':oPct>=70?'y':'b'}">
+        <div class="sc-ico">🛒</div><div class="sc-label">Orders</div>
+        <div class="sc-val">${mOrders}</div>
+        <div class="sc-sub">${oPct.toFixed(0)}% of ${ordersTgt}</div>
+      </div>`;
+  }
+
+  // Progress bars
+  const barsEl = document.getElementById('dt-target-bars');
+  if(!barsEl) return;
+  if(!salesTgt && !profitTgt && !ordersTgt){
+    barsEl.innerHTML='<div class="empty"><div class="ei">🎯</div><p>Set targets above to track progress.</p></div>';
+    return;
+  }
+  const bar = (label,cur,tgt,pct,unit='₹')=>`
+    <div class="tgt-bar-wrap">
+      <div class="tgt-bar-label">
+        <span style="font-weight:600">${label}</span>
+        <span style="color:${pct>=100?'var(--green)':pct>=70?'var(--accent)':'var(--text3)'}">
+          ${unit}${cur.toFixed(0)} / ${unit}${tgt.toFixed(0)} · <strong>${pct.toFixed(0)}%</strong>
+          ${pct>=100?' 🎉':''}
+        </span>
+      </div>
+      <div class="tgt-bar-track">
+        <div class="tgt-bar-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'linear-gradient(90deg,var(--accent),var(--green))':'linear-gradient(90deg,var(--red),var(--accent))'}"></div>
+      </div>
+    </div>`;
+  barsEl.innerHTML =
+    (salesTgt  ? bar('💰 Sales Target',  mSales,  salesTgt,  sPct) : '') +
+    (profitTgt ? bar('📈 Profit Target', mProfit, profitTgt, pPct) : '') +
+    (ordersTgt ? bar('🛒 Orders Target', mOrders, ordersTgt, oPct,'') : '');
 }
 
 // ===== SUPPLIERS =====
@@ -4452,6 +4910,7 @@ window.addEventListener('DOMContentLoaded', function(){
   renderInventory(); renderSmartProfit(); renderSalesForecast();
   addProductRow();
   buildSellUnitOptions();
+  buildCustDatalist();
   renderCategoryChips();
   renderRemindersStats();
   loadLogoPreview();
