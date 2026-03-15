@@ -1462,15 +1462,46 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="settings-grid">
         <div class="settings-section">
           <h3>🔗 Google Sheets Integration</h3>
-          <div class="gs-info">ℹ️ Connect your Google Sheet to sync all data live</div>
-          <div class="fg"><label class="fl">Google Sheet URL</label><input class="fi" placeholder="https://docs.google.com/spreadsheets/d/..."></div>
-          <div class="fg"><label class="fl">Apps Script Web App URL</label><input class="fi" placeholder="https://script.google.com/macros/s/.../exec"></div>
-          <div class="fg"><label class="fl">Sheet Tab Names (comma separated)</label><input class="fi" value="DAILY SALES,MCS,SCRUBER,Tuition,Tean31,Selling TEA"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-y" onclick="toast('🔗 Connecting to Google Sheets...')">🔗 Connect & Test</button>
-            <button class="btn btn-g" onclick="toast('🔄 Syncing all data...')">🔄 Sync All Data Now</button>
-            <button class="btn btn-r">Disconnect</button>
+
+          <!-- Status banner -->
+          <div id="gs-status-banner" style="border-radius:6px;padding:9px 12px;font-size:11.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.2);color:var(--blue)">
+            <span id="gs-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0"></span>
+            <span id="gs-status-text">Not connected — enter your Web App URL below</span>
           </div>
+
+          <div class="fg">
+            <label class="fl">Google Sheet URL <span style="font-size:9px;color:var(--text3)">(optional — for reference)</span></label>
+            <input class="fi" id="gs-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." oninput="saveGsSettings()">
+          </div>
+          <div class="fg">
+            <label class="fl">Apps Script Web App URL <span style="color:var(--red)">*</span></label>
+            <input class="fi" id="gs-script-url" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveGsSettings()">
+          </div>
+          <div class="fg">
+            <label class="fl">Sheet Tab Names (comma separated)</label>
+            <input class="fi" id="gs-tabs" value="DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report" oninput="saveGsSettings()">
+          </div>
+
+          <!-- Last sync time -->
+          <div id="gs-last-sync" style="font-size:10px;color:var(--text3);margin-bottom:10px"></div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-y" id="gs-connect-btn" onclick="gsConnectTest()">🔗 Connect &amp; Test</button>
+            <button class="btn btn-g" id="gs-sync-btn" onclick="gsSyncAll()" disabled>📤 Sync All Data Now</button>
+            <button class="btn btn-b" id="gs-load-btn" onclick="gsLoadData()" disabled>📥 Load from Sheets</button>
+            <button class="btn btn-r" id="gs-disconnect-btn" onclick="gsDisconnect()" disabled>Disconnect</button>
+          </div>
+
+          <!-- Progress bar -->
+          <div id="gs-progress-wrap" style="display:none;margin-top:10px">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:4px" id="gs-progress-label">Syncing...</div>
+            <div style="background:var(--surface3);border-radius:4px;height:6px;overflow:hidden">
+              <div id="gs-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px;width:0%;transition:width .3s"></div>
+            </div>
+          </div>
+
+          <!-- Sync log -->
+          <div id="gs-log" style="display:none;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;max-height:160px;overflow-y:auto;font-size:10.5px;font-family:monospace;color:var(--text2)"></div>
         </div>
         <div class="settings-section">
           <h3>🏪 Business Information</h3>
@@ -1589,6 +1620,7 @@ const S = {
   customers:[], orders:[], students:[], staff:[], teaEntries:[], suppliers:[],
   orderCounter:1, editProdId:null,
   settings:{bizName:'Meenatchi Traders',owner:''},
+  gs:{scriptUrl:'',sheetUrl:'',tabs:'',connected:false,lastSync:''},
   categories:['Tea','Nattu Sakkarai','Scrubber','MCS Items','Grocery','Spices','Snacks','Oils','Dry Fruits','Other'],
   target:{sales:0,profit:0,orders:0,set:false}
 };
@@ -1621,7 +1653,7 @@ function nav(page){
   if(page==='loyalty'){ renderLoyalty(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='supplier'){ renderSuppliers(); }
-  if(page==='settings'){ renderCategoryChips(); refreshBackupList(); }
+  if(page==='settings'){ renderCategoryChips(); refreshBackupList(); loadGsSettings(); }
   window.scrollTo(0,0);
 }
 
@@ -2399,8 +2431,8 @@ function saveSale(){
   }
   renderSalesTable();renderWeeklyChart();updateDashStats();renderOrders();renderCustomers();renderWA();renderProducts();renderInventory();renderSmartProfit();renderSalesForecast();renderDemand();
   autoCreateReminderFromSale(sale);
-  // Auto WhatsApp update to customer
   sendProductUpdateWA(sale);
+  gsMaybeSync('addSale', sale);
   toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);clearSale();
 }
 
@@ -3277,6 +3309,277 @@ function saveSettings(){
   S.settings.bizName=document.getElementById('biz-name').value;
   S.settings.owner=document.getElementById('owner-name').value;
   toast('✅ Settings saved!');
+}
+
+// ===== GOOGLE SHEETS INTEGRATION =====
+
+// GS state stored in S.gs
+if(!S.gs) S.gs = { scriptUrl:'', sheetUrl:'', tabs:'', connected:false, lastSync:'' };
+
+function saveGsSettings(){
+  S.gs.scriptUrl = (document.getElementById('gs-script-url')?.value||'').trim();
+  S.gs.sheetUrl  = (document.getElementById('gs-sheet-url')?.value||'').trim();
+  S.gs.tabs      = (document.getElementById('gs-tabs')?.value||'').trim();
+}
+
+function loadGsSettings(){
+  const su = document.getElementById('gs-script-url');
+  const sh = document.getElementById('gs-sheet-url');
+  const tb = document.getElementById('gs-tabs');
+  if(su && S.gs.scriptUrl) su.value = S.gs.scriptUrl;
+  if(sh && S.gs.sheetUrl)  sh.value = S.gs.sheetUrl;
+  if(tb && S.gs.tabs)      tb.value = S.gs.tabs;
+  updateGsStatus(S.gs.connected ? 'connected' : 'disconnected', S.gs.lastSync);
+}
+
+function updateGsStatus(state, extra){
+  const dot  = document.getElementById('gs-status-dot');
+  const text = document.getElementById('gs-status-text');
+  const ban  = document.getElementById('gs-status-banner');
+  const syncBtn = document.getElementById('gs-sync-btn');
+  const loadBtn = document.getElementById('gs-load-btn');
+  const discBtn = document.getElementById('gs-disconnect-btn');
+  if(!dot) return;
+
+  if(state === 'connected'){
+    dot.style.background   = 'var(--green)';
+    ban.style.background   = 'rgba(63,185,80,.06)';
+    ban.style.borderColor  = 'rgba(63,185,80,.25)';
+    ban.style.color        = 'var(--green)';
+    text.textContent       = '✅ Connected to Google Sheets' + (extra ? ' · Last sync: '+extra : '');
+    if(syncBtn) syncBtn.disabled = false;
+    if(loadBtn) loadBtn.disabled = false;
+    if(discBtn) discBtn.disabled = false;
+  } else if(state === 'error'){
+    dot.style.background   = 'var(--red)';
+    ban.style.background   = 'rgba(248,81,73,.06)';
+    ban.style.borderColor  = 'rgba(248,81,73,.25)';
+    ban.style.color        = 'var(--red)';
+    text.textContent       = '❌ Connection failed — ' + (extra||'check your Web App URL');
+    if(syncBtn) syncBtn.disabled = true;
+    if(loadBtn) loadBtn.disabled = true;
+    if(discBtn) discBtn.disabled = false;
+  } else if(state === 'testing'){
+    dot.style.background   = 'var(--accent)';
+    ban.style.background   = 'rgba(249,200,70,.06)';
+    ban.style.borderColor  = 'rgba(249,200,70,.25)';
+    ban.style.color        = 'var(--accent)';
+    text.textContent       = '⏳ Connecting to Google Sheets...';
+  } else {
+    dot.style.background   = 'var(--text3)';
+    ban.style.background   = 'rgba(88,166,255,.06)';
+    ban.style.borderColor  = 'rgba(88,166,255,.2)';
+    ban.style.color        = 'var(--blue)';
+    text.textContent       = 'Not connected — enter your Web App URL below';
+    if(syncBtn) syncBtn.disabled = true;
+    if(loadBtn) loadBtn.disabled = true;
+    if(discBtn) discBtn.disabled = true;
+  }
+}
+
+function gsLog(msg, type){
+  const el = document.getElementById('gs-log');
+  if(!el) return;
+  el.style.display = 'block';
+  const color = type==='ok'?'#3fb950':type==='err'?'#f85149':'#8b949e';
+  const time  = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.innerHTML += `<div style="color:${color};margin-bottom:2px">[${time}] ${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function gsProgress(pct, label){
+  const wrap = document.getElementById('gs-progress-wrap');
+  const bar  = document.getElementById('gs-progress-bar');
+  const lbl  = document.getElementById('gs-progress-label');
+  if(!wrap) return;
+  if(pct === null){ wrap.style.display='none'; return; }
+  wrap.style.display = 'block';
+  if(bar) bar.style.width = pct + '%';
+  if(lbl && label) lbl.textContent = label;
+}
+
+async function gsPost(action, data){
+  const url = S.gs.scriptUrl;
+  if(!url) throw new Error('No Web App URL configured');
+  const body = JSON.stringify({ action, data });
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // GAS requires text/plain for CORS
+    body
+  });
+  if(!resp.ok) throw new Error('HTTP ' + resp.status + ' — ' + resp.statusText);
+  const json = await resp.json();
+  if(json.status !== 'ok') throw new Error(json.message || 'Unknown error from script');
+  return json;
+}
+
+async function gsGet(action){
+  const url = S.gs.scriptUrl;
+  if(!url) throw new Error('No Web App URL configured');
+  const resp = await fetch(url + '?action=' + action, { method: 'GET' });
+  if(!resp.ok) throw new Error('HTTP ' + resp.status);
+  const json = await resp.json();
+  if(json.status !== 'ok') throw new Error(json.message || 'Script error');
+  return json;
+}
+
+async function gsConnectTest(){
+  saveGsSettings();
+  const url = S.gs.scriptUrl;
+  if(!url || !url.startsWith('https://script.google.com')){
+    toast('⚠️ Please enter a valid Apps Script Web App URL');
+    updateGsStatus('error','Invalid URL — must start with https://script.google.com');
+    return;
+  }
+  const btn = document.getElementById('gs-connect-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Testing...'; }
+  updateGsStatus('testing');
+  gsLog('Testing connection to Google Apps Script...','info');
+  try {
+    const res = await gsGet('test');
+    S.gs.connected = true;
+    const name = res.data?.spreadsheet || 'Google Sheet';
+    const sheets = res.data?.sheets || [];
+    const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    S.gs.lastSync = now;
+    updateGsStatus('connected', now);
+    gsLog('✅ Connected! Spreadsheet: "' + name + '"','ok');
+    gsLog('📋 Sheets found: ' + sheets.join(', '),'ok');
+    toast('✅ Connected to Google Sheets!');
+  } catch(err){
+    S.gs.connected = false;
+    updateGsStatus('error', err.message);
+    gsLog('❌ Connection failed: ' + err.message,'err');
+    gsLog('💡 Make sure you deployed as Web App with "Anyone" access','info');
+    toast('❌ Connection failed — see log below');
+  }
+  if(btn){ btn.disabled=false; btn.textContent='🔗 Connect & Test'; }
+}
+
+async function gsSyncAll(){
+  if(!S.gs.connected){ toast('⚠️ Not connected. Test connection first.'); return; }
+  const btn = document.getElementById('gs-sync-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Syncing...'; }
+  gsLog('Starting full sync to Google Sheets...','info');
+  gsProgress(5,'Preparing data...');
+
+  try {
+    const data = {
+      sales:        S.sales,
+      products:     S.products,
+      customers:    S.customers,
+      orders:       S.orders,
+      teaEntries:   S.teaEntries,
+      students:     S.students,
+      staff:        S.staff,
+      suppliers:    S.suppliers,
+      reminders:    S.reminders||[],
+      productRules: S.productRules||[],
+      bdayGifts:    S.bdayGifts||[],
+      referrals:    S.referrals||[]
+    };
+
+    const counts = {
+      Sales:       S.sales.length,
+      Products:    S.products.length,
+      Customers:   S.customers.length,
+      Orders:      S.orders.length,
+      TeaEntries:  S.teaEntries.length,
+      Students:    S.students.length,
+      Staff:       S.staff.length,
+      Suppliers:   S.suppliers.length
+    };
+    gsLog('Data to sync: ' + JSON.stringify(counts),'info');
+    gsProgress(20,'Sending to Google Sheets...');
+
+    const res = await gsPost('syncAll', data);
+    gsProgress(90,'Finishing...');
+
+    const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    S.gs.lastSync = now;
+    updateGsStatus('connected', now);
+    const lastSync = document.getElementById('gs-last-sync');
+    if(lastSync) lastSync.textContent = '✅ Last synced: ' + now;
+
+    // Log results per sheet
+    if(res.data?.results){
+      Object.entries(res.data.results).forEach(([sheet, info])=>{
+        gsLog('  ✅ ' + sheet + ': ' + (info.rows||0) + ' rows written','ok');
+      });
+    }
+    gsProgress(100,'Sync complete!');
+    setTimeout(()=>gsProgress(null),2000);
+    toast('✅ All data synced to Google Sheets!');
+    gsLog('Sync complete at ' + now,'ok');
+  } catch(err){
+    gsProgress(null);
+    gsLog('❌ Sync failed: ' + err.message,'err');
+    toast('❌ Sync failed — ' + err.message);
+  }
+  if(btn){ btn.disabled=false; btn.textContent='📤 Sync All Data Now'; }
+}
+
+async function gsLoadData(){
+  if(!S.gs.connected){ toast('⚠️ Not connected. Test connection first.'); return; }
+  if(!confirm('Load all data FROM Google Sheets? This will replace current app data.')){ return; }
+  const btn = document.getElementById('gs-load-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Loading...'; }
+  gsLog('Loading all data from Google Sheets...','info');
+  gsProgress(10,'Fetching from Google Sheets...');
+  try {
+    const res = await gsGet('getAll');
+    const d   = res.data;
+    gsProgress(60,'Applying data...');
+    if(d.sales)        S.sales        = d.sales;
+    if(d.products)     S.products     = d.products;
+    if(d.customers)    S.customers    = d.customers;
+    if(d.orders)       S.orders       = d.orders;
+    if(d.teaEntries)   S.teaEntries   = d.teaEntries;
+    if(d.students)     S.students     = d.students;
+    if(d.staff)        S.staff        = d.staff;
+    if(d.suppliers)    S.suppliers    = d.suppliers;
+    if(d.reminders)    S.reminders    = d.reminders;
+    if(d.productRules) S.productRules = d.productRules;
+    if(d.bdayGifts)    S.bdayGifts    = d.bdayGifts;
+    if(d.referrals)    S.referrals    = d.referrals;
+    gsProgress(85,'Refreshing views...');
+    renderProducts(); renderCustomers(); renderOrders(); updateDashStats();
+    renderInventory(); renderSmartProfit(); renderSalesForecast();
+    renderRemindersStats(); renderWeeklyChart(); renderStockOverview();
+    gsProgress(100,'Load complete!');
+    setTimeout(()=>gsProgress(null),2000);
+    gsLog('✅ Data loaded from Google Sheets successfully','ok');
+    gsLog('Sales: '+S.sales.length+' | Products: '+S.products.length+' | Customers: '+S.customers.length,'ok');
+    toast('✅ Data loaded from Google Sheets!');
+  } catch(err){
+    gsProgress(null);
+    gsLog('❌ Load failed: ' + err.message,'err');
+    toast('❌ Load failed — ' + err.message);
+  }
+  if(btn){ btn.disabled=false; btn.textContent='📥 Load from Sheets'; }
+}
+
+function gsDisconnect(){
+  S.gs.connected = false;
+  S.gs.lastSync  = '';
+  updateGsStatus('disconnected');
+  gsLog('Disconnected from Google Sheets','info');
+  const lastSync = document.getElementById('gs-last-sync');
+  if(lastSync) lastSync.textContent = '';
+  toast('Disconnected from Google Sheets');
+}
+
+// Auto-sync after every save (if connected) — called from saveSale, addProduct etc.
+async function gsMaybeSync(action, data){
+  if(!S.gs.connected || !S.gs.scriptUrl) return;
+  try {
+    await gsPost(action, data);
+    const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    S.gs.lastSync = now;
+    updateGsStatus('connected', now);
+  } catch(err){
+    console.warn('Auto-sync failed:', err.message);
+  }
 }
 
 // ===== MODAL =====
