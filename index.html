@@ -2350,23 +2350,7 @@ function renderReferrals(){
   tb.innerHTML=S.referrals.map(r=>`<tr><td><strong>${r.referrer}</strong></td><td>${r.referred}</td><td>${r.date}</td><td style="color:var(--green);font-weight:700">+${r.bonus} pts</td></tr>`).join('');
 }
 
-// WhatsApp auto-send after each sale (product update message)
-function sendProductUpdateWA(sale){
-  if(!sale.phone) return;
-  const products=sale.products?.map(p=>p.name+' x'+p.qty).join(', ')||'';
-  const pending=sale.pending>0?`\n⚠️ Pending: ₹${sale.pending.toFixed(0)}`:'';
-  const c=S.customers.find(x=>x.name===sale.customer);
-  const pts=c?.points||0;
-  const msg=`🏪 *Meenatchi Traders*\nHi ${sale.customer}! ✅ Your order has been recorded.\n\n📦 Products: ${products}\n💰 Total: ₹${sale.total.toFixed(0)}\n💳 Mode: ${sale.mode}${pending}\n⭐ Your Points: ${pts}\n\nThank you for shopping! 🙏`;
-  // Open WA automatically
-  if(sale.phone){
-    setTimeout(()=>{
-      if(confirm(`Send order confirmation to ${sale.customer} via WhatsApp?\n\n${msg.replace(/\*/g,'')}`)){
-        openWA(sale.phone, msg);
-      }
-    },300);
-  }
-}
+// sendProductUpdateWA — defined below in WA section with non-blocking prompt
 
 function sendLoyaltyWA(name){
   const c=S.customers.find(x=>x.name===name);
@@ -3115,50 +3099,112 @@ function deleteOrder(id){S.orders=S.orders.filter(o=>o.id!==id);renderOrders();a
  */
 function cleanPhone(raw){
   if(!raw) return '';
-  // 1. Remove EVERYTHING except digits and leading +
-  //    Keep the + temporarily to detect country code format
   let p = String(raw).trim();
-
-  // Remove +, spaces, dashes, brackets, dots
-  p = p.replace(/[\s\-\(\)\.]/g, '');   // strip spaces/dashes/brackets
-  p = p.replace(/^\+/, '');              // remove leading +
-
-  // Now p is digits only (possibly with leading zeros)
-  // Remove ALL non-digit characters
+  p = p.replace(/[\s\-\(\)\.]/g, '');
+  p = p.replace(/^\+/, '');
   p = p.replace(/\D/g, '');
-
   if(!p) return '';
-
-  // ── Indian number logic ──
-  // 10-digit number starting with 6,7,8,9 → add country code 91
-  if(p.length === 10 && /^[6-9]/.test(p)){
-    return '91' + p;
-  }
-  // 11-digit starting with 0 (like 09600729707) → strip 0, add 91
-  if(p.length === 11 && p.startsWith('0')){
-    return '91' + p.slice(1);
-  }
-  // 12-digit starting with 91 → correct Indian format
-  if(p.length === 12 && p.startsWith('91')){
-    return p;
-  }
-  // If it already starts with a country code (11+ digits, not Indian)
-  if(p.length >= 11){
-    return p;
-  }
-
-  // Fallback: return as-is (let WhatsApp handle it)
+  if(p.length === 10 && /^[6-9]/.test(p)) return '91' + p;
+  if(p.length === 11 && p.startsWith('0')) return '91' + p.slice(1);
+  if(p.length === 12 && p.startsWith('91')) return p;
+  if(p.length >= 11) return p;
   return p;
 }
 
+// ─────────────────────────────────────────────────────────
+//  openWA — opens WhatsApp WITHOUT trapping the user inside
+//  Works on: Android WebIntoApp, iOS, Desktop Chrome
+// ─────────────────────────────────────────────────────────
 function openWA(phone, msg){
   const clean = cleanPhone(phone);
-  if(!clean){
-    toast('⚠️ No phone number found');
-    return;
+  if(!clean){ toast('⚠️ No phone number saved for this customer'); return; }
+
+  const encoded = encodeURIComponent(msg);
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if(isAndroid){
+    // ── Android (WebIntoApp / WebView) ──────────────────────────
+    // intent:// forces Android OS to open WhatsApp externally.
+    // The app stays alive in the background and user returns to it.
+    const intent = 'intent://send?phone=' + clean
+      + '&text=' + encoded
+      + '#Intent;scheme=whatsapp;package=com.whatsapp;end';
+    window.location.href = intent;
+
+  } else if(isIOS){
+    // ── iOS ──────────────────────────────────────────────────────
+    // Use a hidden <a> click — doesn't navigate the webview away.
+    // If WhatsApp isn't installed, silently does nothing.
+    const a = document.createElement('a');
+    a.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); }, 500);
+
+  } else {
+    // ── Desktop ──────────────────────────────────────────────────
+    window.open('https://wa.me/' + clean + '?text=' + encoded,
+      '_blank', 'noopener,noreferrer');
   }
-  const url = 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+}
+
+// Pending WA — stored here so prompt button can access safely
+let _pendingWA = null;
+
+function showWAPrompt(phone, msg, customerName){
+  const existing = document.getElementById('wa-prompt-bar');
+  if(existing) existing.remove();
+
+  // Store pending so the Send button just calls sendPendingWA()
+  _pendingWA = { phone, msg };
+
+  const bar = document.createElement('div');
+  bar.id = 'wa-prompt-bar';
+  bar.style.cssText = [
+    'position:fixed','bottom:76px','left:50%','transform:translateX(-50%)',
+    'background:var(--surface2)','border:1px solid rgba(63,185,80,.45)',
+    'border-radius:12px','padding:10px 16px','z-index:9999',
+    'display:flex','align-items:center','gap:10px',
+    'box-shadow:0 4px 24px rgba(0,0,0,.55)',
+    'max-width:92vw','width:auto','animation:fadeIn .2s ease'
+  ].join(';');
+
+  bar.innerHTML = `
+    <span style="font-size:12px;color:var(--text2);flex:1">
+      📱 Send receipt to <strong style="color:var(--text)">${customerName}</strong>?
+    </span>
+    <button onclick="sendPendingWA()"
+      style="background:var(--green);border:none;color:#fff;border-radius:8px;
+             padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+      📱 Send WA
+    </button>
+    <button onclick="document.getElementById('wa-prompt-bar')?.remove();_pendingWA=null"
+      style="background:var(--surface3);border:1px solid var(--border);color:var(--text3);
+             border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer">
+      ✕
+    </button>`;
+
+  document.body.appendChild(bar);
+  setTimeout(()=>{ document.getElementById('wa-prompt-bar')?.remove(); _pendingWA=null; }, 12000);
+}
+
+function sendPendingWA(){
+  document.getElementById('wa-prompt-bar')?.remove();
+  if(_pendingWA){ openWA(_pendingWA.phone, _pendingWA.msg); _pendingWA=null; }
+}
+
+// Updated: no blocking confirm — shows non-blocking prompt bar instead
+function sendProductUpdateWA(sale){
+  if(!sale.phone) return;
+  const products = sale.products?.map(p=>p.name+' x'+p.qty).join(', ')||'';
+  const pending  = sale.pending>0 ? `\n⚠️ Pending: ₹${sale.pending.toFixed(0)}` : '';
+  const c   = S.customers.find(x=>x.name===sale.customer);
+  const pts = c?.points||0;
+  const msg = `🏪 *Meenatchi Traders*\nHi ${sale.customer}! ✅ Your order is recorded.\n\n📦 Products: ${products}\n💰 Total: ₹${sale.total.toFixed(0)}\n💳 Mode: ${sale.mode}${pending}\n⭐ Points: ${pts}\n\nThank you for shopping! 🙏`;
+  // Show non-blocking prompt — doesn't block the app
+  setTimeout(()=>{ showWAPrompt(sale.phone, msg, sale.customer); }, 400);
 }
 function renderWA(){
   const list=S.customers.filter(c=>c.pending>0);
@@ -3451,6 +3497,33 @@ function genReport(){
 }
 
 // ===== FUNCTION ALIASES (for backwards compatibility) =====
+// addProduct() = save wholesale product
+function addProduct(){
+  const name    = document.getElementById('p-name').value.trim();
+  if(!name){ toast('⚠️ Enter product name'); return; }
+  const bqty    = +document.getElementById('p-bqty').value||0;
+  const sprice  = +document.getElementById('ws-sprice').value||0;
+  const sticker = +document.getElementById('ws-sticker').value||0;
+  const cover   = +document.getElementById('ws-cover').value||0;
+  const buyUnit = document.getElementById('p-buy-unit')?.value||'kg';
+  const cunit   = +document.getElementById('p-cunit').value||0;
+  S.products.push({
+    id:Date.now(), name,
+    cat:document.getElementById('p-cat').value||'General',
+    unit:buyUnit, buyUnit, bqty,
+    bprice:+document.getElementById('p-bprice').value||0,
+    ship:+document.getElementById('p-ship').value||0,
+    cunit, sprice, stickerCost:sticker, coverCost:cover,
+    stock:bqty, sold:0,
+    alert:+document.getElementById('p-alert').value||5,
+    wholesale:true
+  });
+  clearProductForm();
+  renderProducts(); updateDashStats(); renderInventory(); renderSmartProfit(); renderSalesForecast();
+  autoSave();
+  toast('✅ Wholesale product added!');
+  pTab(null,'pt-list');
+}
 function addOrder(){ toast('ℹ️ Orders are created automatically when you save a sale. Use Order Tracking to manage them.'); }
 function addTeaSale(){ saveTeaEntry(); }
 function renderTarget(){ if(S.target.set) saveTarget(); }
