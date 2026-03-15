@@ -419,7 +419,15 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 /* SETTINGS */
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
-/* Customer dropdown */
+/* Bulk WA customer list */
+.bw-list{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto}
+.bw-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:background .1s}
+.bw-item:hover{background:var(--surface3)}
+.bw-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+.bw-item-info{flex:1;min-width:0}
+.bw-item-name{font-weight:600;font-size:13px;color:var(--text)}
+.bw-item-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.bw-item-badge{font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
 .cust-drop-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
 .cust-drop-item:last-child{border-bottom:none}
 .cust-drop-item:hover,.cust-drop-item:active{background:var(--surface2)}
@@ -724,6 +732,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               </div>
             </div>
             <div class="fg"><label class="fl">Phone Number <span style="color:var(--red)">*</span> <span style="font-size:9px;color:var(--text3)">(auto-filled for existing customers)</span></label><input class="fi" id="s-phone" placeholder="9876543210" type="tel"></div>
+            <div class="fg"><label class="fl">Date of Birth <span style="font-size:9px;color:var(--text3)">(optional — saves to customer profile)</span></label><input class="fi" id="s-bday" type="date" placeholder="Birthday (optional)"></div>
             <div class="fr2">
               <div class="fg"><label class="fl">Payment Mode</label>
                 <select class="fs" id="s-pmode"><option>Cash</option><option>UPI</option><option>Credit (Pending)</option><option>Cheque</option><option>Bank Transfer</option></select>
@@ -1240,10 +1249,18 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
       </div>
       <div class="card">
-        <div class="card-h"><h3>💰 Profit Per Product</h3><span style="font-size:10px;color:var(--text3)">Sorted by profit margin</span></div>
+        <div class="card-h" style="flex-wrap:wrap;gap:8px">
+          <h3>💰 Product Performance</h3>
+          <select class="fs" id="pp-period" style="font-size:11px" onchange="renderProductPerformance(+this.value)">
+            <option value="7">Last 7 Days</option>
+            <option value="15">Last 15 Days</option>
+            <option value="30" selected>Last 30 Days</option>
+            <option value="365">This Year</option>
+          </select>
+        </div>
         <div class="card-b">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Product</th><th>Cost/Unit</th><th>Sell Price</th><th>Profit/Unit</th><th>Margin</th><th>Rating</th></tr></thead>
+            <thead><tr><th>Product</th><th>Sold (Period)</th><th>Cost/Unit</th><th>Sell Price</th><th>Profit & Margin</th><th>Revenue</th></tr></thead>
             <tbody id="sp-tbody"></tbody>
           </table></div>
         </div>
@@ -1301,7 +1318,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div class="card-b" style="border-top:1px solid var(--border);display:flex;gap:8px">
             <button class="btn btn-g" onclick="toast('📢 Shared via WhatsApp!')">💬 Share WhatsApp</button>
-            <button class="btn btn-o" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-o" onclick="generateReportPDF()">📄 Save PDF</button>
           </div>
         </div>
       </div>
@@ -1488,30 +1505,110 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <!-- ===== BULK WHATSAPP ===== -->
     <div class="page" id="p-bulkwa">
       <div class="ph"><h1>📢 Bulk WhatsApp</h1><p>Send messages to multiple customers at once</p></div>
-      <div class="tab-bar">
-        <div class="tab active" onclick="bwTab(this,'bw-pend')">Pending Payments</div>
-        <div class="tab" onclick="bwTab(this,'bw-due')">Due Reminders</div>
-        <div class="tab" onclick="bwTab(this,'bw-custom')">Custom Message</div>
+
+      <!-- Stats -->
+      <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+        <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Pending Payments</div><div class="sc-val" id="bw-stat-pend">0</div><div class="sc-sub">Customers</div></div>
+        <div class="sc y"><div class="sc-ico">🔔</div><div class="sc-label">Due Reminders</div><div class="sc-val" id="bw-stat-due">0</div><div class="sc-sub">Today + Overdue</div></div>
+        <div class="sc b"><div class="sc-ico">👥</div><div class="sc-label">Total Customers</div><div class="sc-val" id="bw-stat-cust">0</div><div class="sc-sub">With phone numbers</div></div>
+        <div class="sc g"><div class="sc-ico">✅</div><div class="sc-label">Sent Today</div><div class="sc-val" id="bw-stat-sent">0</div><div class="sc-sub">Messages</div></div>
       </div>
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="bwTab(this,'bw-pend')">⏳ Pending Payments</div>
+        <div class="tab" onclick="bwTab(this,'bw-due')">🔔 Due Reminders</div>
+        <div class="tab" onclick="bwTab(this,'bw-custom')">✍️ Custom Message</div>
+        <div class="tab" onclick="bwTab(this,'bw-promo')">🎁 Promo / Offer</div>
+      </div>
+
+      <!-- ── Pending Payments ── -->
       <div id="bw-pend">
         <div class="card">
-          <div class="card-h"><h3>✖️ Customers with Pending Payments</h3><button class="btn btn-y" style="font-size:10px">Select All</button></div>
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>⏳ Customers with Pending Payments</h3>
+            <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+              <button class="btn btn-o" style="font-size:11px" onclick="bwSelectAll('bw-pend-checks')">☑️ Select All</button>
+              <button class="btn btn-y" style="font-size:11px" onclick="bwSendSelected('pend')">📢 Send to Selected</button>
+            </div>
+          </div>
           <div class="card-b">
-            <div id="bw-pend-list" style="margin-bottom:12px;color:var(--text2);font-size:12px">No pending payments</div>
-            <textarea class="fi" rows="3" style="resize:vertical;margin-bottom:10px">Hi {name}, you have a pending payment of Rs.{amount} at {biz}. Please clear when convenient. Thank you!</textarea>
-            <button class="btn btn-y" onclick="toast('📢 Messages sent to selected customers!')">📢 Send to Selected</button>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="fl">Message Template</label>
+              <textarea class="fi" id="bw-pend-msg" rows="3" style="resize:vertical">Hi {name}, you have a pending payment of ₹{amount} at Meenatchi Traders. Please clear at your earliest convenience. Thank you! 🙏</textarea>
+            </div>
+            <div id="bw-pend-list" class="bw-list"></div>
           </div>
         </div>
       </div>
+
+      <!-- ── Due Reminders ── -->
       <div id="bw-due" style="display:none">
-        <div class="card"><div class="card-b"><div class="empty"><div class="ei">🔔</div><p>No due reminders</p></div></div></div>
+        <div class="card">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>🔔 Due & Overdue Reminders</h3>
+            <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+              <button class="btn btn-o" style="font-size:11px" onclick="bwSelectAll('bw-due-checks')">☑️ Select All</button>
+              <button class="btn btn-y" style="font-size:11px" onclick="bwSendSelected('due')">📢 Send to Selected</button>
+            </div>
+          </div>
+          <div class="card-b">
+            <div class="fg" style="margin-bottom:10px">
+              <label class="fl">Message Template <span style="font-size:9px;color:var(--text3)">(uses each reminder's saved message if blank)</span></label>
+              <textarea class="fi" id="bw-due-msg" rows="3" style="resize:vertical" placeholder="Leave blank to use each reminder's own message..."></textarea>
+            </div>
+            <div id="bw-due-list" class="bw-list"></div>
+          </div>
+        </div>
       </div>
+
+      <!-- ── Custom Message ── -->
       <div id="bw-custom" style="display:none">
         <div class="card">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>✍️ Custom Message to All Customers</h3>
+            <button class="btn btn-y" style="font-size:11px" onclick="bwSendSelected('custom')">📢 Send to Selected</button>
+          </div>
           <div class="card-b">
-            <div class="fg"><label class="fl">Select Customers</label><select class="fs"><option>All Customers</option><option>Pending Payments</option><option>Regular</option></select></div>
-            <div class="fg"><label class="fl">Message</label><textarea class="fi" rows="5" style="resize:vertical" placeholder="Type your message..."></textarea></div>
-            <button class="btn btn-y" onclick="toast('📢 Bulk message sent!')">📢 Send Message</button>
+            <div class="fr2" style="margin-bottom:10px">
+              <div class="fg"><label class="fl">Filter Customers</label>
+                <select class="fs" id="bw-custom-filter" onchange="renderBwCustom()">
+                  <option value="all">All Customers with Phone</option>
+                  <option value="pending">Pending Payment Only</option>
+                  <option value="regular">All Customers</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl">Variables: {name} {phone} {biz}</label>
+                <input class="fi" id="bw-custom-search" placeholder="🔍 Search customer..." oninput="renderBwCustom()">
+              </div>
+            </div>
+            <div class="fg" style="margin-bottom:10px">
+              <label class="fl">Your Message</label>
+              <textarea class="fi" id="bw-custom-msg" rows="4" style="resize:vertical" placeholder="Hi {name}, we have exciting new products at Meenatchi Traders! Visit us today. 😊"></textarea>
+            </div>
+            <div id="bw-custom-list" class="bw-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Promo / Offer ── -->
+      <div id="bw-promo" style="display:none">
+        <div class="card">
+          <div class="card-h"><h3>🎁 Send Promo / Offer</h3></div>
+          <div class="card-b">
+            <div class="fg"><label class="fl">Offer Title</label><input class="fi" id="bw-promo-title" placeholder="e.g. Diwali Special Offer!"></div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Discount %</label><input class="fi" id="bw-promo-disc" type="number" placeholder="10"></div>
+              <div class="fg"><label class="fl">Valid Until</label><input class="fi" id="bw-promo-till" type="date"></div>
+            </div>
+            <div class="fg"><label class="fl">Message Preview</label>
+              <textarea class="fi" id="bw-promo-msg" rows="4" style="resize:vertical" placeholder="Generate message by filling above fields..."></textarea>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-o" onclick="bwGenPromoMsg()">✨ Generate Message</button>
+              <button class="btn btn-o" onclick="bwSelectAll('bw-promo-checks')">☑️ Select All</button>
+              <button class="btn btn-y" onclick="bwSendSelected('promo')">📢 Send Promo to Selected</button>
+            </div>
+            <div id="bw-promo-list" class="bw-list" style="margin-top:12px"></div>
           </div>
         </div>
       </div>
@@ -1566,11 +1663,11 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="two-col">
           <div class="card">
-            <div class="card-h"><h3>📅 Tomorrow's Forecast</h3><span style="font-size:10px;color:var(--text3)">Based on 7-day trend</span></div>
-            <div class="card-b"><div class="empty" style="padding:40px"><div class="ei" style="font-size:36px">📊</div><p style="font-size:12px;color:var(--text2)">Record sales to activate AI forecasting</p></div></div>
+            <div class="card-h"><h3>🤖 AI Forecast</h3><span style="font-size:10px;color:var(--text3)">Updates from 1st sale</span></div>
+            <div class="card-b" id="sf-forecast-content"><div class="empty" style="padding:30px"><div class="ei">🤖</div><p>Record at least 1 sale to see forecast</p></div></div>
           </div>
           <div class="card">
-            <div class="card-h"><h3>🏆 Top 5 Products — Daily Demand</h3></div>
+            <div class="card-h"><h3>🏆 Product Daily Demand</h3></div>
             <div class="card-b" id="sf-top5">
               <div id="sf-prod-list"></div>
             </div>
@@ -1763,11 +1860,11 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
       <div id="ba-trends">
         <div class="two-col-eq">
-          <div class="card"><div class="card-h"><h3>📊 Month-over-Month Revenue</h3></div><div class="card-b"><div class="empty"><div class="ei">📊</div><p>No sales data yet.</p></div></div></div>
-          <div class="card"><div class="card-h"><h3>✅ Month-over-Month Profit</h3></div><div class="card-b"><div class="empty"><div class="ei">✅</div><p>No sales data yet.</p></div></div></div>
+          <div class="card"><div class="card-h"><h3>📊 Month-over-Month Revenue</h3></div><div class="card-b" id="ba-rev-chart"><div class="empty"><div class="ei">📊</div><p>Record sales to see trends.</p></div></div></div>
+          <div class="card"><div class="card-h"><h3>✅ Month-over-Month Profit</h3></div><div class="card-b" id="ba-prof-chart"><div class="empty"><div class="ei">✅</div><p>Record sales to see trends.</p></div></div></div>
         </div>
         <div class="card">
-          <div class="card-h"><h3>📋 Monthly Summary Table</h3><button class="btn btn-o" style="font-size:10px">📤 Export</button></div>
+          <div class="card-h"><h3>📋 Monthly Summary Table</h3></div>
           <div class="card-b">
             <div class="tbl-wrap"><table>
               <thead><tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Received</th><th>Pending</th><th>Profit</th><th>Vs Last Month</th></tr></thead>
@@ -1776,10 +1873,40 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div>
-      <div id="ba-best" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">🏆</div><p>Need more data for best days analysis</p></div></div></div></div>
-      <div id="ba-peak" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">⏱️</div><p>Need more data for peak hours</p></div></div></div></div>
-      <div id="ba-seasonal" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📅</div><p>Need more data for seasonal analysis</p></div></div></div></div>
-      <div id="ba-break" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">⚖️</div><p>Configure fixed costs for break-even</p></div></div></div></div>
+      <div id="ba-best" style="display:none">
+        <div class="card"><div class="card-h"><h3>🏆 Best Selling Days</h3></div>
+          <div class="card-b" id="ba-best-content"><div class="empty"><div class="ei">🏆</div><p>Record sales to see best days.</p></div></div>
+        </div>
+        <div class="card" style="margin-top:12px"><div class="card-h"><h3>📅 Best Day of Week</h3></div>
+          <div class="card-b" id="ba-dow-content"><div class="empty"><div class="ei">📅</div><p>Record sales to see patterns.</p></div></div>
+        </div>
+      </div>
+      <div id="ba-peak" style="display:none">
+        <div class="card"><div class="card-h"><h3>⏱️ Peak Sales Hours</h3></div>
+          <div class="card-b" id="ba-peak-content">
+            <div style="background:rgba(249,200,70,.05);border:1px solid rgba(249,200,70,.15);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--text2)">
+              💡 Peak hours are estimated from your sales timestamps. Make sure you save sales throughout the day for accurate data.
+            </div>
+            <div id="ba-peak-bars"><div class="empty"><div class="ei">⏱️</div><p>Record sales at different times to see peak hours.</p></div></div>
+          </div>
+        </div>
+      </div>
+      <div id="ba-seasonal" style="display:none">
+        <div class="card"><div class="card-h"><h3>📅 Seasonal Analysis</h3></div>
+          <div class="card-b" id="ba-seasonal-content"><div class="empty"><div class="ei">📅</div><p>Record sales for seasonal insights.</p></div></div>
+        </div>
+      </div>
+      <div id="ba-break" style="display:none">
+        <div class="card"><div class="card-h"><h3>⚖️ Break-Even Analysis</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Monthly Fixed Costs (₹)</label><input class="fi" id="ba-fixed" type="number" placeholder="e.g. rent, salary, electricity" oninput="calcBreakEven()"></div>
+              <div class="fg"><label class="fl">Avg Variable Cost per Sale (%)</label><input class="fi" id="ba-var" type="number" placeholder="e.g. 60" oninput="calcBreakEven()"></div>
+            </div>
+            <div id="ba-break-result"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ===== REPORTS & ANALYTICS ===== -->
@@ -1878,7 +2005,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="fg"><label class="fl">Phone</label><input class="fi" id="biz-phone" placeholder="+91..."></div>
           <div class="fg"><label class="fl">Address</label><textarea class="fi" id="biz-addr" rows="2" placeholder="Business address" style="resize:vertical"></textarea></div>
           <div class="fg"><label class="fl">GSTIN (Optional)</label><input class="fi" placeholder="GST number"></div>
-          <div class="fg"><label class="fl">UPI ID (for QR)</label><input class="fi" placeholder="name@upi"></div>
+          <div class="fg"><label class="fl">UPI ID (for QR)</label><input class="fi" id="biz-upi" placeholder="name@upi" oninput="S.settings.upi=this.value"></div>
           <button class="btn btn-y" onclick="saveSettings()">💾 Save</button>
         </div>
       </div>
@@ -2114,10 +2241,12 @@ function nav(page){
   if(page==='inventory'){ renderInventory(); }
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
+  if(page==='bizanalytics'){ renderBaMonthly(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
   if(page==='loyalty'){ renderLoyalty(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
+  if(page==='bulkwa'){ renderBwStats(); renderBwPending(); }
   if(page==='supplier'){ renderSuppliers(); }
   if(page==='settings'){ renderCategoryChips(); refreshBackupList(); loadGsSettings(); loadLogoPreview(); loadSettingsForm(); }
   // Close sidebar on mobile after navigation
@@ -2234,7 +2363,198 @@ function tuiTab(el,id){
   ['tt-stu','tt-add-stu','tt-staff','tt-add-staff','tt-class'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
   document.getElementById(id).style.display='block';
 }
-function bwTab(el,id){tabSwitch(el,id,['bw-pend','bw-due','bw-custom']);}
+function bwTab(el,id){
+  tabSwitch(el,id,['bw-pend','bw-due','bw-custom','bw-promo']);
+  renderBwStats();
+  if(id==='bw-pend')   renderBwPending();
+  if(id==='bw-due')    renderBwDue();
+  if(id==='bw-custom') renderBwCustom();
+  if(id==='bw-promo')  renderBwPromo();
+}
+
+function renderBwStats(){
+  const pendCust = S.customers.filter(c=>c.pending>0 && c.phone);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dueRem = S.reminders.filter(r=>{
+    if(r.snoozed) return false;
+    const due=new Date(r.dueDate); due.setHours(0,0,0,0);
+    return Math.round((due-today)/(1000*60*60*24))<=0 && r.phone;
+  });
+  const custWithPhone = S.customers.filter(c=>c.phone);
+  const el=id=>document.getElementById(id);
+  if(el('bw-stat-pend')) el('bw-stat-pend').textContent=pendCust.length;
+  if(el('bw-stat-due'))  el('bw-stat-due').textContent=dueRem.length;
+  if(el('bw-stat-cust')) el('bw-stat-cust').textContent=custWithPhone.length;
+}
+
+function renderBwPending(){
+  const list = S.customers.filter(c=>c.pending>0);
+  const el = document.getElementById('bw-pend-list');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div>';
+    return;
+  }
+  el.innerHTML = list.map((c,i)=>`
+    <div class="bw-item">
+      <input type="checkbox" id="bw-pend-checks-${i}" checked data-name="${esc(c.name)}" data-phone="${esc(c.phone||'')}" data-amount="${c.pending.toFixed(0)}" class="bw-pend-checks">
+      <div class="bw-item-info">
+        <div class="bw-item-name">${c.name}</div>
+        <div class="bw-item-sub">${c.phone||'⚠️ No phone'} · Last: ${c.lastProd||'—'}</div>
+      </div>
+      <span class="bw-item-badge" style="color:var(--red)">₹${c.pending.toFixed(0)} due</span>
+    </div>`).join('');
+}
+
+function renderBwDue(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const list = S.reminders.filter(r=>{
+    if(r.snoozed) return false;
+    const due=new Date(r.dueDate); due.setHours(0,0,0,0);
+    return Math.round((due-today)/(1000*60*60*24))<=0;
+  }).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  const el = document.getElementById('bw-due-list');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="ei">🔔</div><p>No overdue reminders right now!</p></div>';
+    return;
+  }
+  el.innerHTML = list.map((r,i)=>{
+    const s=getReminderStatus(r);
+    return `<div class="bw-item">
+      <input type="checkbox" id="bw-due-checks-${i}" checked data-name="${esc(r.custName)}" data-phone="${esc(r.phone||'')}" data-product="${esc(r.product)}" data-msg="${esc(r.msg||'')}" data-remid="${r.id}" class="bw-due-checks">
+      <div class="bw-item-info">
+        <div class="bw-item-name">${r.custName}</div>
+        <div class="bw-item-sub">${r.phone||'⚠️ No phone'} · ${r.product} · Due: ${r.dueDate}</div>
+      </div>
+      <span class="bw-item-badge"><span class="badge ${s.cls}" style="font-size:9px">${s.label}</span></span>
+    </div>`;}).join('');
+}
+
+function renderBwCustom(){
+  const filter = document.getElementById('bw-custom-filter')?.value||'all';
+  const q = (document.getElementById('bw-custom-search')?.value||'').toLowerCase();
+  let list = S.customers.filter(c=>{
+    if(filter==='pending') return c.pending>0 && c.phone;
+    return c.phone;
+  }).filter(c=>!q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
+  const el = document.getElementById('bw-custom-list');
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML='<div class="empty"><div class="ei">👥</div><p>No customers found</p></div>';
+    return;
+  }
+  el.innerHTML = list.map((c,i)=>`
+    <div class="bw-item">
+      <input type="checkbox" id="bw-custom-chk-${i}" checked data-name="${esc(c.name)}" data-phone="${esc(c.phone||'')}" class="bw-custom-checks">
+      <div class="bw-item-info">
+        <div class="bw-item-name">${c.name}</div>
+        <div class="bw-item-sub">${c.phone} ${c.pending>0?'· ₹'+c.pending.toFixed(0)+' pending':''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderBwPromo(){
+  const list = S.customers.filter(c=>c.phone);
+  const el = document.getElementById('bw-promo-list');
+  if(!el) return;
+  el.innerHTML = list.map((c,i)=>`
+    <div class="bw-item">
+      <input type="checkbox" id="bw-promo-chk-${i}" checked data-name="${esc(c.name)}" data-phone="${esc(c.phone||'')}" class="bw-promo-checks">
+      <div class="bw-item-info">
+        <div class="bw-item-name">${c.name}</div>
+        <div class="bw-item-sub">${c.phone}</div>
+      </div>
+    </div>`).join('');
+}
+
+function bwGenPromoMsg(){
+  const title = document.getElementById('bw-promo-title')?.value||'Special Offer';
+  const disc  = document.getElementById('bw-promo-disc')?.value||'';
+  const till  = document.getElementById('bw-promo-till')?.value||'';
+  const biz   = S.settings.bizName||'Meenatchi Traders';
+  const phone = S.settings.phone||'';
+  const msg = `🎉 *${title}* — ${biz}\n\nDear {name},\n${disc?`🏷️ Get *${disc}% OFF* on your next purchase!\n`:''}${till?`⏰ Valid until: ${till}\n`:''}\nVisit us or call: ${phone||'our store'}\n\nDon't miss out! 😊`;
+  const el = document.getElementById('bw-promo-msg');
+  if(el) el.value = msg;
+}
+
+function bwSelectAll(cls){
+  const checks = document.querySelectorAll('.'+cls);
+  const allChecked = [...checks].every(c=>c.checked);
+  checks.forEach(c=>c.checked=!allChecked);
+}
+
+let _bwSentCount = 0;
+function bwSendSelected(type){
+  const biz = S.settings.bizName||'Meenatchi Traders';
+  let items = [];
+
+  if(type==='pend'){
+    const msg = document.getElementById('bw-pend-msg')?.value||'Hi {name}, you have a pending payment of ₹{amount} at '+biz+'. Please clear when convenient. Thank you!';
+    document.querySelectorAll('.bw-pend-checks:checked').forEach(cb=>{
+      const name=cb.dataset.name, phone=cb.dataset.phone, amount=cb.dataset.amount;
+      if(!phone){ toast('⚠️ '+name+' has no phone number'); return; }
+      items.push({phone, msg: msg.replace('{name}',name).replace('{amount}','₹'+amount).replace('{biz}',biz)});
+    });
+  } else if(type==='due'){
+    const tplMsg = document.getElementById('bw-due-msg')?.value||'';
+    document.querySelectorAll('.bw-due-checks:checked').forEach(cb=>{
+      const name=cb.dataset.name, phone=cb.dataset.phone;
+      const savedMsg=cb.dataset.msg||'';
+      const product=cb.dataset.product||'';
+      if(!phone){ toast('⚠️ '+name+' has no phone number'); return; }
+      const finalMsg = tplMsg
+        ? tplMsg.replace('{name}',name).replace('{product}',product).replace('{biz}',biz)
+        : (savedMsg||`Hi ${name}, it's time to reorder ${product}! Contact ${biz}. 😊`);
+      items.push({phone, msg:finalMsg, remId:cb.dataset.remid});
+    });
+  } else if(type==='custom'){
+    const msg = document.getElementById('bw-custom-msg')?.value||'';
+    if(!msg.trim()){ toast('⚠️ Type a message first'); return; }
+    document.querySelectorAll('.bw-custom-checks:checked').forEach(cb=>{
+      const name=cb.dataset.name, phone=cb.dataset.phone;
+      if(!phone){ return; }
+      items.push({phone, msg: msg.replace('{name}',name).replace('{phone}',phone).replace('{biz}',biz)});
+    });
+  } else if(type==='promo'){
+    const msg = document.getElementById('bw-promo-msg')?.value||'';
+    if(!msg.trim()){ toast('⚠️ Generate or type a promo message first'); return; }
+    document.querySelectorAll('.bw-promo-checks:checked').forEach(cb=>{
+      const name=cb.dataset.name, phone=cb.dataset.phone;
+      if(!phone) return;
+      items.push({phone, msg: msg.replace('{name}',name).replace('{biz}',biz)});
+    });
+  }
+
+  if(!items.length){ toast('⚠️ No customers selected (or none have phone numbers)'); return; }
+
+  let i=0;
+  function sendNext(){
+    if(i>=items.length){
+      _bwSentCount+=items.length;
+      const sentEl=document.getElementById('bw-stat-sent');
+      if(sentEl) sentEl.textContent=_bwSentCount;
+      toast('✅ Sent to '+items.length+' customers via WhatsApp');
+      // Mark due reminders as sent
+      if(type==='due'){
+        document.querySelectorAll('.bw-due-checks:checked').forEach(cb=>{
+          if(cb.dataset.remid) markReminderSent(+cb.dataset.remid);
+        });
+      }
+      return;
+    }
+    const item=items[i++];
+    openWA(item.phone, item.msg);
+    setTimeout(sendNext, 1200); // 1.2s gap between each
+  }
+  if(items.length>1){
+    if(!confirm(`Send WhatsApp to ${items.length} customers? Each will open WhatsApp one by one with a 1.2 second gap.`)) return;
+  }
+  sendNext();
+}
+
+function esc(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function remTab(el,id){tabSwitch(el,id,['rt-today','rt-all','rt-rules','rt-add','rt-hist']);
   if(id==='rt-today') renderRemindersToday();
   if(id==='rt-all') renderAllReminders();
@@ -2481,7 +2801,13 @@ function sendLoyaltyWA(name){
 }
 
 function sendPointsWA(name){sendLoyaltyWA(name);}
-function baTab(el,id){tabSwitch(el,id,['ba-trends','ba-best','ba-peak','ba-seasonal','ba-break']);}
+function baTab(el,id){
+  tabSwitch(el,id,['ba-trends','ba-best','ba-peak','ba-seasonal','ba-break']);
+  if(id==='ba-trends') renderBaMonthly();
+  if(id==='ba-best')   renderBaBestDays();
+  if(id==='ba-peak')   renderBaPeakHours();
+  if(id==='ba-seasonal') renderBaSeasonal();
+}
 function repTab(el,id){tabSwitch(el,id,['rep-daily','rep-weekly','rep-monthly','rep-prod','rep-cust','rep-tui']);}
 function tabSwitch(el,id,ids){
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -3144,16 +3470,15 @@ function showCustDrop(query){
 function selectCust(name, phone){
   const custEl  = document.getElementById('s-cust');
   const phoneEl = document.getElementById('s-phone');
+  const bdayEl  = document.getElementById('s-bday');
   if(custEl)  custEl.value  = name;
   if(phoneEl && phone) phoneEl.value = phone;
   hideCustDrop();
-  // Pre-fill payment mode from customer's usual mode
   const c = S.customers.find(x=>x.name===name);
-  if(c && c.mode){
-    const modeEl = document.getElementById('s-pmode');
-    if(modeEl) modeEl.value = c.mode;
+  if(c){
+    if(c.mode){ const modeEl=document.getElementById('s-pmode'); if(modeEl) modeEl.value=c.mode; }
+    if(c.bday && bdayEl && !bdayEl.value) bdayEl.value = c.bday;
   }
-  // Move focus to product row or amount
   document.getElementById('product-rows')?.querySelector('select')?.focus();
 }
 
@@ -3205,6 +3530,9 @@ function saveSale(){
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
   if(phone&&!c.phone) c.phone=phone;
+  // Save DOB if entered and not already set
+  const bdayVal = document.getElementById('s-bday')?.value;
+  if(bdayVal && !c.bday) c.bday = bdayVal;
   // Award loyalty points
   const ppr=+document.getElementById('pts-per-rupee')?.value||1;
   const earnedPts=Math.floor(sale.total*ppr);
@@ -3225,7 +3553,7 @@ function saveSale(){
 }
 
 function clearSale(){
-  ['s-cust','s-phone','s-recv'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['s-cust','s-phone','s-recv','s-bday'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['s-total','s-pend','s-eprofit'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('product-rows').innerHTML='';prodRowCount=0;addProductRow();
 }
@@ -3235,7 +3563,7 @@ function renderSalesTable(){
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
-  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
+  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
   tb.innerHTML=todaySales.length?todaySales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales today</p></div></td></tr>';
   htb.innerHTML=S.sales.length?S.sales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales history</p></div></td></tr>';
   // Update summary stats
@@ -3369,11 +3697,16 @@ function openWA(phone, msg){
   if(isAndroid){
     // ── Android (WebIntoApp / WebView) ──────────────────────────
     // intent:// forces Android OS to open WhatsApp externally.
-    // The app stays alive in the background and user returns to it.
     const intent = 'intent://send?phone=' + clean
       + '&text=' + encoded
-      + '#Intent;scheme=whatsapp;package=com.whatsapp;end';
-    window.location.href = intent;
+      + '#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=https%3A%2F%2Fwww.whatsapp.com%2F;end';
+    // Use anchor click — safer than window.location.href in WebView
+    const a = document.createElement('a');
+    a.href = intent;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} }, 300);
 
   } else if(isIOS){
     // ── iOS ──────────────────────────────────────────────────────
@@ -3589,57 +3922,111 @@ function renderInventory(){
 
 // ===== SMART PROFIT =====
 function renderSmartProfit(){
-  const today=new Date().toISOString().slice(0,10);
-  const todaySales=S.sales.filter(s=>s.date===today);
-  const rev=todaySales.reduce((a,s)=>a+s.total,0);
-  const prof=todaySales.reduce((a,s)=>a+s.profit,0);
-  const margin=rev>0?((prof/rev)*100).toFixed(0):0;
-  const mRev=S.sales.reduce((a,s)=>a+s.total,0);
-  const mProf=S.sales.reduce((a,s)=>a+s.profit,0);
-  document.getElementById('sp-rev').textContent='₹'+rev.toFixed(2);
-  document.getElementById('sp-rev-sub').textContent=todaySales.length+' orders';
-  document.getElementById('sp-prof').textContent='₹'+prof.toFixed(2);
-  document.getElementById('sp-margin-sub').textContent='Margin: '+margin+'%';
-  document.getElementById('sp-mprof').textContent='₹'+mProf.toFixed(2);
-  document.getElementById('sp-msales-sub').textContent='From ₹'+mRev.toFixed(2)+' sales';
+  const today = new Date().toISOString().slice(0,10);
+  const todaySales = S.sales.filter(s=>s.date===today);
+  const rev   = todaySales.reduce((a,s)=>a+s.total,0);
+  const prof  = todaySales.reduce((a,s)=>a+s.profit,0);
+  const margin= rev>0?((prof/rev)*100).toFixed(0):0;
+  const mRev  = S.sales.reduce((a,s)=>a+s.total,0);
+  const mProf = S.sales.reduce((a,s)=>a+s.profit,0);
+  const el=(id)=>document.getElementById(id);
+  if(el('sp-rev')) el('sp-rev').textContent='₹'+rev.toFixed(2);
+  if(el('sp-rev-sub')) el('sp-rev-sub').textContent=todaySales.length+' orders today';
+  if(el('sp-prof')) el('sp-prof').textContent='₹'+prof.toFixed(2);
+  if(el('sp-margin-sub')) el('sp-margin-sub').textContent='Margin: '+margin+'%';
+  if(el('sp-mprof')) el('sp-mprof').textContent='₹'+mProf.toFixed(2);
+  if(el('sp-msales-sub')) el('sp-msales-sub').textContent='From ₹'+mRev.toFixed(2)+' sales';
   // Best seller
   const prodSales={};
   S.sales.forEach(s=>s.products?.forEach(p=>{prodSales[p.name]=(prodSales[p.name]||0)+p.qty;}));
   const best=Object.entries(prodSales).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('sp-best').textContent=best?best[0].substring(0,14)+'…':'—';
-  // Profit per product table
-  const tb=document.getElementById('sp-tbody');
+  if(el('sp-best')) el('sp-best').textContent=best?best[0].substring(0,14):'—';
+  // Profit per product table with period filter
+  renderProductPerformance();
+}
+
+function renderProductPerformance(days){
+  days = days || +document.getElementById('pp-period')?.value || 30;
+  const tb = document.getElementById('sp-tbody');
+  if(!tb) return;
   if(!S.products.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">💡</div><p>No products</p></div></td></tr>';return;}
-  const sorted=[...S.products].sort((a,b)=>((b.sprice-b.cunit)/b.sprice)-((a.sprice-a.cunit)/a.sprice));
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate()-days);
+  const cutStr = cutoff.toISOString().slice(0,10);
+  const periodSales = S.sales.filter(s=>s.date>=cutStr);
+  const soldMap={};
+  periodSales.forEach(s=>s.products?.forEach(p=>{soldMap[p.name]=(soldMap[p.name]||0)+p.qty;}));
+  const sorted=[...S.products].sort((a,b)=>(soldMap[b.name]||0)-(soldMap[a.name]||0));
   tb.innerHTML=sorted.map(p=>{
-    const profit=p.sprice-p.cunit;const margin2=p.sprice>0?((profit/p.sprice)*100).toFixed(1):0;
-    const stars=margin2>60?'★★★':margin2>40?'★★★':margin2>25?'★★':'★';
-    const mColor=margin2>40?'var(--green)':margin2>20?'var(--accent)':'var(--red)';
-    return `<tr><td><strong>${p.name}</strong></td><td>₹${p.cunit.toFixed(2)}</td><td class="sell-price">₹${p.sprice.toFixed(2)}</td><td class="profit-pos">₹${profit.toFixed(2)}</td><td style="color:${mColor}">${margin2}%</td><td class="stars">${stars}</td></tr>`;
+    const profit=p.sprice-p.cunit;
+    const margin2=p.sprice>0?((profit/p.sprice)*100).toFixed(1):0;
+    const mColor=+margin2>40?'var(--green)':+margin2>20?'var(--accent)':'var(--red)';
+    const soldQty=soldMap[p.name]||0;
+    const revenue=(soldQty*p.sprice).toFixed(0);
+    return `<tr><td><strong>${p.name}</strong></td><td style="color:var(--blue)">${soldQty} sold (${days}d)</td><td>₹${p.cunit.toFixed(2)}</td><td style="color:var(--accent)">₹${p.sprice.toFixed(2)}</td><td style="color:${mColor}">₹${profit.toFixed(2)} (${margin2}%)</td><td style="color:var(--green)">₹${revenue}</td></tr>`;
   }).join('');
 }
 
-// ===== SALES FORECAST =====
+// ===== SALES FORECAST AI =====
 function renderSalesForecast(){
   const sf=document.getElementById('sf-prod-list');
-  sf.innerHTML=S.products.slice(0,5).map(p=>{
-    const used=S.sales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
-    const davg=(used/Math.max(S.sales.length,1)).toFixed(1);
-    const bal=p.stock-p.sold;
-    const barColor=bal<=p.alert?'var(--red)':bal<=p.alert*2?'var(--accent)':'var(--blue)';
-    const pct=Math.min((bal/Math.max(p.stock,1))*100,100);
-    return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:500">${p.name}</span><span style="color:var(--text3)">${davg}/day</span></div><div style="background:var(--surface3);border-radius:3px;height:5px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px"></div></div><div style="font-size:9px;color:var(--text3);margin-top:2px">Stock: ${bal} ${p.unit||'packs'} · ${used?'Has demand':'No demand yet'}</div></div>`;
-  }).join('');
-  document.getElementById('sf-tracked').textContent=S.products.filter(p=>p.stock-p.sold>0).length;
-  document.getElementById('sf-crit').textContent=S.products.filter(p=>p.stock-p.sold<=p.alert).length;
-  document.getElementById('sf-top').textContent=S.products[0]?.name.substring(0,14)+'...'||'—';
-  // Stock days
-  const daysEl=document.getElementById('sf-days-left');
-  daysEl.innerHTML=S.products.map(p=>{
-    const bal=p.stock-p.sold;
-    const color=bal<=p.alert?'var(--red)':bal<=p.alert*2?'var(--accent)':'var(--green)';
-    return `<div class="sb-item"><div class="sb-row"><span style="font-weight:500">${p.name}</span><span style="color:${color};font-weight:700">${bal} ${p.unit||'packs'} remaining</span></div></div>`;
-  }).join('');
+  if(sf){
+    sf.innerHTML=S.products.slice(0,8).map(p=>{
+      const used=S.sales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
+      const days=Math.max(S.sales.length,1);
+      const davg=(used/days).toFixed(1);
+      const bal=p.stock-(p.sold||0);
+      const barColor=bal<=p.alert?'var(--red)':bal<=p.alert*2?'var(--accent)':'var(--blue)';
+      const pct=Math.min((bal/Math.max(p.stock,1))*100,100);
+      const daysLeft=+davg>0?Math.floor(bal/+davg)+'d':'∞';
+      return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:500">${p.name}</span><span style="color:var(--text3)">${davg}/day · ${daysLeft} left</span></div><div style="background:var(--surface3);border-radius:3px;height:5px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px"></div></div><div style="font-size:9px;color:var(--text3);margin-top:2px">Stock: ${bal} ${p.unit||'packs'}</div></div>`;
+    }).join('');
+  }
+  const el=(id)=>document.getElementById(id);
+  if(el('sf-tracked')) el('sf-tracked').textContent=S.products.filter(p=>p.stock-(p.sold||0)>0).length;
+  if(el('sf-crit')) el('sf-crit').textContent=S.products.filter(p=>p.stock-(p.sold||0)<=p.alert).length;
+  if(el('sf-top')) el('sf-top').textContent=S.products[0]?.name.substring(0,14)||'—';
+
+  // AI Forecast — works with any data, better with more
+  const fcEl=document.getElementById('sf-forecast-content');
+  if(!fcEl) return;
+  const allSales=S.sales.filter(s=>s.products && s.products.length>0 && s.date);
+  if(!allSales.length){
+    fcEl.innerHTML='<div class="empty"><div class="ei">🤖</div><p>Record at least 1 sale to see forecast.</p></div>';
+    if(el('ai-fc-dash')) el('ai-fc-dash').innerHTML='<div class="empty"><div class="ei">🤖</div><p>Record sales to see forecast.</p></div>';
+    return;
+  }
+  // Group sales by day
+  const byDay={};
+  allSales.forEach(s=>{ byDay[s.date]=(byDay[s.date]||0)+s.total; });
+  const dayTotals=Object.values(byDay);
+  const avgDay=dayTotals.reduce((a,v)=>a+v,0)/Math.max(dayTotals.length,1);
+  const maxDay=Math.max(...dayTotals);
+  const minDay=Math.min(...dayTotals);
+  // Simple weighted forecast: more weight on recent days
+  const recentDays=Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0])).slice(-7);
+  const weights=recentDays.map((_,i)=>i+1);
+  const wSum=weights.reduce((a,v)=>a+v,0);
+  const wAvg=recentDays.reduce((acc,[,v],i)=>acc+(v*weights[i]),0)/Math.max(wSum,1);
+  const tomorrow=Math.max(wAvg*0.95,avgDay*0.8).toFixed(0);
+  const week=(wAvg*7*0.9).toFixed(0);
+  // Best product prediction
+  const prodVol={};
+  allSales.forEach(s=>s.products?.forEach(p=>{prodVol[p.name]=(prodVol[p.name]||0)+p.qty;}));
+  const topProd=Object.entries(prodVol).sort((a,b)=>b[1]-a[1])[0];
+  const dataNote=allSales.length<7?'(Limited data — accuracy improves with more sales)':'';
+  fcEl.innerHTML=`
+    <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+      <div class="sc b"><div class="sc-ico">📅</div><div class="sc-label">Tomorrow Forecast</div><div class="sc-val">₹${tomorrow}</div><div class="sc-sub">${dataNote||'Based on recent trend'}</div></div>
+      <div class="sc g"><div class="sc-ico">📆</div><div class="sc-label">Next 7 Days</div><div class="sc-val">₹${week}</div><div class="sc-sub">Estimated revenue</div></div>
+      <div class="sc y"><div class="sc-ico">📊</div><div class="sc-label">Avg Daily Sales</div><div class="sc-val">₹${avgDay.toFixed(0)}</div><div class="sc-sub">Over ${dayTotals.length} days</div></div>
+      <div class="sc p"><div class="sc-ico">🏆</div><div class="sc-label">Top Product</div><div class="sc-val" style="font-size:12px">${topProd?topProd[0].substring(0,12):'—'}</div><div class="sc-sub">${topProd?topProd[1]+' sold':''}</div></div>
+    </div>
+    <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--text2)">
+      📈 <strong style="color:var(--text)">Best day: ₹${maxDay.toFixed(0)}</strong> · Slowest: ₹${minDay.toFixed(0)} · 
+      Recent trend: ${wAvg>avgDay?'📈 Growing':'📉 Slower than usual'} ${dataNote}
+    </div>`;
+  if(el('ai-fc-dash')) el('ai-fc-dash').innerHTML=`<div style="font-size:12px;color:var(--text2)">Tomorrow: <strong style="color:var(--accent);font-size:16px">₹${tomorrow}</strong> · 7-day: <strong style="color:var(--green)">₹${week}</strong><br><span style="font-size:10px;color:var(--text3)">${dataNote||'AI forecast based on sales trend'}</span></div>`;
 }
 
 // ===== DEMAND =====
@@ -3954,8 +4341,400 @@ function genReport(){
   toast('📊 Report generated!');
 }
 
+// ===== EDIT SALE =====
+function openEditSale(id){
+  const s = S.sales.find(x=>x.id===id);
+  if(!s){ toast('Sale not found'); return; }
+  // Build edit modal content
+  const modal = document.getElementById('edit-sale-modal');
+  if(!modal){ buildEditSaleModal(); }
+  document.getElementById('es-id').value    = id;
+  document.getElementById('es-date').value  = s.date;
+  document.getElementById('es-cust').value  = s.customer;
+  document.getElementById('es-phone').value = s.phone||'';
+  document.getElementById('es-total').value = s.total;
+  document.getElementById('es-recv').value  = s.recv;
+  document.getElementById('es-pend').value  = s.pending;
+  document.getElementById('es-mode').value  = s.mode||'Cash';
+  document.getElementById('es-status').value= s.status||'Delivered';
+  document.getElementById('es-profit').value= s.profit||0;
+  document.getElementById('es-prods').value = s.products?.map(p=>p.name+' x'+p.qty+' @₹'+p.price).join('\n')||'';
+  openModal('edit-sale-modal');
+}
+
+function buildEditSaleModal(){
+  const m = document.createElement('div');
+  m.className='mo'; m.id='edit-sale-modal';
+  m.innerHTML=`<div class="mo-box" style="max-width:520px">
+    <div class="mo-h"><h2>✏️ Edit Sale</h2><button class="xbtn" onclick="closeModal('edit-sale-modal')">✕</button></div>
+    <div class="mo-b">
+      <input type="hidden" id="es-id">
+      <div class="fr2"><div class="fg"><label class="fl">Date</label><input class="fi" id="es-date" type="date"></div>
+      <div class="fg"><label class="fl">Customer</label><input class="fi" id="es-cust"></div></div>
+      <div class="fg"><label class="fl">Phone</label><input class="fi" id="es-phone" type="tel"></div>
+      <div class="fg"><label class="fl">Products (one per line: Name x Qty @Price)</label>
+        <textarea class="fi" id="es-prods" rows="4" style="resize:vertical"></textarea></div>
+      <div class="fr3">
+        <div class="fg"><label class="fl">Total ₹</label><input class="fi" id="es-total" type="number"></div>
+        <div class="fg"><label class="fl">Received ₹</label><input class="fi" id="es-recv" type="number" oninput="document.getElementById('es-pend').value=Math.max((+document.getElementById('es-total').value||0)-(+this.value||0),0)"></div>
+        <div class="fg"><label class="fl">Pending ₹</label><input class="fi" id="es-pend" type="number" readonly style="background:var(--surface3)"></div>
+      </div>
+      <div class="fr3">
+        <div class="fg"><label class="fl">Profit ₹</label><input class="fi" id="es-profit" type="number"></div>
+        <div class="fg"><label class="fl">Mode</label><select class="fs" id="es-mode"><option>Cash</option><option>UPI</option><option>Credit (Pending)</option><option>Cheque</option><option>Bank Transfer</option></select></div>
+        <div class="fg"><label class="fl">Status</label><select class="fs" id="es-status"><option>Pending</option><option>Processing</option><option>Ready</option><option>Delivered</option><option>Cancelled</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveEditSale()">💾 Save Changes</button>
+        <button class="btn btn-o" onclick="closeModal('edit-sale-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>`;
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+  document.body.appendChild(m);
+}
+
+function saveEditSale(){
+  const id  = +document.getElementById('es-id').value;
+  const idx = S.sales.findIndex(x=>x.id===id);
+  if(idx<0){ toast('Sale not found'); return; }
+  const s = S.sales[idx];
+  s.date    = document.getElementById('es-date').value;
+  s.customer= document.getElementById('es-cust').value.trim();
+  s.phone   = document.getElementById('es-phone').value.trim();
+  s.total   = +document.getElementById('es-total').value||0;
+  s.recv    = +document.getElementById('es-recv').value||0;
+  s.pending = +document.getElementById('es-pend').value||0;
+  s.mode    = document.getElementById('es-mode').value;
+  s.status  = document.getElementById('es-status').value;
+  s.profit  = +document.getElementById('es-profit').value||0;
+  // Parse products text
+  const prodsText = document.getElementById('es-prods').value.trim();
+  if(prodsText){
+    s.products = prodsText.split('\n').map(line=>{
+      const m=line.match(/^(.+?)\s*x(\d+)\s*@?₹?(\d*\.?\d*)/i);
+      if(m) return {name:m[1].trim(),qty:+m[2],price:+m[3]||0,disc:0,total:(+m[2])*(+m[3]||0)};
+      return {name:line.trim(),qty:1,price:s.total,disc:0,total:s.total};
+    }).filter(p=>p.name);
+  }
+  closeModal('edit-sale-modal');
+  renderSalesTable(); updateDashStats(); renderSmartProfit();
+  autoSave();
+  toast('✅ Sale updated!');
+}
+
+// ===== INVOICE GENERATOR =====
+function generateInvoice(id){
+  const s = S.sales.find(x=>x.id===id);
+  if(!s){ toast('Sale not found'); return; }
+
+  const biz   = S.settings.bizName  || 'Meenatchi Traders';
+  const owner = S.settings.owner    || '';
+  const phone = S.settings.phone    || '';
+  const addr  = S.settings.addr     || '';
+  const gstin = S.settings.gstin    || '';
+  const upi   = S.settings.upi      || '';
+  const invNo = 'INV-'+String(id).slice(-6);
+  const payAmt= s.pending > 0 ? s.pending : s.total;
+
+  // ── UPI QR Code (Google Charts API — no library needed) ──────────────
+  // UPI deep link format: upi://pay?pa=UPI_ID&pn=NAME&am=AMOUNT&cu=INR
+  const qrSection = upi ? (() => {
+    const upiLink = `upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(biz)}&am=${payAmt.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Payment for '+invNo)}`;
+    const qrUrl   = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiLink)}&bgcolor=ffffff&color=0d1117&margin=8`;
+    return `
+      <div style="text-align:center;margin:20px 0;padding:16px;background:#f9f9f9;border:1px solid #eee;border-radius:10px">
+        <div style="font-size:14px;font-weight:700;color:#0d1117;margin-bottom:8px">
+          📱 Scan to Pay${s.pending>0?' ₹'+s.pending.toFixed(2):''}
+        </div>
+        <img src="${qrUrl}" alt="UPI QR Code" style="width:160px;height:160px;display:block;margin:0 auto 10px"
+             onerror="this.parentElement.innerHTML='<div style=color:#666;font-size:12px>QR unavailable offline<br><strong>${upi}</strong></div>'">
+        <div style="font-size:12px;color:#555;margin-top:4px">UPI ID: <strong>${upi}</strong></div>
+        <div style="font-size:11px;color:#999;margin-top:2px">Works with GPay, PhonePe, Paytm, any UPI app</div>
+        ${s.pending>0
+          ? `<div style="font-size:13px;font-weight:700;color:red;margin-top:8px">Pending: ₹${s.pending.toFixed(2)}</div>`
+          : `<div style="font-size:12px;color:green;margin-top:8px">✅ Fully Paid</div>`}
+      </div>`;
+  })() : '';
+
+  // ── Logo ─────────────────────────────────────────────────────────────
+  const logoHtml = S.settings.logo
+    ? `<img src="${S.settings.logo}" style="height:64px;object-fit:contain;margin-bottom:6px">`
+    : `<div style="font-size:38px;margin-bottom:4px">🏪</div>`;
+
+  // ── Product rows ──────────────────────────────────────────────────────
+  const rows = (s.products||[]).map((p,i)=>`
+    <tr>
+      <td style="padding:8px 6px;color:#555">${i+1}</td>
+      <td style="padding:8px 6px;font-weight:600">${p.name}</td>
+      <td style="padding:8px 6px;text-align:center">${p.qty}</td>
+      <td style="padding:8px 6px;text-align:right">₹${(+p.price||0).toFixed(2)}</td>
+      <td style="padding:8px 6px;text-align:right;color:#e55">${+p.disc>0?'₹'+(+p.disc).toFixed(2):'—'}</td>
+      <td style="padding:8px 6px;text-align:right;font-weight:700;color:#0d1117">₹${(+p.total||(p.qty*((+p.price||0)-(+p.disc||0)))).toFixed(2)}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice ${invNo} — ${biz}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;max-width:640px;margin:0 auto;color:#222;padding:24px;background:#fff}
+  .hdr{text-align:center;padding-bottom:14px;margin-bottom:16px;border-bottom:3px solid #f9c846}
+  .biz-name{font-size:24px;font-weight:800;color:#0d1117;letter-spacing:-0.5px}
+  .biz-sub{font-size:12px;color:#666;margin-top:2px}
+  .inv-meta{display:flex;justify-content:space-between;margin-bottom:18px;font-size:12.5px;gap:12px}
+  .inv-meta div{flex:1}
+  .inv-meta .right{text-align:right}
+  .label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:3px}
+  .val{font-weight:600;color:#0d1117}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:4px}
+  thead tr{background:#0d1117}
+  thead th{color:#f9c846;padding:9px 6px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px}
+  tbody tr:nth-child(even){background:#f8f8f8}
+  tbody tr:hover{background:#fff9e6}
+  tbody td{border-bottom:1px solid #f0f0f0}
+  tfoot td{padding:7px 6px;font-size:13px}
+  .tot-line{border-top:2px solid #0d1117}
+  .grand-total{font-size:16px;font-weight:800;color:#0d1117}
+  .paid{color:#2a9d2a;font-weight:700}
+  .pending{color:#cc2222;font-weight:700}
+  .footer{text-align:center;margin-top:20px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:12px}
+  .print-btn{display:block;width:100%;background:#0d1117;color:#f9c846;border:none;padding:12px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px;letter-spacing:.3px}
+  .status-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${s.pending>0?'#fee2e2':'#dcfce7'};color:${s.pending>0?'#cc2222':'#166534'}}
+  @media print{
+    .no-print{display:none!important}
+    body{padding:10px}
+    .print-btn{display:none}
+  }
+</style>
+</head><body>
+
+<!-- Header -->
+<div class="hdr">
+  ${logoHtml}
+  <div class="biz-name">${biz}</div>
+  ${owner?`<div class="biz-sub">👤 ${owner}</div>`:''}
+  ${phone?`<div class="biz-sub">📞 ${phone}</div>`:''}
+  ${addr?`<div class="biz-sub">📍 ${addr}</div>`:''}
+  ${gstin?`<div class="biz-sub">GSTIN: ${gstin}</div>`:''}
+</div>
+
+<!-- Invoice meta -->
+<div class="inv-meta">
+  <div>
+    <div class="label">Invoice</div>
+    <div class="val" style="font-size:16px;color:#f9c846">#${invNo}</div>
+    <div style="margin-top:8px"><div class="label">Date</div><div class="val">${s.date}</div></div>
+    <div style="margin-top:8px"><div class="label">Payment Mode</div><div class="val">${s.mode||'Cash'}</div></div>
+    <div style="margin-top:8px"><div class="label">Status</div><span class="status-badge">${s.pending>0?'⏳ Partial':'✅ Paid'}</span></div>
+  </div>
+  <div class="right">
+    <div class="label">Bill To</div>
+    <div class="val" style="font-size:15px">${s.customer}</div>
+    ${s.phone?`<div style="color:#555;font-size:12px;margin-top:3px">📞 ${s.phone}</div>`:''}
+  </div>
+</div>
+
+<!-- Products table -->
+<table>
+  <thead><tr><th>#</th><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Disc</th><th style="text-align:right">Amount</th></tr></thead>
+  <tbody>${rows}</tbody>
+  <tfoot>
+    <tr class="tot-line">
+      <td colspan="5" style="text-align:right;padding-top:10px;font-weight:700;font-size:14px">Total</td>
+      <td class="grand-total" style="text-align:right;padding-top:10px">₹${s.total.toFixed(2)}</td>
+    </tr>
+    <tr>
+      <td colspan="5" style="text-align:right;padding-top:4px">Amount Received</td>
+      <td class="paid" style="text-align:right;padding-top:4px">₹${(+s.recv||0).toFixed(2)}</td>
+    </tr>
+    ${s.pending>0?`<tr>
+      <td colspan="5" style="text-align:right;font-weight:700">Balance Due</td>
+      <td class="pending" style="text-align:right;font-size:15px">₹${s.pending.toFixed(2)}</td>
+    </tr>`:'<tr><td colspan="6" style="text-align:right;color:#2a9d2a;font-weight:700;padding-top:4px">✅ Fully Paid</td></tr>'}
+  </tfoot>
+</table>
+
+<!-- UPI QR Section -->
+${qrSection}
+
+<!-- Footer -->
+<div class="footer">
+  Thank you for your business! 🙏<br>
+  <strong>${biz}</strong>${phone?' · '+phone:''}
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+<script>
+  // Auto-trigger print when opened directly
+  if(window.location.protocol !== 'about:') {
+    window.onload = function(){ setTimeout(()=>window.print(), 800); };
+  }
+<\/script>
+</body></html>`;
+
+  const blob = new Blob([html],{type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.target='_blank'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 8000);
+  toast(upi ? '🧾 Invoice with QR opened → Print to save PDF' : '🧾 Invoice opened — add UPI ID in Settings for QR code');
+}
+
+// ===== BUSINESS ANALYTICS FUNCTIONS =====
+function renderBaMonthly(){
+  const byMonth={};
+  S.sales.forEach(s=>{
+    const m=s.date?.slice(0,7)||''; if(!m) return;
+    if(!byMonth[m]) byMonth[m]={orders:0,rev:0,recv:0,pend:0,profit:0};
+    byMonth[m].orders++; byMonth[m].rev+=s.total||0;
+    byMonth[m].recv+=s.recv||0; byMonth[m].pend+=s.pending||0;
+    byMonth[m].profit+=s.profit||0;
+  });
+  const months=Object.keys(byMonth).sort();
+  const tb=document.getElementById('ba-tbody');
+  if(!months.length){ if(tb) tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📋</div><p>No sales yet</p></div></td></tr>'; return; }
+  tb.innerHTML=months.slice().reverse().map((m,i)=>{
+    const d=byMonth[m]; const prev=byMonth[months[months.length-2-i]];
+    const vs=prev?((d.rev-prev.rev)/prev.rev*100).toFixed(1):null;
+    const vsStr=vs===null?'—':+vs>0?`<span style="color:var(--green)">▲${vs}%</span>`:`<span style="color:var(--red)">▼${Math.abs(vs)}%</span>`;
+    return `<tr><td><strong>${m}</strong></td><td>${d.orders}</td><td style="color:var(--accent)">₹${d.rev.toFixed(0)}</td><td style="color:var(--green)">₹${d.recv.toFixed(0)}</td><td style="color:var(--red)">₹${d.pend.toFixed(0)}</td><td style="color:var(--blue)">₹${d.profit.toFixed(0)}</td><td>${vsStr}</td></tr>`;
+  }).join('');
+  // Bar charts
+  const maxRev=Math.max(...months.map(m=>byMonth[m].rev),1);
+  const revChart=document.getElementById('ba-rev-chart');
+  if(revChart) revChart.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0">${months.map(m=>{const pct=(byMonth[m].rev/maxRev*100);return `<div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="background:var(--accent);width:100%;height:${pct}%;border-radius:4px 4px 0 0;min-height:4px"></div><div style="font-size:8px;color:var(--text3);margin-top:3px;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg)">${m.slice(5)}</div></div>`;}).join('')}</div>`;
+  const maxProf=Math.max(...months.map(m=>byMonth[m].profit),1);
+  const profChart=document.getElementById('ba-prof-chart');
+  if(profChart) profChart.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0">${months.map(m=>{const pct=Math.max((byMonth[m].profit/maxProf*100),0);return `<div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="background:var(--green);width:100%;height:${pct}%;border-radius:4px 4px 0 0;min-height:2px"></div><div style="font-size:8px;color:var(--text3);margin-top:3px;writing-mode:vertical-lr;text-orientation:mixed;transform:rotate(180deg)">${m.slice(5)}</div></div>`;}).join('')}</div>`;
+}
+
+function renderBaBestDays(){
+  const byDate={};
+  S.sales.forEach(s=>{ if(!s.date) return; byDate[s.date]=(byDate[s.date]||0)+s.total; });
+  const sorted=Object.entries(byDate).sort((a,b)=>b[1]-a[1]);
+  const el=document.getElementById('ba-best-content');
+  if(el) el.innerHTML=sorted.length
+    ? sorted.slice(0,10).map(([d,v],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:16px;min-width:24px">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span><span style="flex:1;font-weight:500">${d}</span><span style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${v.toFixed(0)}</span></div>`).join('')
+    : '<div class="empty"><div class="ei">🏆</div><p>Record sales to see best days</p></div>';
+  // Day of week analysis
+  const byDow={Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
+  const dowCount={Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  S.sales.forEach(s=>{if(!s.date)return; const d=days[new Date(s.date).getDay()];byDow[d]+=s.total;dowCount[d]++;});
+  const dowEl=document.getElementById('ba-dow-content');
+  if(dowEl){
+    const maxDow=Math.max(...Object.values(byDow),1);
+    dowEl.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding:8px 0">'+
+      ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>{
+        const pct=(byDow[d]/maxDow*100);
+        const avg=dowCount[d]?byDow[d]/dowCount[d]:0;
+        return `<div style="display:flex;flex-direction:column;align-items:center;flex:1" title="${d}: ₹${avg.toFixed(0)} avg">
+          <div style="background:var(--blue);width:100%;height:${pct}%;border-radius:4px 4px 0 0;min-height:2px"></div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">${d}</div></div>`;}).join('')+'</div>';
+  }
+}
+
+function renderBaPeakHours(){
+  // Use sale save timestamps (id is Date.now())
+  const byHour=Array(24).fill(0);
+  S.sales.forEach(s=>{ if(s.id&&String(s.id).length>10){ const h=new Date(+s.id).getHours(); byHour[h]+=s.total||0; } });
+  const maxH=Math.max(...byHour,1);
+  const el=document.getElementById('ba-peak-bars');
+  if(!el) return;
+  const hasData=byHour.some(v=>v>0);
+  if(!hasData){ el.innerHTML='<div class="empty"><div class="ei">⏱️</div><p>Record sales at different times to see peak hours.</p></div>'; return; }
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:3px;height:100px;padding:8px 0">'+
+    byHour.map((v,h)=>{
+      const pct=(v/maxH*100);
+      const label=h===0?'12a':h<12?h+'a':h===12?'12p':(h-12)+'p';
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1" title="${h}:00 — ₹${v.toFixed(0)}">
+        <div style="background:${pct>60?'var(--accent)':pct>30?'var(--blue)':'var(--surface3)'};width:100%;height:${Math.max(pct,2)}%;border-radius:2px 2px 0 0"></div>
+        <div style="font-size:7px;color:var(--text3);margin-top:2px;writing-mode:vertical-lr;transform:rotate(180deg)">${label}</div>
+      </div>`;}).join('')+'</div>';
+}
+
+function renderBaSeasonal(){
+  const byMon={Jan:0,Feb:0,Mar:0,Apr:0,May:0,Jun:0,Jul:0,Aug:0,Sep:0,Oct:0,Nov:0,Dec:0};
+  const monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  S.sales.forEach(s=>{if(!s.date)return; const m=monNames[new Date(s.date).getMonth()]; byMon[m]+=s.total;});
+  const el=document.getElementById('ba-seasonal-content');
+  if(!el) return;
+  const maxV=Math.max(...Object.values(byMon),1);
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:4px;height:100px;padding:8px 0">'+
+    monNames.map(m=>{const pct=(byMon[m]/maxV*100);return `<div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="background:var(--green);width:100%;height:${Math.max(pct,2)}%;border-radius:3px 3px 0 0;min-height:2px"></div><div style="font-size:8px;color:var(--text3);margin-top:3px">${m}</div></div>`;}).join('')+'</div>';
+}
+
+function calcBreakEven(){
+  const fixed=+document.getElementById('ba-fixed')?.value||0;
+  const varPct=+document.getElementById('ba-var')?.value||60;
+  const el=document.getElementById('ba-break-result');
+  if(!el) return;
+  if(!fixed){ el.innerHTML=''; return; }
+  const contribRatio=(100-varPct)/100;
+  const breakEven=contribRatio>0?fixed/contribRatio:Infinity;
+  const mRev=S.sales.reduce((a,s)=>a+s.total,0);
+  const overUnder=mRev-breakEven;
+  el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:14px;margin-top:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div style="font-size:11px;color:var(--text3)">Break-Even Revenue</div><div style="font-size:18px;font-weight:700;font-family:Poppins,sans-serif;color:var(--accent)">₹${breakEven.toFixed(0)}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Current Revenue</div><div style="font-size:18px;font-weight:700;font-family:Poppins,sans-serif;color:var(--blue)">₹${mRev.toFixed(0)}</div></div>
+      <div><div style="font-size:11px;color:var(--text3)">Status</div><div style="font-size:14px;font-weight:600;color:${overUnder>=0?'var(--green)':'var(--red)'}">${overUnder>=0?'✅ Profitable! ₹'+overUnder.toFixed(0)+' above break-even':'⚠️ ₹'+Math.abs(overUnder).toFixed(0)+' below break-even'}</div></div>
+    </div>
+  </div>`;
+}
+
+// ===== PDF REPORT =====
+function generateReportPDF(){
+  genReport(); // ensure report is fresh
+  const biz = S.settings.bizName||'Meenatchi Traders';
+  const date = document.getElementById('rep-date')?.value||new Date().toISOString().slice(0,10);
+  const sales = document.getElementById('rep-sales')?.textContent||'₹0';
+  const profit= document.getElementById('rep-profit')?.textContent||'₹0';
+  const tea   = document.getElementById('rep-tea')?.textContent||'₹0';
+  const pend  = document.getElementById('rep-pend')?.textContent||'₹0';
+  const daySales = S.sales.filter(s=>s.date===date);
+  const topProds = {};
+  daySales.forEach(s=>s.products?.forEach(p=>{topProds[p.name]=(topProds[p.name]||0)+p.qty;}));
+  const topRows = Object.entries(topProds).sort((a,b)=>b[1]-a[1]).slice(0,10)
+    .map(([n,q],i)=>`<tr><td>${i+1}</td><td>${n}</td><td>${q}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Daily Report ${date}</title>
+  <style>body{font-family:Arial,sans-serif;max-width:700px;margin:20px auto;color:#222}
+  h1{color:#0d1117;border-bottom:2px solid #f9c846;padding-bottom:8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  .stat{background:#f9f9f9;border-radius:8px;padding:12px;text-align:center}
+  .stat-val{font-size:22px;font-weight:700;color:#0d1117}
+  .stat-lbl{font-size:11px;color:#666}
+  table{width:100%;border-collapse:collapse;margin-top:16px}
+  th{background:#0d1117;color:#f9c846;padding:8px}td{padding:8px;border-bottom:1px solid #eee}
+  @media print{.no-print{display:none}}</style></head><body>
+  <h1>📊 ${biz} — Daily Report</h1>
+  <p>Date: <strong>${date}</strong> · Generated: ${new Date().toLocaleString()}</p>
+  <div class="grid">
+    <div class="stat"><div class="stat-val">${sales}</div><div class="stat-lbl">Total Sales</div></div>
+    <div class="stat"><div class="stat-val">${profit}</div><div class="stat-lbl">Profit</div></div>
+    <div class="stat"><div class="stat-val">${tea}</div><div class="stat-lbl">Tea Shop Income</div></div>
+    <div class="stat"><div class="stat-val">${pend}</div><div class="stat-lbl">Pending Payments</div></div>
+  </div>
+  <h2>📦 Products Sold Today</h2>
+  ${topRows?`<table><thead><tr><th>#</th><th>Product</th><th>Qty Sold</th></tr></thead><tbody>${topRows}</tbody></table>`:'<p>No products sold today.</p>'}
+  <div class="no-print" style="text-align:center;margin-top:20px">
+    <button onclick="window.print()" style="background:#0d1117;color:#f9c846;border:none;padding:10px 24px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">🖨️ Print / Save as PDF</button>
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.target='_blank'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  toast('📄 PDF report opened — use Print → Save as PDF');
+}
+
 // ===== FUNCTION ALIASES (for backwards compatibility) =====
-// addProduct() = save wholesale product
 function addProduct(){
   const name    = document.getElementById('p-name').value.trim();
   if(!name){ toast('⚠️ Enter product name'); return; }
@@ -4006,7 +4785,7 @@ function calcNextDue(){
 function populateReminderDataLists(){
   // Customers datalist
   const custDL = document.getElementById('rem-cust-datalist');
-  if(custDL) custDL.innerHTML = S.customers.map(c=>`<option value="${c.name}">`).join('');
+  if(custDL) custDL.innerHTML = S.customers.map(c=>`<option value="${c.name}" data-phone="${c.phone||''}">`).join('');
   // Products datalist
   const prodDL = document.getElementById('rem-prod-datalist');
   if(prodDL) prodDL.innerHTML = S.products.map(p=>`<option value="${p.name}">`).join('');
@@ -4016,6 +4795,21 @@ function populateReminderDataLists(){
   // Set today's date as default for last purchase
   const ldEl = document.getElementById('rem-last-date');
   if(ldEl && !ldEl.value) ldEl.value = new Date().toISOString().slice(0,10);
+  // Wire customer input to auto-fill phone
+  const remCust = document.getElementById('rem-cust');
+  if(remCust && !remCust._phoneWired){
+    remCust._phoneWired = true;
+    remCust.addEventListener('input', function(){
+      const c = S.customers.find(x=>x.name.toLowerCase()===this.value.toLowerCase());
+      if(c){
+        const ph = document.getElementById('rem-phone');
+        if(ph && !ph.value) ph.value = c.phone||'';
+        // Also auto-fill last product
+        const prod = document.getElementById('rem-prod');
+        if(prod && !prod.value && c.lastProd && c.lastProd!=='—') prod.value = c.lastProd;
+      }
+    });
+  }
 }
 
 function addReminder(){
@@ -4134,8 +4928,13 @@ function markReminderSent(id){
 
 function sendReminderWA(id){
   const r = S.reminders.find(x=>x.id===id);
-  if(!r) return;
-  const msg = r.msg.replace('{name}',r.custName).replace('{product}',r.product);
+  if(!r){ toast('Reminder not found'); return; }
+  if(!r.phone){ toast('⚠️ No phone number for '+r.custName+'. Edit reminder to add phone.'); return; }
+  const biz = S.settings.bizName||'Meenatchi Traders';
+  const msg = (r.msg||`Hi ${r.custName}, it's time to reorder ${r.product}! Contact ${biz}. 😊`)
+    .replace('{name}',r.custName)
+    .replace('{product}',r.product)
+    .replace('{biz}',biz);
   openWA(r.phone, msg);
   markReminderSent(id);
 }
@@ -4460,7 +5259,7 @@ function saveSettings(){
   S.settings.phone   = document.getElementById('biz-phone')?.value||'';
   S.settings.addr    = document.getElementById('biz-addr')?.value||'';
   const gstin = document.querySelector('#p-settings input[placeholder="GST number"]');
-  const upi   = document.querySelector('#p-settings input[placeholder="name@upi"]');
+  const upiEl2 = document.getElementById('biz-upi');
   if(gstin) S.settings.gstin = gstin.value;
   if(upi)   S.settings.upi   = upi.value;
   autoSave();
@@ -4475,9 +5274,9 @@ function loadSettingsForm(){
   if(el('biz-phone')  && set.phone)   el('biz-phone').value  = set.phone;
   if(el('biz-addr')   && set.addr)    el('biz-addr').value   = set.addr;
   const gstin = document.querySelector('#p-settings input[placeholder="GST number"]');
-  const upi   = document.querySelector('#p-settings input[placeholder="name@upi"]');
+  const upiEl2 = document.getElementById('biz-upi');
   if(gstin && set.gstin) gstin.value = set.gstin;
-  if(upi   && set.upi)   upi.value   = set.upi;
+  if(upiEl2 && set.upi) upiEl2.value = set.upi;
 }
 
 // ===== GOOGLE SHEETS INTEGRATION =====
