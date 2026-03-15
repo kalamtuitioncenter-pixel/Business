@@ -598,14 +598,23 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                   <input class="fi" id="p-cat" placeholder="Select or type..." list="cat-datalist" autocomplete="off">
                   <datalist id="cat-datalist"></datalist>
                 </div>
-                <div class="fg"><label class="fl">Buy Unit</label>
-                  <select class="fs" id="p-buy-unit" onchange="calcPackBreakdown()">
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="litre">litre</option>
-                    <option value="pcs">pcs</option>
-                    <option value="pack">pack</option>
+                <div class="fg"><label class="fl">Buy Unit <span style="font-size:9px;color:var(--text3)">(what you purchase in)</span></label>
+                  <select class="fs" id="p-buy-unit" onchange="onBuyUnitChange()">
+                    <option value="kg">kg (kilogram)</option>
+                    <option value="g">g (gram)</option>
+                    <option value="litre">Litre</option>
+                    <option value="ml">ml (millilitre)</option>
+                    <option value="pcs">Pieces / Units</option>
+                    <option value="pack">Pack / Box</option>
+                    <option value="dozen">Dozen</option>
+                    <option value="metre">Metre</option>
                   </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl">Sell Unit <span style="font-size:9px;color:var(--text3)">(how you sell to customers)</span></label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap" id="sell-unit-options">
+                  <!-- Dynamically populated based on buy unit -->
                 </div>
               </div>
               <div class="fr3">
@@ -616,7 +625,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <div class="fr3">
                 <div class="fg"><label class="fl">Cost/Unit (₹) — Auto</label><input class="fi" id="p-cunit" type="number" placeholder="Auto" readonly style="background:var(--surface3);color:var(--accent);font-weight:600"></div>
                 <div class="fg"><label class="fl">Alert Level (Low Stock)</label><input class="fi" id="p-alert" type="number" placeholder="5" value="5"></div>
-                <div class="fg"><label class="fl">Cost per gram (₹) — Auto</label><input class="fi" id="p-cpg" type="number" placeholder="Auto" readonly style="background:var(--surface3);color:var(--blue);font-weight:600"></div>
+                <div class="fg"><label class="fl" id="cpg-label">Cost per g (₹) — Auto</label><input class="fi" id="p-cpg" type="number" placeholder="Auto" readonly style="background:var(--surface3);color:var(--blue);font-weight:600"></div>
               </div>
             </div>
           </div>
@@ -652,38 +661,35 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div id="pack-section">
             <div class="card" style="margin-bottom:14px">
               <div class="card-h">
-                <h3>📦 Pack Breakdown Calculator</h3>
-                <span id="total-kg-label" style="font-size:11px;color:var(--text3)">Enter buy quantity above to see pack counts</span>
+                <h3 id="pack-section-title">📦 Pack Breakdown Calculator</h3>
+                <span id="total-kg-label" style="font-size:11px;color:var(--text3)">Enter buy quantity above</span>
               </div>
               <div class="card-b">
-                <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
-                  💡 Enter how many packs you want to make from your purchase. Costs are auto-calculated per pack based on weight.
-                  Enable only the pack sizes you need using the checkboxes.
+                <div id="pack-info-banner" style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
+                  💡 Enter how many packs/pieces you want to make. Costs are auto-calculated per unit based on your buy price.
                 </div>
 
                 <!-- Pack sizes grid -->
-                <div id="pack-rows-container">
-                  <!-- Pack rows inserted by JS -->
-                </div>
+                <div id="pack-rows-container"></div>
 
                 <!-- Live total summary -->
                 <div id="pack-total-summary" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px">
                   <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📊 Pack Summary</div>
                   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px">
                     <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Total Packs</div><div id="sum-total-packs" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--blue);font-size:16px">0</div></div>
-                    <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Material Used</div><div id="sum-material-used" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--orange);font-size:16px">0g</div></div>
+                    <div style="text-align:center"><div style="font-size:10px;color:var(--text3)" id="sum-used-label">Material Used</div><div id="sum-material-used" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--orange);font-size:16px">0</div></div>
                     <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Total Revenue</div><div id="sum-total-revenue" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent);font-size:16px">₹0</div></div>
                     <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Total Profit</div><div id="sum-total-profit" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--green);font-size:16px">₹0</div></div>
                   </div>
                   <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
-                    <div id="sum-remaining" style="font-size:12px;color:var(--text2)">Remaining: 0g</div>
+                    <div id="sum-remaining" style="font-size:12px;color:var(--text2)">Remaining: 0</div>
                     <div id="sum-margin" style="font-size:12px;font-weight:600;color:var(--green)">Margin: 0%</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button class="btn btn-y" onclick="addProductWithPacks()" style="width:100%;max-width:860px;justify-content:center;padding:10px">➕ Add Product & All Pack Variants</button>
+            <button class="btn btn-y" onclick="addProductWithPacks()" style="width:100%;max-width:860px;justify-content:center;padding:10px">➕ Add Product &amp; All Pack Variants</button>
           </div>
 
         </div>
@@ -1626,13 +1632,19 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="settings-section">
           <h3>🏪 Business Information</h3>
           <div class="fg"><label class="fl">Business Name</label><input class="fi" id="biz-name" value="Meenatchi Traders"></div>
-          <div class="fg"><label class="fl">Business Logo (shown on invoices)</label>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:48px;height:48px;background:var(--surface3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px">🏪</div>
-              <button class="btn btn-o" style="font-size:10px">📤 Upload Logo</button>
-              <button class="btn btn-r" style="font-size:10px">🗑️ Remove</button>
+          <div class="fg">
+            <label class="fl">Business Logo <span style="font-size:9px;color:var(--text3)">(shown on invoices)</span></label>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+              <!-- Logo preview -->
+              <div id="logo-preview" style="width:64px;height:64px;background:var(--surface3);border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex-shrink:0">🏪</div>
+              <div>
+                <!-- Hidden real file input -->
+                <input type="file" id="logo-file-input" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none" onchange="handleLogoUpload(this)">
+                <button class="btn btn-o" style="font-size:11px;margin-bottom:6px;display:block;width:100%" onclick="document.getElementById('logo-file-input').click()">📤 Upload Logo</button>
+                <button class="btn btn-r" style="font-size:11px;display:block;width:100%" onclick="removeLogo()">🗑️ Remove</button>
+              </div>
             </div>
-            <div style="font-size:9px;color:var(--text3);margin-top:4px">PNG or JPG · Max 300KB · Appears on all invoices</div>
+            <div style="font-size:9px;color:var(--text3)">PNG, JPG or WebP · Max 500KB · Appears on all invoices</div>
           </div>
           <div class="fg"><label class="fl">Owner Name</label><input class="fi" id="owner-name" placeholder="Owner name"></div>
           <div class="fg"><label class="fl">Phone</label><input class="fi" id="biz-phone" placeholder="+91..."></div>
@@ -1834,7 +1846,7 @@ function nav(page){
   if(page==='loyalty'){ renderLoyalty(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='supplier'){ renderSuppliers(); }
-  if(page==='settings'){ renderCategoryChips(); refreshBackupList(); loadGsSettings(); }
+  if(page==='settings'){ renderCategoryChips(); refreshBackupList(); loadGsSettings(); loadLogoPreview(); }
   // Close sidebar on mobile after navigation
   closeSidebar();
   // Update bottom nav active state
@@ -1928,7 +1940,7 @@ function pTab(el,id){
   ['pt-list','pt-add','pt-status'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
   const t=document.getElementById(id);if(t)t.style.display='block';
   if(id==='pt-status') renderStockStatus();
-  if(id==='pt-add'){ buildPackRows(); renderCategoryChips(); }
+  if(id==='pt-add'){ buildSellUnitOptions(); renderCategoryChips(); }
 }
 function cTab(el,id){
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1953,7 +1965,11 @@ function remTab(el,id){tabSwitch(el,id,['rt-today','rt-all','rt-rules','rt-add',
   if(id==='rt-hist') renderCustomerHistory('');
 }
 function sfTab(el,id){tabSwitch(el,id,['sf-ov','sf-tbl','sf-ins','sf-exp']);}
-function supTab(el,id){tabSwitch(el,id,['sup-all','sup-add','sup-cat']);}
+function supTab(el,id){
+  if(el)tabSwitch(el,id,['sup-all','sup-add','sup-cat']);
+  else{document.querySelectorAll('#p-supplier .tab').forEach(t=>t.classList.remove('active'));['sup-all','sup-add','sup-cat'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});document.getElementById(id).style.display='block';}
+  if(id==='sup-all') renderSuppliers();
+}
 function loyTab(el,id){
   tabSwitch(el,id,['lt-lead','lt-pts','lt-hist','lt-bday','lt-ref']);
   if(id==='lt-lead') renderLeaderboard();
@@ -2265,68 +2281,377 @@ function searchProducts(q){
   rows.forEach(r=>{const t=r.textContent.toLowerCase();r.style.display=t.includes(q.toLowerCase())?'':'none';});
 }
 
-// ===== PACK SIZES CONFIG =====
-const PACK_SIZES = [
-  {id:'p20',   label:'20g',    grams:20,    defaultEnabled:false},
-  {id:'p50',   label:'50g',    grams:50,    defaultEnabled:false},
-  {id:'p100',  label:'100g',   grams:100,   defaultEnabled:true},
-  {id:'p200',  label:'200g',   grams:200,   defaultEnabled:false},
-  {id:'p250',  label:'250g',   grams:250,   defaultEnabled:true},
-  {id:'p500',  label:'500g',   grams:500,   defaultEnabled:true},
-  {id:'p1000', label:'1kg',    grams:1000,  defaultEnabled:true},
-  {id:'p2000', label:'2kg',    grams:2000,  defaultEnabled:false},
-  {id:'p5000', label:'5kg',    grams:5000,  defaultEnabled:false},
-];
+// ===== LOGO UPLOAD =====
+function handleLogoUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 512000){ toast('⚠️ Logo too large — max 500KB'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const dataUrl = e.target.result;
+    S.settings.logo = dataUrl;
+    const prev = document.getElementById('logo-preview');
+    if(prev){
+      prev.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px';
+      prev.appendChild(img);
+    }
+    toast('✅ Logo uploaded!');
+  };
+  reader.readAsDataURL(file);
+}
 
+function removeLogo(){
+  S.settings.logo = '';
+  const prev = document.getElementById('logo-preview');
+  if(prev) prev.innerHTML = '🏪';
+  const inp = document.getElementById('logo-file-input');
+  if(inp) inp.value = '';
+  toast('🗑️ Logo removed');
+}
+
+function loadLogoPreview(){
+  if(S.settings.logo){
+    const prev = document.getElementById('logo-preview');
+    if(prev){
+      prev.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = S.settings.logo;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:8px';
+      prev.appendChild(img);
+    }
+  }
+}
+
+// ===== SELL UNIT CONFIG (per buy unit) =====
+// Each entry: { value, label, size, baseUnit }
+// size = how many base units per sell unit (e.g. 100g pack = 100)
+// baseUnit = the smallest unit (g, ml, pcs, etc.)
+const SELL_UNIT_MAP = {
+  'kg': [
+    {value:'10g',   label:'10g Pack',    size:10,    baseUnit:'g'},
+    {value:'20g',   label:'20g Pack',    size:20,    baseUnit:'g'},
+    {value:'50g',   label:'50g Pack',    size:50,    baseUnit:'g'},
+    {value:'100g',  label:'100g Pack',   size:100,   baseUnit:'g'},
+    {value:'150g',  label:'150g Pack',   size:150,   baseUnit:'g'},
+    {value:'200g',  label:'200g Pack',   size:200,   baseUnit:'g'},
+    {value:'250g',  label:'250g Pack',   size:250,   baseUnit:'g'},
+    {value:'500g',  label:'500g Pack',   size:500,   baseUnit:'g'},
+    {value:'1kg',   label:'1 kg Pack',   size:1000,  baseUnit:'g'},
+    {value:'2kg',   label:'2 kg Pack',   size:2000,  baseUnit:'g'},
+    {value:'5kg',   label:'5 kg Pack',   size:5000,  baseUnit:'g'},
+  ],
+  'g': [
+    {value:'5g',    label:'5g Pack',     size:5,     baseUnit:'g'},
+    {value:'10g',   label:'10g Pack',    size:10,    baseUnit:'g'},
+    {value:'20g',   label:'20g Pack',    size:20,    baseUnit:'g'},
+    {value:'50g',   label:'50g Pack',    size:50,    baseUnit:'g'},
+    {value:'100g',  label:'100g Pack',   size:100,   baseUnit:'g'},
+    {value:'250g',  label:'250g Pack',   size:250,   baseUnit:'g'},
+    {value:'500g',  label:'500g Pack',   size:500,   baseUnit:'g'},
+  ],
+  'litre': [
+    {value:'50ml',  label:'50ml Bottle', size:50,    baseUnit:'ml'},
+    {value:'100ml', label:'100ml Bottle',size:100,   baseUnit:'ml'},
+    {value:'200ml', label:'200ml Bottle',size:200,   baseUnit:'ml'},
+    {value:'250ml', label:'250ml Bottle',size:250,   baseUnit:'ml'},
+    {value:'500ml', label:'500ml Bottle',size:500,   baseUnit:'ml'},
+    {value:'1L',    label:'1 Litre',     size:1000,  baseUnit:'ml'},
+    {value:'2L',    label:'2 Litre',     size:2000,  baseUnit:'ml'},
+  ],
+  'ml': [
+    {value:'10ml',  label:'10ml',        size:10,    baseUnit:'ml'},
+    {value:'25ml',  label:'25ml',        size:25,    baseUnit:'ml'},
+    {value:'50ml',  label:'50ml',        size:50,    baseUnit:'ml'},
+    {value:'100ml', label:'100ml',       size:100,   baseUnit:'ml'},
+    {value:'200ml', label:'200ml',       size:200,   baseUnit:'ml'},
+    {value:'500ml', label:'500ml',       size:500,   baseUnit:'ml'},
+  ],
+  'pcs': [
+    {value:'1pc',   label:'1 Piece',     size:1,     baseUnit:'pcs'},
+    {value:'2pcs',  label:'2 Pieces',    size:2,     baseUnit:'pcs'},
+    {value:'5pcs',  label:'5 Pieces',    size:5,     baseUnit:'pcs'},
+    {value:'6pcs',  label:'6 Pieces',    size:6,     baseUnit:'pcs'},
+    {value:'10pcs', label:'10 Pieces',   size:10,    baseUnit:'pcs'},
+    {value:'12pcs', label:'12 Pieces',   size:12,    baseUnit:'pcs'},
+    {value:'24pcs', label:'24 Pieces',   size:24,    baseUnit:'pcs'},
+    {value:'50pcs', label:'50 Pieces',   size:50,    baseUnit:'pcs'},
+    {value:'100pcs',label:'100 Pieces',  size:100,   baseUnit:'pcs'},
+  ],
+  'pack': [
+    {value:'1pack', label:'1 Pack',      size:1,     baseUnit:'pack'},
+    {value:'2pack', label:'2 Pack',      size:2,     baseUnit:'pack'},
+    {value:'5pack', label:'5 Pack',      size:5,     baseUnit:'pack'},
+    {value:'10pack',label:'10 Pack',     size:10,    baseUnit:'pack'},
+    {value:'12pack',label:'12 Pack',     size:12,    baseUnit:'pack'},
+    {value:'25pack',label:'25 Pack',     size:25,    baseUnit:'pack'},
+  ],
+  'dozen': [
+    {value:'1pc',   label:'1 Piece',     size:0.083, baseUnit:'dozen'},
+    {value:'6pcs',  label:'Half Dozen',  size:0.5,   baseUnit:'dozen'},
+    {value:'1dozen',label:'1 Dozen',     size:1,     baseUnit:'dozen'},
+    {value:'2dozen',label:'2 Dozen',     size:2,     baseUnit:'dozen'},
+  ],
+  'metre': [
+    {value:'0.5m',  label:'0.5 Metre',   size:0.5,   baseUnit:'metre'},
+    {value:'1m',    label:'1 Metre',     size:1,     baseUnit:'metre'},
+    {value:'2m',    label:'2 Metre',     size:2,     baseUnit:'metre'},
+    {value:'5m',    label:'5 Metre',     size:5,     baseUnit:'metre'},
+    {value:'10m',   label:'10 Metre',    size:10,    baseUnit:'metre'},
+  ]
+};
+
+// Convert buy qty to base units
+function toBaseUnits(qty, buyUnit){
+  if(buyUnit==='kg')     return qty * 1000; // → grams
+  if(buyUnit==='litre')  return qty * 1000; // → ml
+  if(buyUnit==='dozen')  return qty;        // → dozens
+  return qty;                                // g, ml, pcs, pack, metre — already base
+}
+
+// Get unit label for display
+function unitLabel(buyUnit){
+  const map = {kg:'g',g:'g',litre:'ml',ml:'ml',pcs:'pcs',pack:'packs',dozen:'dozens',metre:'m'};
+  return map[buyUnit]||buyUnit;
+}
+
+function onBuyUnitChange(){
+  buildSellUnitOptions();
+  calcCost();
+}
+
+function buildSellUnitOptions(){
+  const buyUnit  = document.getElementById('p-buy-unit')?.value || 'kg';
+  const sellOpts = SELL_UNIT_MAP[buyUnit] || [];
+  const container = document.getElementById('sell-unit-options');
+  if(!container) return;
+
+  // Update cost/unit label
+  const cpgLbl = document.getElementById('cpg-label');
+  if(cpgLbl) cpgLbl.textContent = 'Cost per '+unitLabel(buyUnit)+' (₹) — Auto';
+
+  container.innerHTML = sellOpts.map((opt,i) =>
+    `<label style="display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11.5px;font-weight:500;transition:all .12s" class="sell-unit-chip">
+      <input type="checkbox" value="${opt.value}" data-size="${opt.size}" data-base="${opt.baseUnit}"
+        style="accent-color:var(--accent);width:13px;height:13px"
+        ${i<=2?'checked':''}
+        onchange="buildPackRows();calcPackBreakdown()">
+      ${opt.label}
+    </label>`
+  ).join('');
+
+  buildPackRows();
+}
+
+function getSelectedSellUnits(){
+  const buyUnit  = document.getElementById('p-buy-unit')?.value || 'kg';
+  const sellOpts = SELL_UNIT_MAP[buyUnit] || [];
+  const checked  = document.querySelectorAll('#sell-unit-options input[type=checkbox]:checked');
+  const selected = new Set([...checked].map(c=>c.value));
+  return sellOpts.filter(o=>selected.has(o.value));
+}
+
+// ===== PACK ROWS (dynamic, unit-aware) =====
 function buildPackRows(){
   const container = document.getElementById('pack-rows-container');
   if(!container) return;
-  container.innerHTML = PACK_SIZES.map(ps=>`
-    <div id="pack-row-${ps.id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:opacity .2s" class="pack-row-wrap">
-      <!-- Header row with checkbox and label -->
+  const units = getSelectedSellUnits();
+  if(!units.length){
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">☝️ Select sell units above to see pack breakdown</div>';
+    return;
+  }
+  container.innerHTML = units.map(u => `
+    <div id="pack-row-${u.value}" class="pack-row-wrap" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <input type="checkbox" id="chk-${ps.id}" ${ps.defaultEnabled?'checked':''} style="accent-color:var(--accent);width:15px;height:15px;flex-shrink:0" onchange="togglePackRow('${ps.id}');calcPackBreakdown()">
-        <label for="chk-${ps.id}" style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;min-width:50px">${ps.label}</label>
-        <span id="packs-possible-${ps.id}" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
-        <div id="pack-profit-badge-${ps.id}" style="margin-left:auto;display:none;background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.25);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--green)"></div>
+        <span style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text);min-width:70px">${u.label}</span>
+        <span id="packs-possible-${u.value}" style="font-size:10px;color:var(--text3)"></span>
+        <div id="pack-profit-badge-${u.value}" style="margin-left:auto;display:none;background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.25);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--green)"></div>
       </div>
-      <!-- Fields row -->
-      <div id="pack-fields-${ps.id}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;gap:8px;${!ps.defaultEnabled?'opacity:0.4;pointer-events:none':''}">
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">No. of Packs</div>
-          <input class="fi" id="qty-${ps.id}" type="number" placeholder="Auto" min="0" style="font-size:12px" oninput="calcPackBreakdown()" value="">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">No. of Packs</div>
+          <input class="fi" id="qty-${u.value}" type="number" placeholder="0" min="0" style="font-size:12px" oninput="calcPackBreakdown()">
         </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Cost/Pack ₹</div>
-          <input class="fi" id="cost-${ps.id}" type="number" placeholder="Auto" readonly style="font-size:12px;background:var(--surface3);color:var(--red)">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Cost/Pack ₹</div>
+          <input class="fi" id="cost-${u.value}" type="number" placeholder="Auto" readonly style="font-size:12px;background:var(--surface3);color:var(--red)">
         </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Sell Price ₹</div>
-          <input class="fi" id="sp-${ps.id}" type="number" placeholder="0" style="font-size:12px;color:var(--accent)" oninput="calcPackBreakdown()">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Sell Price ₹</div>
+          <input class="fi" id="sp-${u.value}" type="number" placeholder="0" style="font-size:12px;color:var(--accent)" oninput="calcPackBreakdown()">
         </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Sticker Cost ₹</div>
-          <input class="fi" id="sticker-${ps.id}" type="number" placeholder="0" value="0" style="font-size:12px" oninput="calcPackBreakdown()">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Sticker ₹</div>
+          <input class="fi" id="sticker-${u.value}" type="number" placeholder="0" value="0" style="font-size:12px" oninput="calcPackBreakdown()">
         </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Cover Cost ₹</div>
-          <input class="fi" id="cover-${ps.id}" type="number" placeholder="0" value="0" style="font-size:12px" oninput="calcPackBreakdown()">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Cover ₹</div>
+          <input class="fi" id="cover-${u.value}" type="number" placeholder="0" value="0" style="font-size:12px" oninput="calcPackBreakdown()">
         </div>
-        <div>
-          <div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Profit/Pack ₹</div>
-          <input class="fi" id="profit-${ps.id}" type="number" placeholder="0" readonly style="font-size:12px;background:var(--surface3);color:var(--green);font-weight:700">
+        <div><div style="font-size:9px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Profit ₹</div>
+          <input class="fi" id="profit-${u.value}" type="number" placeholder="0" readonly style="font-size:12px;background:var(--surface3);color:var(--green);font-weight:700">
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`
+  ).join('');
+  calcPackBreakdown();
 }
 
-function togglePackRow(psId){
-  const chk = document.getElementById('chk-'+psId);
-  const fields = document.getElementById('pack-fields-'+psId);
-  if(!fields) return;
-  fields.style.opacity = chk.checked ? '1' : '0.4';
-  fields.style.pointerEvents = chk.checked ? 'auto' : 'none';
+function calcCost(){
+  const bprice   = +document.getElementById('p-bprice').value||0;
+  const ship     = +document.getElementById('p-ship').value||0;
+  const bqty     = +document.getElementById('p-bqty').value||1;
+  const buyUnit  = document.getElementById('p-buy-unit')?.value||'kg';
+  const totalCost = bprice + ship;
+  const cu        = (totalCost / bqty).toFixed(2);
+  document.getElementById('p-cunit').value = cu;
+  // Cost per base unit
+  const baseTotal = toBaseUnits(bqty, buyUnit);
+  const cpb = baseTotal > 0 ? (totalCost / baseTotal).toFixed(4) : 0;
+  document.getElementById('p-cpg').value = cpb;
+  // Update label
+  const lbl = document.getElementById('cpg-label');
+  if(lbl) lbl.textContent = 'Cost per '+unitLabel(buyUnit)+' (₹) — Auto';
+  calcPackBreakdown();
+  if(document.getElementById('p-wholesale')?.checked) calcWholesale();
+}
+
+function calcPackBreakdown(){
+  const bprice   = +document.getElementById('p-bprice').value||0;
+  const ship     = +document.getElementById('p-ship').value||0;
+  const bqty     = +document.getElementById('p-bqty').value||0;
+  const buyUnit  = document.getElementById('p-buy-unit')?.value||'kg';
+  if(!bqty) return;
+  const totalCost  = bprice + ship;
+  const totalBase  = toBaseUnits(bqty, buyUnit);
+  const cpBase     = totalBase > 0 ? totalCost / totalBase : 0; // cost per base unit
+
+  // Update header label
+  const lbl = document.getElementById('total-kg-label');
+  if(lbl) lbl.textContent = `${bqty} ${buyUnit} = ${totalBase} ${unitLabel(buyUnit)} · Cost/${unitLabel(buyUnit)} = ₹${cpBase.toFixed(4)}`;
+
+  const units = getSelectedSellUnits();
+  let totalPacksAll=0, usedBaseAll=0, totalRevAll=0, totalProfAll=0;
+
+  units.forEach(u => {
+    const qtyEl   = document.getElementById('qty-'+u.value);
+    const costEl  = document.getElementById('cost-'+u.value);
+    const spEl    = document.getElementById('sp-'+u.value);
+    const stickerEl=document.getElementById('sticker-'+u.value);
+    const coverEl = document.getElementById('cover-'+u.value);
+    const profitEl= document.getElementById('profit-'+u.value);
+    const possEl  = document.getElementById('packs-possible-'+u.value);
+    const badgeEl = document.getElementById('pack-profit-badge-'+u.value);
+    if(!costEl) return;
+
+    const maxPossible = totalBase > 0 ? Math.floor(totalBase / u.size) : 0;
+    if(possEl) possEl.textContent = `(max ${maxPossible} packs from total)`;
+
+    const costPerPack  = cpBase * u.size;
+    const sp           = +spEl?.value||0;
+    const sticker      = +stickerEl?.value||0;
+    const cover        = +coverEl?.value||0;
+    const totalCostPack = costPerPack + sticker + cover;
+    const profitPerPack = sp - totalCostPack;
+
+    if(costEl) costEl.value = totalCostPack.toFixed(2);
+    if(profitEl){
+      profitEl.value = profitPerPack.toFixed(2);
+      profitEl.style.color = profitPerPack >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+
+    const qty = +qtyEl?.value||0;
+    if(qty > 0){
+      usedBaseAll   += qty * u.size;
+      totalPacksAll += qty;
+      totalRevAll   += qty * sp;
+      totalProfAll  += qty * profitPerPack;
+      if(badgeEl){
+        badgeEl.style.display='flex';
+        badgeEl.textContent = `${qty} packs · ₹${(qty*profitPerPack).toFixed(0)} profit`;
+        badgeEl.style.color = profitPerPack>=0 ? 'var(--green)' : 'var(--red)';
+        badgeEl.style.background = profitPerPack>=0 ? 'rgba(63,185,80,.12)' : 'rgba(248,81,73,.12)';
+        badgeEl.style.borderColor = profitPerPack>=0 ? 'rgba(63,185,80,.25)' : 'rgba(248,81,73,.25)';
+      }
+    } else {
+      if(badgeEl) badgeEl.style.display='none';
+    }
+  });
+
+  const sumEl = document.getElementById('pack-total-summary');
+  if(sumEl && units.length){
+    sumEl.style.display = 'block';
+    document.getElementById('sum-total-packs').textContent = totalPacksAll;
+    const remainingBase = totalBase - usedBaseAll;
+    const uLbl = unitLabel(buyUnit);
+    document.getElementById('sum-material-used').textContent = usedBaseAll + uLbl;
+    document.getElementById('sum-total-revenue').textContent = '₹'+totalRevAll.toFixed(0);
+    document.getElementById('sum-total-profit').textContent  = '₹'+totalProfAll.toFixed(0);
+    document.getElementById('sum-remaining').textContent     = 'Remaining: '+remainingBase+uLbl;
+    const margin = totalRevAll>0 ? ((totalProfAll/totalRevAll)*100).toFixed(1) : 0;
+    const marginEl = document.getElementById('sum-margin');
+    if(marginEl){
+      marginEl.textContent = 'Margin: '+margin+'%';
+      marginEl.style.color = +margin>=20 ? 'var(--green)' : +margin>=0 ? 'var(--accent)' : 'var(--red)';
+    }
+    const usedLbl = document.getElementById('sum-used-label');
+    if(usedLbl) usedLbl.textContent = 'Used ('+uLbl+')';
+  }
+}
+
+function addProductWithPacks(){
+  const name    = document.getElementById('p-name').value.trim();
+  if(!name){ toast('⚠️ Enter product name'); return; }
+  const bprice  = +document.getElementById('p-bprice').value||0;
+  const ship    = +document.getElementById('p-ship').value||0;
+  const bqty    = +document.getElementById('p-bqty').value||0;
+  const buyUnit = document.getElementById('p-buy-unit')?.value||'kg';
+  const cat     = document.getElementById('p-cat').value||'General';
+  const alert   = +document.getElementById('p-alert').value||5;
+  const units   = getSelectedSellUnits();
+  let addedCount = 0;
+
+  units.forEach(u => {
+    const qty    = +document.getElementById('qty-'+u.value)?.value||0;
+    if(qty <= 0) return;
+    const cost   = +document.getElementById('cost-'+u.value)?.value||0;
+    const sp     = +document.getElementById('sp-'+u.value)?.value||0;
+    const sticker= +document.getElementById('sticker-'+u.value)?.value||0;
+    const cover  = +document.getElementById('cover-'+u.value)?.value||0;
+    const profit = +document.getElementById('profit-'+u.value)?.value||0;
+    S.products.push({
+      id: Date.now()+Math.random(),
+      name: name+' – '+u.label,
+      cat, unit: u.value,
+      bqty: qty, bprice, ship,
+      cunit: cost, sprice: sp,
+      stickerCost: sticker, coverCost: cover,
+      profitUnit: profit,
+      stock: qty, sold: 0, alert,
+      packSize: u.size, packUnit: u.baseUnit,
+      buyUnit, parentProduct: name,
+      sellLabel: u.label
+    });
+    addedCount++;
+  });
+
+  if(!addedCount){ toast('⚠️ Enter qty for at least one pack size'); return; }
+  clearProductForm();
+  renderProducts(); updateDashStats(); renderInventory(); renderSmartProfit(); renderSalesForecast();
+  toast('✅ '+addedCount+' variants added for '+name+'!');
+  pTab(null,'pt-list');
+}
+
+function clearProductForm(){
+  ['p-name','p-cat','p-bqty','p-bprice','p-ship','p-cunit','p-cpg',
+   'ws-sprice','ws-sticker','ws-cover'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('p-alert').value='5';
+  document.getElementById('p-wholesale').checked=false;
+  document.getElementById('wholesale-section').style.display='none';
+  document.getElementById('pack-section').style.display='block';
+  document.getElementById('p-buy-unit').value='kg';
+  buildSellUnitOptions();
+  const lbl=document.getElementById('total-kg-label');
+  if(lbl) lbl.textContent='Enter buy quantity above';
+  const sum=document.getElementById('pack-total-summary');
+  if(sum) sum.style.display='none';
 }
 
 function toggleWholesale(){
@@ -2336,218 +2661,33 @@ function toggleWholesale(){
   calcCost();
 }
 
-function calcCost(){
-  const bprice=+document.getElementById('p-bprice').value||0;
-  const ship=+document.getElementById('p-ship').value||0;
-  const bqty=+document.getElementById('p-bqty').value||1;
-  const buyUnit = document.getElementById('p-buy-unit')?.value || 'kg';
-  // Total cost in rupees
-  const totalCost = bprice + ship;
-  // Cost per buy-unit
-  const cu = (totalCost / bqty).toFixed(2);
-  document.getElementById('p-cunit').value = cu;
-  // Cost per gram
-  let cpg = 0;
-  if(buyUnit === 'kg') cpg = totalCost / (bqty * 1000);
-  else if(buyUnit === 'g') cpg = totalCost / bqty;
-  else if(buyUnit === 'litre') cpg = totalCost / (bqty * 1000);
-  else cpg = totalCost / bqty; // pcs/pack — cost per piece
-  document.getElementById('p-cpg').value = cpg.toFixed(4);
-  calcPackBreakdown();
-  if(document.getElementById('p-wholesale').checked) calcWholesale();
-}
-
-function calcPackBreakdown(){
-  const bprice=+document.getElementById('p-bprice').value||0;
-  const ship=+document.getElementById('p-ship').value||0;
-  const bqty=+document.getElementById('p-bqty').value||0;
-  const buyUnit = document.getElementById('p-buy-unit')?.value || 'kg';
-  if(!bqty) return;
-  const totalCost = bprice + ship;
-  // Total grams available
-  let totalGrams = 0;
-  if(buyUnit==='kg') totalGrams = bqty * 1000;
-  else if(buyUnit==='g') totalGrams = bqty;
-  else if(buyUnit==='litre') totalGrams = bqty * 1000;
-  else totalGrams = bqty; // for pcs — treat qty as "units"
-  const cpg = totalGrams > 0 ? totalCost / totalGrams : 0; // cost per gram
-
-  // Update header label
-  const lbl = document.getElementById('total-kg-label');
-  if(lbl) lbl.textContent = `Total: ${bqty} ${buyUnit} = ${totalGrams}g available · Cost/g = ₹${cpg.toFixed(4)}`;
-
-  let usedGrams = 0;
-  let totalPacks = 0;
-  let totalRevenue = 0;
-  let totalProfit = 0;
-  let anyEnabled = false;
-
-  PACK_SIZES.forEach(ps=>{
-    const chk = document.getElementById('chk-'+ps.id);
-    if(!chk) return;
-    const enabled = chk.checked;
-    const qtyInput = document.getElementById('qty-'+ps.id);
-    const costEl = document.getElementById('cost-'+ps.id);
-    const spEl = document.getElementById('sp-'+ps.id);
-    const stickerEl = document.getElementById('sticker-'+ps.id);
-    const coverEl = document.getElementById('cover-'+ps.id);
-    const profitEl = document.getElementById('profit-'+ps.id);
-    const possibleEl = document.getElementById('packs-possible-'+ps.id);
-    const badgeEl = document.getElementById('pack-profit-badge-'+ps.id);
-    if(!costEl) return;
-
-    // How many packs possible from total material
-    const maxPossible = totalGrams > 0 ? Math.floor(totalGrams / ps.grams) : 0;
-    if(possibleEl) possibleEl.textContent = enabled ? `(max ${maxPossible} packs from total)` : '';
-
-    if(!enabled){ if(badgeEl) badgeEl.style.display='none'; return; }
-    anyEnabled = true;
-
-    // User-entered qty (if blank, auto-fill max possible from remaining)
-    let qty = +qtyInput.value || 0;
-    const costPerPack = cpg * ps.grams;
-    const sp = +spEl.value || 0;
-    const sticker = +stickerEl.value || 0;
-    const cover = +coverEl.value || 0;
-    const totalCostPerPack = costPerPack + sticker + cover;
-    const profitPerPack = sp - totalCostPerPack;
-
-    costEl.value = totalCostPerPack.toFixed(2);
-    profitEl.value = profitPerPack.toFixed(2);
-    profitEl.style.color = profitPerPack >= 0 ? 'var(--green)' : 'var(--red)';
-
-    if(qty > 0){
-      usedGrams += qty * ps.grams;
-      totalPacks += qty;
-      totalRevenue += qty * sp;
-      totalProfit += qty * profitPerPack;
-      if(badgeEl){
-        badgeEl.style.display='flex';
-        badgeEl.textContent = `${qty} packs · ₹${(qty*profitPerPack).toFixed(0)} profit`;
-        badgeEl.style.color = profitPerPack >= 0 ? 'var(--green)' : 'var(--red)';
-        badgeEl.style.background = profitPerPack >= 0 ? 'rgba(63,185,80,.12)' : 'rgba(248,81,73,.12)';
-        badgeEl.style.borderColor = profitPerPack >= 0 ? 'rgba(63,185,80,.25)' : 'rgba(248,81,73,.25)';
-      }
-    } else {
-      if(badgeEl) badgeEl.style.display='none';
-    }
-  });
-
-  // Update summary
-  const sumEl = document.getElementById('pack-total-summary');
-  if(sumEl){
-    sumEl.style.display = anyEnabled ? 'block' : 'none';
-    document.getElementById('sum-total-packs').textContent = totalPacks;
-    document.getElementById('sum-material-used').textContent = usedGrams >= 1000 ? (usedGrams/1000).toFixed(2)+'kg' : usedGrams+'g';
-    document.getElementById('sum-total-revenue').textContent = '₹'+totalRevenue.toFixed(0);
-    document.getElementById('sum-total-profit').textContent = '₹'+totalProfit.toFixed(0);
-    const remaining = totalGrams - usedGrams;
-    document.getElementById('sum-remaining').textContent = 'Remaining: '+(remaining>=1000?(remaining/1000).toFixed(2)+'kg':remaining+'g');
-    const margin = totalRevenue > 0 ? ((totalProfit/totalRevenue)*100).toFixed(1) : 0;
-    const marginEl = document.getElementById('sum-margin');
-    marginEl.textContent = 'Margin: '+margin+'%';
-    marginEl.style.color = margin >= 20 ? 'var(--green)' : margin >= 0 ? 'var(--accent)' : 'var(--red)';
-  }
-}
-
 function calcWholesale(){
-  const bprice=+document.getElementById('p-bprice').value||0;
-  const ship=+document.getElementById('p-ship').value||0;
-  const bqty=+document.getElementById('p-bqty').value||0;
-  const sprice=+document.getElementById('ws-sprice').value||0;
-  const sticker=+document.getElementById('ws-sticker').value||0;
-  const cover=+document.getElementById('ws-cover').value||0;
+  const bprice  = +document.getElementById('p-bprice').value||0;
+  const ship    = +document.getElementById('p-ship').value||0;
+  const bqty    = +document.getElementById('p-bqty').value||0;
+  const sprice  = +document.getElementById('ws-sprice').value||0;
+  const sticker = +document.getElementById('ws-sticker').value||0;
+  const cover   = +document.getElementById('ws-cover').value||0;
   if(!bqty) return;
-  const totalCostPerKg = (bprice + ship) / bqty;
-  const totalCostWithPacking = totalCostPerKg + sticker + cover;
-  const profitPerKg = sprice - totalCostWithPacking;
-  const totalProfit = profitPerKg * bqty;
-  document.getElementById('ws-cost-kg').textContent = '₹'+totalCostWithPacking.toFixed(2);
-  document.getElementById('ws-sell-kg').textContent = '₹'+sprice;
-  document.getElementById('ws-profit-kg').textContent = '₹'+profitPerKg.toFixed(2);
+  const totalCostPerUnit  = (bprice + ship) / bqty;
+  const totalCostWithPack = totalCostPerUnit + sticker + cover;
+  const profitPerUnit     = sprice - totalCostWithPack;
+  const totalProfit       = profitPerUnit * bqty;
+  const buyUnit = document.getElementById('p-buy-unit')?.value||'kg';
+  document.getElementById('ws-cost-kg').textContent  = '₹'+totalCostWithPack.toFixed(2);
+  document.getElementById('ws-sell-kg').textContent  = '₹'+sprice;
+  document.getElementById('ws-profit-kg').textContent= '₹'+profitPerUnit.toFixed(2);
   document.getElementById('ws-total-profit').textContent = '₹'+totalProfit.toFixed(2);
-  document.getElementById('ws-profit-kg').style.color = profitPerKg>=0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('ws-total-profit').style.color = totalProfit>=0 ? 'var(--green)' : 'var(--red)';
-  document.getElementById('ws-summary').style.display = 'block';
+  document.getElementById('ws-profit-kg').style.color  = profitPerUnit>=0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('ws-total-profit').style.color= totalProfit>=0  ? 'var(--green)' : 'var(--red)';
+  document.getElementById('ws-summary').style.display  = 'block';
+  // Update wholesale label to match buy unit
+  const wsHeader = document.querySelector('#wholesale-section .card-h h3');
+  if(wsHeader) wsHeader.textContent = '🏪 Wholesale — Sell by '+buyUnit;
+  const wsLbl1 = document.querySelector('#ws-sprice')?.closest('.fg')?.querySelector('.fl');
+  if(wsLbl1) wsLbl1.textContent = 'Sell Price / '+buyUnit+' (₹)';
 }
 
-function addProduct(){
-  // Wholesale mode add
-  const name=document.getElementById('p-name').value.trim();
-  if(!name){toast('⚠️ Enter product name');return;}
-  const bqty=+document.getElementById('p-bqty').value||0;
-  const sprice=+document.getElementById('ws-sprice').value||0;
-  const sticker=+document.getElementById('ws-sticker').value||0;
-  const cover=+document.getElementById('ws-cover').value||0;
-  const buyUnit = document.getElementById('p-buy-unit')?.value||'kg';
-  const cunit=+document.getElementById('p-cunit').value||0;
-  S.products.push({
-    id:Date.now(),name,cat:document.getElementById('p-cat').value||'General',
-    unit:buyUnit,bqty,bprice:+document.getElementById('p-bprice').value||0,
-    ship:+document.getElementById('p-ship').value||0,cunit,
-    sprice,stickerCost:sticker,coverCost:cover,
-    stock:bqty,sold:0,alert:+document.getElementById('p-alert').value||5,
-    wholesale:true
-  });
-  clearProductForm();
-  renderProducts();updateDashStats();renderInventory();renderSmartProfit();renderSalesForecast();
-  toast('✅ Wholesale product added!');
-  pTab(null,'pt-list');
-}
-
-function addProductWithPacks(){
-  const name=document.getElementById('p-name').value.trim();
-  if(!name){toast('⚠️ Enter product name');return;}
-  const bprice=+document.getElementById('p-bprice').value||0;
-  const ship=+document.getElementById('p-ship').value||0;
-  const bqty=+document.getElementById('p-bqty').value||0;
-  const buyUnit = document.getElementById('p-buy-unit')?.value||'kg';
-  const cat = document.getElementById('p-cat').value||'General';
-  const alert = +document.getElementById('p-alert').value||5;
-  let addedCount = 0;
-
-  PACK_SIZES.forEach(ps=>{
-    const chk = document.getElementById('chk-'+ps.id);
-    if(!chk || !chk.checked) return;
-    const qty = +document.getElementById('qty-'+ps.id).value||0;
-    if(qty <= 0) return;
-    const costPerPack = +document.getElementById('cost-'+ps.id).value||0;
-    const sp = +document.getElementById('sp-'+ps.id).value||0;
-    const sticker = +document.getElementById('sticker-'+ps.id).value||0;
-    const cover = +document.getElementById('cover-'+ps.id).value||0;
-    const profitPerPack = +document.getElementById('profit-'+ps.id).value||0;
-    const variantName = name+' – '+ps.label;
-    S.products.push({
-      id:Date.now()+Math.random(),
-      name:variantName, cat, unit:'packs',
-      bqty:qty, bprice:bprice, ship:ship,
-      cunit:costPerPack, sprice:sp,
-      stickerCost:sticker, coverCost:cover,
-      profitUnit:profitPerPack,
-      stock:qty, sold:0, alert,
-      packSize:ps.grams, buyUnit, parentProduct:name
-    });
-    addedCount++;
-  });
-
-  if(!addedCount){toast('⚠️ Enable at least one pack size and enter qty');return;}
-  clearProductForm();
-  renderProducts();updateDashStats();renderInventory();renderSmartProfit();renderSalesForecast();
-  toast('✅ '+addedCount+' pack variants added for '+name+'!');
-  pTab(null,'pt-list');
-}
-
-function clearProductForm(){
-  ['p-name','p-cat','p-bqty','p-bprice','p-ship','p-cunit','p-cpg','ws-sprice','ws-sticker','ws-cover'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  document.getElementById('p-alert').value='5';
-  document.getElementById('p-wholesale').checked=false;
-  document.getElementById('wholesale-section').style.display='none';
-  document.getElementById('pack-section').style.display='block';
-  buildPackRows();
-  const lbl=document.getElementById('total-kg-label');
-  if(lbl) lbl.textContent='Enter buy quantity above to see pack counts';
-  document.getElementById('pack-total-summary').style.display='none';
-}
 
 function deleteProduct(id){
   S.products=S.products.filter(p=>p.id!==id);
@@ -3047,11 +3187,6 @@ function renderSuppliers(){
   tb.innerHTML=S.suppliers.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.phone||'—'}</td><td>${s.prods||'—'}</td><td>₹${s.total.toFixed(2)}</td><td>${s.lastOrder}</td><td><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delSup(${s.id})">🗑️</button></td></tr>`).join('');
 }
 function delSup(id){S.suppliers=S.suppliers.filter(s=>s.id!==id);renderSuppliers();toast('🗑️ Supplier removed');}
-function supTab(el,id){
-  if(el)tabSwitch(el,id,['sup-all','sup-add','sup-cat']);
-  else{document.querySelectorAll('#p-supplier .tab').forEach(t=>t.classList.remove('active'));['sup-all','sup-add','sup-cat'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});document.getElementById(id).style.display='block';}
-  if(id==='sup-all') renderSuppliers();
-}
 
 // ===== PROFIT TARGET =====
 function saveTarget(){
@@ -3979,9 +4114,10 @@ window.addEventListener('DOMContentLoaded', function(){
   renderWeeklyChart(); renderStockOverview(); renderProducts(); updateDashStats();
   renderInventory(); renderSmartProfit(); renderSalesForecast();
   addProductRow();
-  buildPackRows();
+  buildSellUnitOptions();
   renderCategoryChips();
   renderRemindersStats();
+  loadLogoPreview();
   createDeviceBackup();
 });
 </script>
