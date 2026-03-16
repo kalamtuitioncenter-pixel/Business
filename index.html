@@ -759,7 +759,10 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               </div>
             </div>
             <div class="fg"><label class="fl">Phone Number <span style="color:var(--red)">*</span> <span style="font-size:9px;color:var(--text3)">(auto-filled for existing customers)</span></label><input class="fi" id="s-phone" placeholder="9876543210" type="tel"></div>
-            <div class="fg"><label class="fl">Date of Birth <span style="font-size:9px;color:var(--text3)">(optional — saves to customer profile)</span></label><input class="fi" id="s-bday" type="date" placeholder="Birthday (optional)"></div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Address <span style="font-size:9px;color:var(--text3)">(optional — saves to profile)</span></label><input class="fi" id="s-addr" placeholder="Street, area, city..." autocomplete="off"></div>
+              <div class="fg"><label class="fl">Date of Birth <span style="font-size:9px;color:var(--text3)">(optional)</span></label><input class="fi" id="s-bday" type="date"></div>
+            </div>
             <div class="fr2">
               <div class="fg"><label class="fl">Payment Mode</label>
                 <select class="fs" id="s-pmode"><option>Cash</option><option>UPI</option><option>Credit (Pending)</option><option>Cheque</option><option>Bank Transfer</option></select>
@@ -1054,6 +1057,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="tab active" onclick="waTab(this,'wa-remind')"><span class="t-ico">🔔</span>Reminders</div>
         <div class="tab" onclick="waTab(this,'wa-tmpl')"><span class="t-ico">✏️</span>Message Templates</div>
         <div class="tab" onclick="waTab(this,'wa-custom')"><span class="t-ico">💬</span>Custom Message</div>
+        <div class="tab" onclick="waTab(this,'wa-loyalty')"><span class="t-ico">⭐</span>Loyalty Points</div>
       </div>
 
       <!-- ── Pending Reminders ── -->
@@ -1075,13 +1079,16 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <!-- ── Message Templates ── -->
       <div id="wa-tmpl" style="display:none">
         <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--text2)">
-          💡 <strong>Variables you can use:</strong>
-          <span class="tmpl-var">{name}</span> Customer name &nbsp;
+          💡 <strong>Variables:</strong>
+          <span class="tmpl-var">{name}</span> Customer &nbsp;
           <span class="tmpl-var">{amount}</span> Amount &nbsp;
-          <span class="tmpl-var">{product}</span> Product/Order &nbsp;
-          <span class="tmpl-var">{biz}</span> Business name &nbsp;
-          <span class="tmpl-var">{phone}</span> Business phone &nbsp;
-          <span class="tmpl-var">{date}</span> Today's date
+          <span class="tmpl-var">{product}</span> Product &nbsp;
+          <span class="tmpl-var">{biz}</span> Business &nbsp;
+          <span class="tmpl-var">{phone}</span> Biz Phone &nbsp;
+          <span class="tmpl-var">{date}</span> Date &nbsp;
+          <span class="tmpl-var">{points}</span> Points &nbsp;
+          <span class="tmpl-var">{value}</span> Redeem ₹ &nbsp;
+          <span class="tmpl-var">{expiry}</span> Expiry date
         </div>
 
         <!-- Pending Payment -->
@@ -1092,6 +1099,21 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div class="card-b">
             <textarea class="fi" id="tmpl-pending" rows="4" style="resize:vertical;font-size:12px"></textarea>
+          </div>
+        </div>
+
+        <!-- Customer Buying Reminder -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
+            <h3>🔔 Customer Buying Reminder</h3>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--text3)">Sent from Customer Reminders page</span>
+              <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reminder')">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-reminder" rows="4" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:6px">💡 This message is sent when you tap 📱 WhatsApp on any reminder in the <a onclick="nav('reminders')" style="color:var(--blue);cursor:pointer;text-decoration:underline">Customer Reminders</a> page.</div>
           </div>
         </div>
 
@@ -1137,19 +1159,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
 
-        <!-- Reminder Template -->
-        <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>🔔 Reorder Reminder Template</h3>
-            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reminder')">👁 Preview</button>
-          </div>
-          <div class="card-b">
-            <textarea class="fi" id="tmpl-reminder" rows="4" style="resize:vertical;font-size:12px"></textarea>
-          </div>
-        </div>
-
         <!-- Sale Receipt Template -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>🧾 Sale Receipt (auto-sent after sale)</h3>
+          <div class="card-h"><h3>🧾 Sale Receipt</h3><span style="font-size:10px;color:var(--text3)">Auto-prompt after every sale</span>
             <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-receipt')">👁 Preview</button>
           </div>
           <div class="card-b">
@@ -1157,20 +1169,37 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
 
-        <!-- Save button -->
-        <div style="display:flex;gap:10px;align-items:center">
+        <!-- ⭐ Loyalty Points Template — unified here -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
+            <h3>⭐ Loyalty Points Update</h3>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--text3)">Sent from Loyalty & WA Loyalty tabs</span>
+              <button class="btn btn-o" style="font-size:10px" onclick="waPreviewLoyalty()">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-loyalty" rows="7" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:6px">
+              Variables: <span class="tmpl-var">{name}</span> <span class="tmpl-var">{points}</span> <span class="tmpl-var">{value}</span> <span class="tmpl-var">{expiry}</span> <span class="tmpl-var">{biz}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save & Reset -->
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <button class="btn btn-y" style="padding:10px 24px" onclick="saveWATemplates()">💾 Save All Templates</button>
           <button class="btn btn-o" onclick="resetWATemplates()">↺ Reset to Defaults</button>
           <span id="tmpl-save-status" style="font-size:11px;color:var(--green)"></span>
         </div>
 
-        <!-- Preview Modal -->
+        <!-- Preview box -->
         <div id="tmpl-preview-box" style="display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px">📱 Preview</span>
+            <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px">📱 WhatsApp Preview</span>
             <button class="xbtn" onclick="document.getElementById('tmpl-preview-box').style.display='none'">✕</button>
           </div>
-          <div id="tmpl-preview-text" style="background:#e9fbe9;border-radius:10px 10px 0 10px;padding:12px 16px;font-size:13px;color:#111;white-space:pre-wrap;line-height:1.5;max-width:320px;word-break:break-word"></div>
+          <div id="tmpl-preview-text" style="background:#e9fbe9;border-radius:10px 10px 0 10px;padding:12px 16px;font-size:13px;color:#111;white-space:pre-wrap;line-height:1.5;max-width:340px;word-break:break-word"></div>
         </div>
       </div>
 
@@ -1194,9 +1223,49 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div>
-    </div>
+      <!-- ── Loyalty Points WA ── -->
+      <div id="wa-loyalty" style="display:none">
+        <!-- Stats -->
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc y"><div class="sc-ico">⭐</div><div class="sc-label">Total Points Issued</div><div class="sc-val" id="wal-total-pts">0</div><div class="sc-sub">All customers</div></div>
+          <div class="sc g"><div class="sc-ico">👥</div><div class="sc-label">Customers with Points</div><div class="sc-val" id="wal-cust-count">0</div><div class="sc-sub">Active</div></div>
+          <div class="sc r"><div class="sc-ico">⏰</div><div class="sc-label">Expiring Soon</div><div class="sc-val" id="wal-expiring">0</div><div class="sc-sub">Within 7 days</div></div>
+          <div class="sc b"><div class="sc-ico">💰</div><div class="sc-label">Total Redeem Value</div><div class="sc-val" id="wal-total-val">₹0</div><div class="sc-sub">Outstanding</div></div>
+        </div>
 
-    <!-- ===== TEA & COFFEE SHOP ===== -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>⭐ Customer Loyalty Summary</h3>
+            <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+              <button class="btn btn-g" style="font-size:11px" onclick="bulkSendPointsWA()">📢 Send All Updates</button>
+              <button class="btn btn-o" style="font-size:11px" onclick="renderWaLoyalty()">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr>
+                <th>Customer</th><th>Phone</th>
+                <th>Points ⭐</th><th>Redeem Value</th>
+                <th>Expiry Date</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="wal-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- Message template quick edit -->
+        <div class="card">
+          <div class="card-h"><h3>💬 Points Message Preview</h3></div>
+          <div class="card-b">
+            <div style="font-size:11.5px;color:var(--text2);margin-bottom:10px">
+              Edit the message template in <strong>Loyalty & Referrals → 📅 Weekly Summary</strong>. 
+              Preview below uses the saved template.
+            </div>
+            <div id="wal-preview" style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;color:var(--text2);white-space:pre-wrap;line-height:1.6;max-height:200px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="page" id="p-teashop">
       <div class="ph"><h1>☕ Tea & Coffee Shop</h1><p>Track daily operations, ingredients and profit</p></div>
       <div class="sc-grid sc-grid-resp">
@@ -1209,6 +1278,19 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="card">
           <div class="card-h"><h3>📝 Daily Tea/Coffee Entry</h3></div>
           <div class="card-b">
+            <!-- Customer details -->
+            <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+              <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">👤 Customer (optional)</div>
+              <div class="fr2">
+                <div class="fg">
+                  <label class="fl">Customer Name</label>
+                  <input class="fi" id="tc-cust" placeholder="Walk-in or select..." list="tc-cust-dl" autocomplete="off" oninput="tcAutoFill()">
+                  <datalist id="tc-cust-dl"></datalist>
+                </div>
+                <div class="fg"><label class="fl">Phone</label><input class="fi" id="tc-phone" type="tel" placeholder="+91..."></div>
+              </div>
+              <div id="tc-pts-info" style="display:none;margin-top:6px;font-size:11px;color:var(--text3)"></div>
+            </div>
             <div class="fr2">
               <div class="fg"><label class="fl">Date</label><input class="fi" id="tc-date" type="date"></div>
               <div class="fg"><label class="fl">Cups Sold</label><div class="fi-ico"><input class="fi" id="tc-cup-qty" type="number" placeholder="0" oninput="calcTea()"><span class="fi-ico-btn">☕</span></div></div>
@@ -1229,7 +1311,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <div class="fg"><label class="fl">Total Income (₹)</label><div class="fi-ico"><input class="fi" id="tc-total-inc" type="number" readonly><span class="fi-ico-btn">₹</span></div></div>
               <div class="fg"><label class="fl">Daily Profit (₹)</label><div class="fi-ico"><input class="fi" id="tc-daily-profit" type="number" readonly><span class="fi-ico-btn">₹</span></div></div>
             </div>
-            <div class="fg"><label class="fl">Notes / Customer Name</label><input class="fi" id="tc-notes" placeholder="Order note or customer..."></div>
+            <div class="fg"><label class="fl">Notes</label><input class="fi" id="tc-notes" placeholder="Any notes..."></div>
             <div style="display:flex;gap:8px">
               <button class="btn btn-y" onclick="saveTeaEntry()">💾 Save Entry</button>
               <button class="btn btn-o" onclick="clearTeaForm()">Clear</button>
@@ -1852,7 +1934,33 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-b" id="sf-days-left"></div>
         </div>
       </div>
-      <div id="sf-tbl" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📋</div><p>Need more sales data for forecast table</p></div></div></div></div>
+      <div id="sf-tbl" style="display:none">
+        <div class="card">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>📋 Full Forecast Table</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="renderForecastTable()">🔄 Refresh</button>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table id="sf-full-table">
+              <thead><tr>
+                <th>Product</th>
+                <th>Stock</th>
+                <th>Avg/Day</th>
+                <th>Days Left</th>
+                <th>Reorder Level</th>
+                <th>Rec. Order Qty</th>
+                <th>Supplier</th>
+                <th>Last Ordered</th>
+                <th>Exp. Receive</th>
+                <th>🏷️ Stickers</th>
+                <th>🛍️ Covers</th>
+                <th>Status</th>
+              </tr></thead>
+              <tbody id="sf-tbl-tbody"><tr><td colspan="12"><div class="empty"><div class="ei">📋</div><p>Loading...</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
       <div id="sf-ins" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>Insights available after 7 days of sales</p></div></div></div></div>
       <div id="sf-exp" style="display:none"><div class="card"><div class="card-b"><button class="btn btn-y" onclick="toast('📥 Exporting forecast...')">📥 Export Forecast CSV</button></div></div></div>
     </div>
@@ -1908,26 +2016,66 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
 
       <!-- Points Settings bar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:600;color:var(--text2)">⚙️ Points Settings:</span>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
-          <span style="color:var(--text3)">₹1 =</span>
-          <input id="pts-per-rupee" type="number" value="1" min="0.1" step="0.1" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--accent);font-weight:700;font-size:12px;text-align:center">
-          <span style="color:var(--text3)">pts</span>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">⚙️ Points Settings</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px" id="pts-settings-grid">
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Earn Rate</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <span style="color:var(--text3)">₹10 =</span>
+              <input id="pts-per-rupee" type="number" value="1" min="0.1" step="0.1" style="width:45px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--accent);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">pts</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Redeem Rate</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <span style="color:var(--text3)">100pts =</span>
+              <input id="pts-redeem-val" type="number" value="10" min="1" style="width:45px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--green);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">₹</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Min Order to Redeem</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <span style="color:var(--text3)">₹</span>
+              <input id="pts-min-order" type="number" value="250" min="0" style="width:60px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text);font-weight:700;font-size:12px;text-align:center">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Max Discount per Bill</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <input id="pts-max-pct" type="number" value="10" min="1" max="50" style="width:45px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--orange);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">% of bill</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Points Validity</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <input id="pts-validity" type="number" value="90" min="30" max="365" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--blue);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">days</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px">
+            <button class="btn btn-y" style="font-size:11px;padding:5px 12px" onclick="savePtsSettings()">💾 Save</button>
+            <span id="pts-save-status" style="font-size:10px;color:var(--green)"></span>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
-          <span style="color:var(--text3)">100 pts =</span>
-          <input id="pts-redeem-val" type="number" value="10" min="1" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--green);font-weight:700;font-size:12px;text-align:center">
-          <span style="color:var(--text3)">₹ discount</span>
+        <div style="font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);padding-top:8px">
+          📌 Rules: ₹10 = <span id="pts-rule-earn" style="color:var(--accent);font-weight:700">1</span> pt · 
+          100 pts = ₹<span id="pts-rule-val" style="color:var(--green);font-weight:700">10</span> · 
+          Min order ₹<span id="pts-rule-min" style="color:var(--text);font-weight:700">250</span> · 
+          Max <span id="pts-rule-max" style="color:var(--orange);font-weight:700">10</span>% off per bill · 
+          Valid <span id="pts-rule-validity" style="color:var(--blue);font-weight:700">90</span> days
         </div>
-        <button class="btn btn-y" style="font-size:10px;padding:4px 10px" onclick="renderLoyalty()">✅ Apply</button>
-        <span id="bday-alert" style="font-size:11px;color:var(--accent);font-weight:600;margin-left:auto"></span>
+        <span id="bday-alert" style="font-size:11px;color:var(--accent);font-weight:600;display:block;margin-top:6px"></span>
       </div>
 
       <div class="tab-bar">
         <div class="tab active" onclick="loyTab(this,'lt-lead')">🏆 Leaderboard</div>
         <div class="tab" onclick="loyTab(this,'lt-pts')">⭐ Points</div>
-        <div class="tab" onclick="loyTab(this,'lt-hist')">📜 Purchase History</div>
+        <div class="tab" onclick="loyTab(this,'lt-weekly')">📅 Weekly Summary</div>
+        <div class="tab" onclick="loyTab(this,'lt-hist')">📜 History</div>
         <div class="tab" onclick="loyTab(this,'lt-bday')">🎂 Birthdays</div>
         <div class="tab" onclick="loyTab(this,'lt-ref')">👥 Referrals</div>
       </div>
@@ -1951,9 +2099,43 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-h"><h3>⭐ Points Ledger</h3><button class="btn btn-y" style="font-size:10px" onclick="renderPointsLedger()">🔄 Refresh</button></div>
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
-              <thead><tr><th>Customer</th><th>Phone</th><th>Points Earned</th><th>Points Used</th><th>Balance</th><th>₹ Value</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Points</th><th>Redeem Value</th><th>Expiry Date</th><th>Actions</th></tr></thead>
               <tbody id="pts-tbody"></tbody>
             </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEKLY POINTS SUMMARY -->
+      <div id="lt-weekly" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>📅 Weekly Points Summary</h3>
+            <div style="display:flex;gap:6px;margin-left:auto">
+              <button class="btn btn-g" style="font-size:10px" onclick="bulkSendPointsWA()">📢 Send All via WA</button>
+              <button class="btn btn-o" style="font-size:10px" onclick="renderWeeklyPoints()">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr>
+                <th>Customer</th><th>Current Points</th>
+                <th style="color:var(--green)">Earned This Week</th>
+                <th style="color:var(--red)">Redeemed This Week</th>
+                <th>Redeem Value</th><th>Expiry Date</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="weekly-pts-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+        <!-- Message preview -->
+        <div class="card">
+          <div class="card-h"><h3>💬 Points Message Template</h3></div>
+          <div class="card-b">
+            <textarea class="fi" id="pts-msg-tmpl" rows="6" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:6px">Variables: <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">{name}</code> <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">{points}</code> <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">{value}</code> <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">{expiry}</code> <code style="background:var(--surface3);padding:1px 4px;border-radius:3px">{biz}</code></div>
+            <button class="btn btn-y" style="margin-top:8px;font-size:11px" onclick="savePtsMsgTemplate()">💾 Save Template</button>
           </div>
         </div>
       </div>
@@ -2812,6 +2994,10 @@ function nav(page){
   if(page==='sales'){ renderSalesTable(); }
   if(page==='products'){ renderProducts(); }
   if(page==='orders'){ renderOrders(); }
+  if(page==='teashop'){
+    const dl=document.getElementById('tc-cust-dl');
+    if(dl) dl.innerHTML=S.customers.map(c=>`<option value="${c.name}">`).join('');
+  }
   if(page==='customers'){ renderCustomers(); renderPendingCust(); }
   if(page==='whatsapp'){ renderWA(); }
   if(page==='tuition'){ renderStudents(); renderStaffTable(); }
@@ -2824,7 +3010,7 @@ function nav(page){
   if(page==='packstock'){   renderPackStock(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
-  if(page==='loyalty'){ renderLoyalty(); }
+  if(page==='loyalty'){ renderLoyalty(); loadPtsSettings(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='bulkwa'){ renderBwStats(); renderBwPending(); }
   if(page==='supplier'){ renderSuppliers(); }
@@ -2937,9 +3123,10 @@ function cTab(el,id){
   if(id==='ct-pend') renderPendingCust();
 }
 function waTab(el,id){
-  tabSwitch(el,id,['wa-remind','wa-tmpl','wa-custom']);
+  tabSwitch(el,id,['wa-remind','wa-tmpl','wa-custom','wa-loyalty']);
   if(id==='wa-tmpl')   { loadWATemplates(); }
   if(id==='wa-custom') { renderWaCustomList(); }
+  if(id==='wa-loyalty'){ renderWaLoyalty(); }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2948,6 +3135,9 @@ function waTab(el,id){
 const WA_TMPL_DEFAULTS = {
   pending:
     `Dear {name}, you have a pending payment of ₹{amount} at {biz}. Please clear at your earliest convenience. Thank you! 🙏`,
+
+  reminder:
+    `Hi {name}! 🔔 It's time to reorder *{product}*.\n\nYou usually order every few weeks — don't run out!\n\nContact {biz} to place your order 😊\n📞 {phone}`,
 
   'order-pending':
     `🏪 *{biz}*\nHi {name}, your order has been received and is now *Pending* confirmation.\n\n📦 Order: {product}\n📅 Date: {date}\n\nWe'll update you soon! Thank you 🙏`,
@@ -2964,11 +3154,11 @@ const WA_TMPL_DEFAULTS = {
   'order-cancelled':
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
-  reminder:
-    `Hi {name}! 🔔 It's time to reorder *{product}*.\n\nYou usually order every few weeks — don't run out!\n\nContact {biz} to place your order 😊\n📞 {phone}`,
-
   receipt:
-    `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`
+    `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`,
+
+  loyalty:
+    `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -2980,16 +3170,22 @@ function loadWATemplates(){
     const el = document.getElementById('tmpl-'+key);
     if(el) el.value = tmpl[key] || WA_TMPL_DEFAULTS[key];
   });
+  // Also sync pts-msg-tmpl from loyalty template
+  const loyEl = document.getElementById('tmpl-loyalty');
+  const ptsEl = document.getElementById('pts-msg-tmpl');
+  if(loyEl && ptsEl) ptsEl.value = loyEl.value;
   document.getElementById('tmpl-preview-box').style.display='none';
 }
 
 function saveWATemplates(){
   if(!S.settings.waTmpl) S.settings.waTmpl = {};
-  const biz = S.settings.bizName||'Meenatchi Traders';
   Object.keys(WA_TMPL_DEFAULTS).forEach(key=>{
     const el = document.getElementById('tmpl-'+key);
     if(el) S.settings.waTmpl[key] = el.value || WA_TMPL_DEFAULTS[key];
   });
+  // Sync loyalty template to pts-msg-tmpl as well
+  const loyTmpl = S.settings.waTmpl['loyalty'];
+  if(loyTmpl) S.settings.ptsMsgTemplate = loyTmpl;
   autoSave();
   const st = document.getElementById('tmpl-save-status');
   if(st){
@@ -2997,6 +3193,27 @@ function saveWATemplates(){
     setTimeout(()=>{ st.textContent=''; }, 3000);
   }
   toast('✅ All WA templates saved!');
+}
+
+function waPreviewLoyalty(){
+  const el = document.getElementById('tmpl-loyalty');
+  if(!el) return;
+  const biz    = S.settings.bizName || 'Meenatchi Traders';
+  const phone  = S.settings.phone   || '+91 XXXXX XXXXX';
+  const date   = new Date().toLocaleDateString('en-IN');
+  const preview = el.value
+    .replace(/\{biz\}/g,    biz)
+    .replace(/\{phone\}/g,  phone)
+    .replace(/\{date\}/g,   date)
+    .replace(/\{name\}/g,   'Ravi Kumar')
+    .replace(/\{points\}/g, '145')
+    .replace(/\{value\}/g,  '₹14')
+    .replace(/\{expiry\}/g, new Date(Date.now()+30*86400000).toLocaleDateString('en-IN'));
+  const box = document.getElementById('tmpl-preview-box');
+  const txt = document.getElementById('tmpl-preview-text');
+  if(box) box.style.display='block';
+  if(txt) txt.textContent = preview;
+  box?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function resetWATemplates(){
@@ -3347,33 +3564,98 @@ function remTab(el,id){tabSwitch(el,id,['rt-today','rt-all','rt-rules','rt-add',
   if(id==='rt-add') populateReminderDataLists();
   if(id==='rt-hist') renderCustomerHistory('');
 }
-function sfTab(el,id){tabSwitch(el,id,['sf-ov','sf-tbl','sf-ins','sf-exp']);}
+function sfTab(el,id){
+  tabSwitch(el,id,['sf-ov','sf-tbl','sf-ins','sf-exp']);
+  if(id==='sf-tbl') renderForecastTable();
+}
 function supTab(el,id){
   if(el)tabSwitch(el,id,['sup-all','sup-add','sup-cat']);
   else{document.querySelectorAll('#p-supplier .tab').forEach(t=>t.classList.remove('active'));['sup-all','sup-add','sup-cat'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});document.getElementById(id).style.display='block';}
   if(id==='sup-all') renderSuppliers();
 }
 function loyTab(el,id){
-  tabSwitch(el,id,['lt-lead','lt-pts','lt-hist','lt-bday','lt-ref']);
-  if(id==='lt-lead') renderLeaderboard();
-  if(id==='lt-pts') renderPointsLedger();
-  if(id==='lt-hist') renderPurchaseHistory();
-  if(id==='lt-bday') renderBirthdays();
-  if(id==='lt-ref') renderReferrals();
+  tabSwitch(el,id,['lt-lead','lt-pts','lt-weekly','lt-hist','lt-bday','lt-ref']);
+  if(id==='lt-lead')   renderLeaderboard();
+  if(id==='lt-pts')    renderPointsLedger();
+  if(id==='lt-weekly') renderWeeklyPoints();
+  if(id==='lt-hist')   renderPurchaseHistory();
+  if(id==='lt-bday')   renderBirthdays();
+  if(id==='lt-ref')    renderReferrals();
 }
 
 function renderLoyalty(){
   renderLeaderboard();
-  // Birthday check
+  renderPointsLedger();
   checkBirthdaysToday();
   const bdayCount=S.customers.filter(c=>c.bday).length;
-  document.getElementById('loy-bday').textContent=bdayCount;
   const totalPts=S.customers.reduce((a,c)=>a+(c.points||0),0);
-  document.getElementById('loy-pts').textContent=totalPts;
   const refs=S.referrals||[];
-  document.getElementById('loy-ref').textContent=refs.length;
-  const top=S.customers.sort((a,b)=>(b.paid||0)-(a.paid||0))[0];
-  document.getElementById('loy-top').textContent=top?top.name.substring(0,12):'—';
+  const top=[...S.customers].sort((a,b)=>(b.paid||0)-(a.paid||0))[0];
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('loy-bday',bdayCount);
+  setEl('loy-pts',totalPts);
+  setEl('loy-ref',refs.length);
+  setEl('loy-top',top?top.name.substring(0,14):'—');
+}
+
+// ── WhatsApp Loyalty Tab ────────────────────────────────────────
+function renderWaLoyalty(){
+  const ps = getPtsSettings();
+  const now = new Date();
+  const list = S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
+  // Update stat cards
+  const totalPts = list.reduce((a,c)=>a+(c.points||0),0);
+  const withPts  = list.filter(c=>(c.points||0)>0 && !isPointsExpired(c));
+  const expiring = withPts.filter(c=>{
+    const exp=getPointsExpiry(c);
+    return exp && new Date(exp)-now < 7*86400000 && new Date(exp)>now;
+  });
+  const totalVal = withPts.reduce((a,c)=>a+(((c.points||0)/100)*ps.redeemVal),0);
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('wal-total-pts',   totalPts);
+  setEl('wal-cust-count',  withPts.length);
+  setEl('wal-expiring',    expiring.length);
+  setEl('wal-total-val',   '₹'+totalVal.toFixed(0));
+
+  // Table
+  const tb = document.getElementById('wal-tbody');
+  if(!tb) return;
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">⭐</div><p>No loyalty points issued yet</p></div></td></tr>';
+    return;
+  }
+  const sorted=[...list].sort((a,b)=>(b.points||0)-(a.points||0));
+  tb.innerHTML = sorted.map(c=>{
+    const expired = isPointsExpired(c);
+    const bal     = expired ? 0 : (c.points||0);
+    const val     = ((bal/100)*ps.redeemVal).toFixed(0);
+    const expiry  = getPointsExpiry(c);
+    const daysLeft= expiry ? Math.ceil((new Date(expiry)-now)/86400000) : null;
+    const expColor= expired?'var(--red)':daysLeft&&daysLeft<7?'var(--accent)':'var(--green)';
+    let statusBadge;
+    if(expired)           statusBadge='<span class="badge br" style="font-size:9px">Expired</span>';
+    else if(daysLeft&&daysLeft<7) statusBadge=`<span class="badge by" style="font-size:9px">⏰ ${daysLeft}d left</span>`;
+    else if(bal>=100)     statusBadge='<span class="badge bg" style="font-size:9px">✅ Can Redeem</span>';
+    else                  statusBadge=`<span class="badge bb" style="font-size:9px">Need ${100-bal} more</span>`;
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td style="font-size:11px">${c.phone||'<span style="color:var(--red)">No phone</span>'}</td>
+      <td style="color:var(--accent);font-weight:700">${bal} pts</td>
+      <td style="color:${+val>0?'var(--green)':'var(--text3)'};font-weight:600">₹${val}</td>
+      <td style="color:${expColor};font-size:11px">${expired?'Expired':(expiry||'—')}</td>
+      <td>${statusBadge}</td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" ${!c.phone?'disabled':''} onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱 Send</button>
+        <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋 Copy</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Message preview with first customer
+  const preview = document.getElementById('wal-preview');
+  if(preview && sorted.length){
+    preview.textContent = buildPointsMsg(sorted[0].name);
+  }
 }
 
 function getCustomerTier(spent){
@@ -3405,44 +3687,234 @@ function renderLeaderboard(){
   }).join('');
 }
 
+// ── Points settings helpers ────────────────────────────────────
+function getPtsSettings(){
+  return {
+    perRupee:  +document.getElementById('pts-per-rupee')?.value  || S.settings.pts?.perRupee  || 1,
+    redeemVal: +document.getElementById('pts-redeem-val')?.value || S.settings.pts?.redeemVal || 10,
+    minOrder:  +document.getElementById('pts-min-order')?.value  || S.settings.pts?.minOrder  || 250,
+    maxPct:    +document.getElementById('pts-max-pct')?.value    || S.settings.pts?.maxPct    || 10,
+    validity:  +document.getElementById('pts-validity')?.value   || S.settings.pts?.validity  || 90,
+  };
+}
+function savePtsSettings(){
+  const ps = getPtsSettings();
+  S.settings.pts = ps;
+  autoSave();
+  // Update rule summary line
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s('pts-rule-earn', ps.perRupee);
+  s('pts-rule-val',  ps.redeemVal);
+  s('pts-rule-min',  ps.minOrder);
+  s('pts-rule-max',  ps.maxPct);
+  s('pts-rule-validity', ps.validity);
+  const st=document.getElementById('pts-save-status');
+  if(st){ st.textContent='✅ Saved'; setTimeout(()=>st.textContent='',2000); }
+  toast('✅ Points settings saved!');
+}
+function loadPtsSettings(){
+  const ps = S.settings.pts || {};
+  const setVal = (id,v) => { const e=document.getElementById(id); if(e&&v!==undefined) e.value=v; };
+  setVal('pts-per-rupee',  ps.perRupee  || 1);
+  setVal('pts-redeem-val', ps.redeemVal || 10);
+  setVal('pts-min-order',  ps.minOrder  || 250);
+  setVal('pts-max-pct',    ps.maxPct    || 10);
+  setVal('pts-validity',   ps.validity  || 90);
+  savePtsSettings(); // refresh rule line
+}
+function getPointsExpiry(c){
+  // Find the most recent point-earning date
+  const hist = (c.pointsHistory||[]).filter(h=>h.earned>0);
+  if(!hist.length) return null;
+  const lastEarnDate = hist.reduce((a,h)=>h.date>a?h.date:a,'');
+  if(!lastEarnDate) return null;
+  const ps = getPtsSettings();
+  const expDate = new Date(new Date(lastEarnDate).getTime() + ps.validity*86400000);
+  return expDate.toISOString().slice(0,10);
+}
+function isPointsExpired(c){
+  const exp = getPointsExpiry(c);
+  if(!exp) return false;
+  return new Date(exp) < new Date();
+}
+
+// ── Updated renderPointsLedger ─────────────────────────────────
 function renderPointsLedger(){
   const tb=document.getElementById('pts-tbody');
   if(!tb) return;
-  const redeemVal=+document.getElementById('pts-redeem-val')?.value||10;
+  const ps = getPtsSettings();
   const list=S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
-  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">⭐</div><p>No points issued yet. Points are earned on every sale.</p></div></td></tr>';return;}
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">⭐</div><p>No points issued yet. Points are earned on every sale.</p></div></td></tr>';
+    return;
+  }
   const sorted=[...list].sort((a,b)=>(b.points||0)-(a.points||0));
   tb.innerHTML=sorted.map(c=>{
-    const earned=(c.pointsHistory||[]).reduce((a,h)=>a+(h.earned||0),0);
-    const used=(c.pointsHistory||[]).reduce((a,h)=>a+(h.used||0),0);
-    const bal=c.points||0;
-    const rupeeVal=((bal/100)*redeemVal).toFixed(0);
+    const bal     = isPointsExpired(c) ? 0 : (c.points||0);
+    const rupeeVal= ((bal/100)*ps.redeemVal).toFixed(0);
+    const expiry  = getPointsExpiry(c);
+    const expired = isPointsExpired(c);
+    const expColor= expired ? 'var(--red)' : expiry && new Date(expiry)-new Date() < 7*86400000 ? 'var(--accent)' : 'var(--green)';
+    const canRedeem = bal>=100 && !expired;
     return `<tr>
-      <td><strong>${c.name}</strong></td><td>${c.phone||'—'}</td>
-      <td style="color:var(--green)">+${earned}</td>
-      <td style="color:var(--red)">${used?'-'+used:'0'}</td>
-      <td style="color:var(--accent);font-weight:700">⭐ ${bal}</td>
-      <td style="color:var(--green);font-weight:600">₹${rupeeVal}</td>
-      <td>
-        <button class="btn btn-b" style="font-size:10px;padding:2px 7px" onclick="redeemPoints('${c.name}')">🔄 Redeem</button>
-        <button class="btn btn-g" style="font-size:10px;padding:2px 7px;margin-left:3px" onclick="sendPointsWA('${c.name}')">📱</button>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.phone||'—'}</td>
+      <td style="color:var(--accent);font-weight:700">⭐ ${bal}${expired?'<span style="font-size:9px;color:var(--red);display:block">Expired</span>':''}</td>
+      <td style="color:${+rupeeVal>0?'var(--green)':'var(--text3)'};font-weight:600">₹${rupeeVal}</td>
+      <td style="color:${expColor};font-size:11px">${expiry||'—'}${expired?' ⚠️':''}</td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-b" style="font-size:10px;padding:2px 6px" ${!canRedeem?'disabled style="opacity:.4;cursor:not-allowed;font-size:10px;padding:2px 6px"':''} onclick="redeemPoints('${c.name.replace(/'/g,"\\'")}')">🔄 Redeem</button>
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱</button>
+        <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋</button>
       </td>
     </tr>`;
   }).join('');
 }
 
-function redeemPoints(name){
-  const c=S.customers.find(x=>x.name===name);
-  if(!c||!c.points){toast('No points to redeem');return;}
-  const redeemVal=+document.getElementById('pts-redeem-val')?.value||10;
-  const discount=((c.points/100)*redeemVal).toFixed(0);
-  if(confirm(`Redeem ${c.points} points for ₹${discount} discount for ${name}?`)){
-    c.pointsHistory=c.pointsHistory||[];
-    c.pointsHistory.push({date:new Date().toISOString().slice(0,10),used:c.points,reason:'Redeemed for ₹'+discount+' discount',balance:0});
-    c.points=0;
-    renderPointsLedger();
-    toast('✅ Redeemed! ₹'+discount+' discount applied for '+name);
+// ── Updated redeemPoints with rules ───────────────────────────
+function redeemPoints(name, billTotal){
+  const c = S.customers.find(x=>x.name===name);
+  if(!c||!(c.points||0)){ toast('⚠️ No points to redeem for '+name); return; }
+  const ps = getPtsSettings();
+  if(isPointsExpired(c)){ toast('⚠️ Points have expired for '+name); return; }
+  // Min order rule
+  const bill = billTotal || +prompt(`Enter current bill total for ${name} (₹):`)||0;
+  if(!bill) return;
+  if(bill < ps.minOrder){
+    toast(`⚠️ Min order ₹${ps.minOrder} required to redeem. Current bill: ₹${bill}`);
+    return;
   }
+  // Max 10% of bill
+  const maxDiscount = Math.floor(bill * ps.maxPct / 100);
+  const pointsValue = ((c.points/100)*ps.redeemVal);
+  const actualDiscount = Math.min(pointsValue, maxDiscount);
+  const pointsToUse = Math.ceil((actualDiscount/ps.redeemVal)*100);
+  if(confirm(`Redeem ${pointsToUse} pts = ₹${actualDiscount.toFixed(0)} discount for ${name}?\n(Max ${ps.maxPct}% of ₹${bill} = ₹${maxDiscount})`)){
+    c.pointsHistory = c.pointsHistory||[];
+    c.pointsHistory.push({
+      date: new Date().toISOString().slice(0,10),
+      used: pointsToUse,
+      reason: `Redeemed ₹${actualDiscount.toFixed(0)} discount on ₹${bill} bill`,
+      balance: Math.max((c.points||0)-pointsToUse, 0)
+    });
+    c.points = Math.max((c.points||0)-pointsToUse, 0);
+    autoSave();
+    renderPointsLedger();
+    toast(`✅ ₹${actualDiscount.toFixed(0)} discount applied for ${name}! ${c.points} pts remaining.`);
+  }
+}
+
+// ── Weekly Points Summary ──────────────────────────────────────
+function renderWeeklyPoints(){
+  const tb = document.getElementById('weekly-pts-tbody');
+  if(!tb) return;
+  const ps = getPtsSettings();
+  const today = new Date();
+  const weekStart = new Date(today); weekStart.setDate(today.getDate()-7);
+  const wStr = weekStart.toISOString().slice(0,10);
+  const list = S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📅</div><p>No points data yet</p></div></td></tr>';
+    return;
+  }
+  const sorted = [...list].sort((a,b)=>(b.points||0)-(a.points||0));
+  tb.innerHTML = sorted.map(c=>{
+    const hist = c.pointsHistory||[];
+    const earnedWeek = hist.filter(h=>h.earned&&h.date>=wStr).reduce((a,h)=>a+(h.earned||0),0);
+    const usedWeek   = hist.filter(h=>h.used  &&h.date>=wStr).reduce((a,h)=>a+(h.used||0),0);
+    const bal     = isPointsExpired(c) ? 0 : (c.points||0);
+    const value   = ((bal/100)*ps.redeemVal).toFixed(0);
+    const expiry  = getPointsExpiry(c);
+    const expired = isPointsExpired(c);
+    const expColor= expired?'var(--red)':expiry&&new Date(expiry)-today<7*86400000?'var(--accent)':'var(--green)';
+    return `<tr>
+      <td><strong>${c.name}</strong><div style="font-size:9px;color:var(--text3)">${c.phone||'—'}</div></td>
+      <td style="color:var(--accent);font-weight:700">${bal} pts</td>
+      <td style="color:var(--green)">${earnedWeek>0?'+'+earnedWeek:'—'}</td>
+      <td style="color:var(--red)">${usedWeek>0?'-'+usedWeek:'—'}</td>
+      <td style="color:${+value>0?'var(--green)':'var(--text3)'};font-weight:600">₹${value}</td>
+      <td style="color:${expColor};font-size:11px">${expired?'⚠️ Expired':(expiry||'—')}</td>
+      <td style="display:flex;gap:3px">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱 WA</button>
+        <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋 Copy</button>
+      </td>
+    </tr>`;
+  }).join('');
+  // Load message template
+  loadPtsMsgTemplate();
+}
+
+// ── Points message template helpers ───────────────────────────
+const PTS_MSG_DEFAULT = `🏪 *{biz}* — Your Rewards Update! ⭐
+
+Hi {name},
+
+Here's your points summary:
+🌟 Current Points: *{points} pts*
+💰 Redeem Value: *₹{value}*
+📅 Valid Until: *{expiry}*
+
+Use your points on your next purchase for a discount!
+Minimum bill ₹250 required.
+
+Thank you for shopping with us! 🙏`;
+
+function loadPtsMsgTemplate(){
+  const el = document.getElementById('pts-msg-tmpl');
+  if(el && !el.value) el.value = S.settings.ptsMsgTemplate || PTS_MSG_DEFAULT;
+}
+function savePtsMsgTemplate(){
+  const el = document.getElementById('pts-msg-tmpl');
+  if(el){ S.settings.ptsMsgTemplate = el.value; autoSave(); toast('✅ Template saved!'); }
+}
+function buildPointsMsg(name){
+  const c = S.customers.find(x=>x.name===name);
+  if(!c) return '';
+  const ps      = getPtsSettings();
+  const bal     = isPointsExpired(c)?0:(c.points||0);
+  const value   = ((bal/100)*ps.redeemVal).toFixed(0);
+  const expiry  = getPointsExpiry(c)||'—';
+  const biz     = S.settings.bizName||'Meenatchi Traders';
+  // Use unified loyalty template from WA templates (editable in WA page)
+  const tmpl = (S.settings.waTmpl?.loyalty) || WA_TMPL_DEFAULTS.loyalty;
+  return tmpl
+    .replace(/\{name\}/g,   name)
+    .replace(/\{points\}/g, bal)
+    .replace(/\{value\}/g,  '₹'+value)
+    .replace(/\{expiry\}/g, expiry)
+    .replace(/\{biz\}/g,    biz)
+    .replace(/\{phone\}/g,  S.settings.phone||'')
+    .replace(/\{date\}/g,   new Date().toLocaleDateString('en-IN'));
+}
+function sendPointsWA(name){
+  const c = S.customers.find(x=>x.name===name);
+  if(!c||!c.phone){ toast('⚠️ No phone for '+name); return; }
+  openWA(c.phone, buildPointsMsg(name));
+}
+function copyPointsMsg(name){
+  const msg = buildPointsMsg(name);
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(()=>toast('📋 Points message copied for '+name));
+  } else {
+    const ta=document.createElement('textarea'); ta.value=msg;
+    ta.style.cssText='position:fixed;opacity:0'; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    toast('📋 Copied!');
+  }
+}
+function bulkSendPointsWA(){
+  const ps = getPtsSettings();
+  const list = S.customers.filter(c=>(c.points||0)>0 && c.phone && !isPointsExpired(c));
+  if(!list.length){ toast('No customers with active points and phone numbers'); return; }
+  if(!confirm(`Send weekly points summary to ${list.length} customers via WhatsApp?`)) return;
+  let i=0;
+  function next(){
+    if(i>=list.length){ toast('✅ Sent to '+list.length+' customers'); return; }
+    const c=list[i++];
+    openWA(c.phone, buildPointsMsg(c.name));
+    setTimeout(next, 1500);
+  }
+  next();
 }
 
 function renderPurchaseHistory(){
@@ -3585,7 +4057,7 @@ function sendLoyaltyWA(name){
   openWA(c.phone, msg);
 }
 
-function sendPointsWA(name){sendLoyaltyWA(name);}
+// sendPointsWA is defined above in the points section
 function baTab(el,id){
   tabSwitch(el,id,['ba-trends','ba-best','ba-peak','ba-seasonal','ba-break']);
   if(id==='ba-trends') renderBaMonthly();
@@ -4424,6 +4896,7 @@ function selectCust(name, phone){
   const custEl  = document.getElementById('s-cust');
   const phoneEl = document.getElementById('s-phone');
   const bdayEl  = document.getElementById('s-bday');
+  const addrEl  = document.getElementById('s-addr');
   if(custEl)  custEl.value  = name;
   if(phoneEl && phone) phoneEl.value = phone;
   hideCustDrop();
@@ -4431,6 +4904,7 @@ function selectCust(name, phone){
   if(c){
     if(c.mode){ const modeEl=document.getElementById('s-pmode'); if(modeEl) modeEl.value=c.mode; }
     if(c.bday && bdayEl && !bdayEl.value) bdayEl.value = c.bday;
+    if(c.addr && addrEl && !addrEl.value) addrEl.value = c.addr;
   }
   document.getElementById('product-rows')?.querySelector('select')?.focus();
 }
@@ -4478,7 +4952,7 @@ function saveSale(){
   S.sales.push(sale);
   // Update customer
   let c=S.customers.find(x=>x.name===cust);
-  if(!c){c={id:Date.now(),name:cust,phone,addr:'',paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:''};S.customers.push(c);}
+  const sAddr=document.getElementById('s-addr')?.value.trim()||'';if(!c){c={id:Date.now(),name:cust,phone,addr:sAddr,paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:''};S.customers.push(c);}
   c.paid=(c.paid||0)+(sale.total-pending);
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
@@ -4486,9 +4960,12 @@ function saveSale(){
   // Save DOB if entered and not already set
   const bdayVal = document.getElementById('s-bday')?.value;
   if(bdayVal && !c.bday) c.bday = bdayVal;
+  // Save address if entered
+  const addrVal = document.getElementById('s-addr')?.value.trim();
+  if(addrVal && !c.addr) c.addr = addrVal;
   // Award loyalty points
-  const ppr=+document.getElementById('pts-per-rupee')?.value||1;
-  const earnedPts=Math.floor(sale.total*ppr);
+  const ppr  = S.settings.pts?.perRupee || +document.getElementById('pts-per-rupee')?.value || 1;
+  const earnedPts = Math.floor((sale.total/10) * ppr); // ₹10 = ppr points
   c.points=(c.points||0)+earnedPts;
   c.pointsHistory=c.pointsHistory||[];
   c.pointsHistory.push({date:sale.date,earned:earnedPts,reason:'Sale ₹'+sale.total.toFixed(0),balance:c.points});
@@ -4506,7 +4983,7 @@ function saveSale(){
 }
 
 function clearSale(){
-  ['s-cust','s-phone','s-recv','s-bday'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['s-cust','s-phone','s-recv','s-bday','s-addr'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['s-total','s-pend','s-eprofit'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('product-rows').innerHTML='';prodRowCount=0;addProductRow();
 }
@@ -4597,7 +5074,7 @@ function renderOrders(){
     <td><strong>#${o.id}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
     <td>${o.product}</td><td>${o.qty}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td>
     <td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td>
-    <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)"><option>Pending</option><option>Processing</option><option>Ready</option><option>Delivered</option><option>Cancelled</option></select></td>
+    <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)">${['Pending','Processing','Ready','Delivered','Cancelled'].map(s=>`<option ${s===o.status?'selected':''} >${s}</option>`).join('')}</select></td>
     <td><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="deleteOrder(${o.id})">🗑️</button></td>
   </tr>`).join('');
 }
@@ -4769,11 +5246,71 @@ function calcTea(){
   document.getElementById('tc-daily-profit').value=dailyProfit.toFixed(2);
 }
 
+function tcAutoFill(){
+  const name = document.getElementById('tc-cust')?.value.trim();
+  if(!name) return;
+  const c = S.customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!c) return;
+  const ph = document.getElementById('tc-phone');
+  if(ph && !ph.value) ph.value = c.phone||'';
+  // Show current points
+  const ps = getPtsSettings();
+  const bal = isPointsExpired(c)?0:(c.points||0);
+  const val = ((bal/100)*ps.redeemVal).toFixed(0);
+  const info = document.getElementById('tc-pts-info');
+  if(info){
+    info.style.display = 'block';
+    info.innerHTML = `⭐ Current points: <strong style="color:var(--accent)">${bal}</strong> = ₹${val} redeem value`;
+  }
+}
+
 function saveTeaEntry(){
   const cups=+document.getElementById('tc-cup-qty').value||0;
   if(!cups){toast('⚠️ Enter cups sold');return;}
-  const entry={date:document.getElementById('tc-date').value,cups,income:+document.getElementById('tc-total-inc').value||0,expense:(+document.getElementById('tc-gas').value||0)+(+document.getElementById('tc-other').value||0),profit:+document.getElementById('tc-daily-profit').value||0,notes:document.getElementById('tc-notes').value,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})};
+  const custName = document.getElementById('tc-cust')?.value.trim()||'';
+  const custPhone= document.getElementById('tc-phone')?.value.trim()||'';
+  const income   = +document.getElementById('tc-total-inc').value||0;
+  const entry={
+    date:document.getElementById('tc-date').value,
+    cups, income,
+    expense:(+document.getElementById('tc-gas').value||0)+(+document.getElementById('tc-other').value||0),
+    profit:+document.getElementById('tc-daily-profit').value||0,
+    notes:document.getElementById('tc-notes').value,
+    customer:custName,
+    phone:custPhone,
+    time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})
+  };
   S.teaEntries.push(entry);
+
+  // ── Tea Loyalty Points: ₹500 = 1 point ─────────────────────
+  if(custName && income > 0){
+    let c = S.customers.find(x=>x.name.toLowerCase()===custName.toLowerCase());
+    if(!c){
+      c = {id:Date.now(),name:custName,phone:custPhone,addr:'',paid:0,pending:0,
+           lastProd:'Tea/Coffee',mode:'Cash',points:0,bday:'',referredBy:'',pointsHistory:[]};
+      S.customers.push(c);
+    }
+    if(custPhone && !c.phone) c.phone = custPhone;
+    c.paid = (c.paid||0) + income;
+    // ₹500 = 1 point for tea shop (special rate)
+    const teaPts = Math.floor(income / 500);
+    if(teaPts > 0){
+      c.points = (c.points||0) + teaPts;
+      c.pointsHistory = c.pointsHistory||[];
+      c.pointsHistory.push({
+        date: entry.date,
+        earned: teaPts,
+        reason: `Tea Shop: ₹${income.toFixed(0)} → ${teaPts} pt${teaPts>1?'s':''}`,
+        balance: c.points
+      });
+      toast(`✅ Tea entry saved! ⭐ +${teaPts} point${teaPts>1?'s':''} for ${custName}`);
+    } else {
+      toast(`✅ Tea entry saved! (₹${income.toFixed(0)} — needs ₹500 for 1 point)`);
+    }
+  } else {
+    toast('✅ Tea entry saved!');
+  }
+
   document.getElementById('tc-cups').textContent=S.teaEntries.reduce((a,e)=>a+e.cups,0);
   const totInc=S.teaEntries.reduce((a,e)=>a+e.income,0);
   const totExp=S.teaEntries.reduce((a,e)=>a+e.expense,0);
@@ -4783,15 +5320,20 @@ function saveTeaEntry(){
   document.getElementById('tc-profit').textContent='₹'+totProf.toFixed(2);
   document.getElementById('d-tea').textContent='₹'+totInc.toFixed(2);
   const tb=document.getElementById('tea-tbody');
-  tb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.time}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.notes||'—'}</td></tr>`).join('');
+  if(tb) tb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.time}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer||e.notes||'—'}</td></tr>`).join('');
   const htb=document.getElementById('tea-history');
-  htb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.date}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.expense.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.notes||'—'}</td></tr>`).join('');
-  autoSave();toast('✅ Tea entry saved!');clearTeaForm();
+  if(htb) htb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.date}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.expense.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer?'<strong>'+e.customer+'</strong> ':''} ${e.notes||''}</td></tr>`).join('');
+  autoSave();
+  clearTeaForm();
 }
 
 function clearTeaForm(){
-  ['tc-cup-qty','tc-sell','tc-milk','tc-sugar','tc-powder','tc-gas','tc-other','tc-notes','tc-cpc','tc-ppc','tc-total-inc','tc-daily-profit'].forEach(id=>{const e=document.getElementById(id);if(e&&!['tc-sell'].includes(id))e.value='';});
+  ['tc-cup-qty','tc-sell','tc-milk','tc-sugar','tc-powder','tc-gas','tc-other',
+   'tc-notes','tc-cpc','tc-ppc','tc-total-inc','tc-daily-profit','tc-cust','tc-phone'
+  ].forEach(id=>{const e=document.getElementById(id);if(e&&id!=='tc-sell')e.value='';});
   document.getElementById('tc-sell').value='10';
+  const info=document.getElementById('tc-pts-info');
+  if(info) info.style.display='none';
 }
 
 // ===== TUITION =====
@@ -5163,6 +5705,61 @@ function renderSalesForecast(){
   if(el('ai-fc-dash')) el('ai-fc-dash').innerHTML=`<div style="font-size:12px;color:var(--text2)">Tomorrow: <strong style="color:var(--accent);font-size:16px">₹${tomorrow}</strong> · 7-day: <strong style="color:var(--green)">₹${week}</strong><br><span style="font-size:10px;color:var(--text3)">${dataNote||'AI forecast based on sales trend'}</span></div>`;
 }
 
+// ===== FORECAST TABLE (rich data) =====
+function renderForecastTable(){
+  const tb = document.getElementById('sf-tbl-tbody');
+  if(!tb) return;
+  if(!S.products.length){
+    tb.innerHTML='<tr><td colspan="12"><div class="empty"><div class="ei">📋</div><p>Add products to see forecast table</p></div></td></tr>';
+    return;
+  }
+  const stickerMat = S.packMaterials?.find(m=>m.type==='Sticker');
+  const coverMat   = S.packMaterials?.find(m=>m.type==='Cover/Bag');
+  const stkStock   = stickerMat?.qty || 0;
+  const cvrStock   = coverMat?.qty   || 0;
+
+  tb.innerHTML = S.products.map(p=>{
+    const a = getProductAnalytics(p, 30);
+    // Last supplier order for this product
+    const lastOrder = [...(S.supplierOrders||[])].filter(o=>o.productName===p.name||o.productId===p.id)
+      .sort((x,y)=>new Date(y.orderDate)-new Date(x.orderDate))[0];
+    const supplierName = lastOrder?.supplier || p.supplier || '—';
+    const lastOrdered  = lastOrder?.orderDate || '—';
+    const expReceive   = lastOrder?.expDate || '—';
+
+    // Packaging stock per product
+    const stkPerPack = stickerMat?.perPack||1;
+    const cvrPerPack = coverMat?.perPack||1;
+    const packsFromStk = stkStock > 0 ? Math.floor(stkStock/stkPerPack) : '—';
+    const packsFromCvr = cvrStock > 0 ? Math.floor(cvrStock/cvrPerPack) : '—';
+
+    const daysColor = a.daysLeft<=3?'var(--red)':a.daysLeft<=7?'var(--accent)':'var(--text)';
+    const urgClass  = a.urgency==='critical'?'br':a.urgency==='soon'?'by':a.urgency==='dead'?'bp':'bg';
+
+    return `<tr>
+      <td><strong>${p.name}</strong><div style="font-size:9px;color:var(--text3)">${p.cat||'—'}</div></td>
+      <td style="color:var(--accent);font-weight:700">${a.bal} ${p.unit||''}</td>
+      <td style="color:var(--blue)">${a.wAvgDaily.toFixed(1)}/day</td>
+      <td style="color:${daysColor};font-weight:700">${a.daysLeft===Infinity?'∞':a.daysLeft+'d'}</td>
+      <td style="color:var(--text2)">${a.reorderPoint}</td>
+      <td>
+        <span style="color:var(--accent);font-weight:700">${a.suggestedQty} ${p.unit||''}</span>
+        <button class="btn btn-y" style="font-size:9px;padding:1px 6px;margin-left:4px" onclick="prefillOrder(${p.id})" title="Create Supplier Order">🛒</button>
+      </td>
+      <td style="font-size:11px">${supplierName}</td>
+      <td style="font-size:11px;color:var(--text3)">${lastOrdered}</td>
+      <td style="font-size:11px;color:${expReceive!=='—'?'var(--blue)':'var(--text3)'}">${expReceive}</td>
+      <td style="color:${stkStock<a.suggestedQty?'var(--red)':'var(--green)'}">
+        ${stkStock>0?stkStock+'<div style="font-size:9px;color:var(--text3)">'+packsFromStk+' packs</div>':'<span style="color:var(--text3)">—</span>'}
+      </td>
+      <td style="color:${cvrStock<a.suggestedQty?'var(--red)':'var(--green)'}">
+        ${cvrStock>0?cvrStock+'<div style="font-size:9px;color:var(--text3)">'+packsFromCvr+' packs</div>':'<span style="color:var(--text3)">—</span>'}
+      </td>
+      <td><span class="badge ${urgClass}" style="font-size:9px">${a.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 // ===== DEMAND =====
 function renderDemand(){
   document.getElementById('dp-tracked').textContent=S.products.length;
@@ -5192,7 +5789,7 @@ function updateDashStats(){
   // Recent orders
   const otb=document.getElementById('dash-orders');
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
-  otb.innerHTML=S.orders.length?S.orders.slice().reverse().slice(0,8).map(o=>`<tr><td>${o.customer}</td><td>${o.product}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td><td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td></tr>`).join(''):'<tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr>';
+  otb.innerHTML=S.orders.length?S.orders.slice().reverse().slice(0,8).map(o=>{const sc2={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};return `<tr><td>${o.customer}</td><td>${o.product}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td><td><span class="badge ${sc2[o.status]||'bb'}">${o.status}</span></td></tr>`;}).join(''):'<tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr>';
   // Also refresh pending tab data if visible
   renderDashPending();
   renderDashTarget();
