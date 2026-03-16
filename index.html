@@ -605,6 +605,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="sc b nav-card" onclick="nav('sales')"><div class="sc-ico">🛒</div><div class="sc-label">Today's Sales</div><div class="sc-val" id="d-today">₹0.00</div><div class="sc-sub">Today · tap to record ›</div></div>
           <div class="sc p nav-card" onclick="nav('reports')"><div class="sc-ico">📅</div><div class="sc-label">Monthly Sales</div><div class="sc-val" id="d-monthly">₹0.00</div><div class="sc-sub">This month · tap for report ›</div></div>
           <div class="sc y nav-card" onclick="nav('teashop')"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop Income</div><div class="sc-val" id="d-tea">₹0.00</div><div class="sc-sub">This month · tap to enter ›</div></div>
+          <div class="sc p nav-card" onclick="nav('loyalty')"><div class="sc-ico">⭐</div><div class="sc-label">Loyalty Discounts</div><div class="sc-val" id="d-loyalty-disc">₹0</div><div class="sc-sub">Given this month · tap to view ›</div></div>
         </div>
 
         <!-- Quick Actions -->
@@ -785,6 +786,59 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <div class="fg"><label class="fl">Amount Received (₹)</label><div class="fi-ico"><input class="fi" id="s-recv" type="number" placeholder="0" oninput="calcPending()"><span class="fi-ico-btn">₹</span></div></div>
               <div class="fg"><label class="fl">Total Amount (₹)</label><div class="fi-ico"><input class="fi" id="s-total" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
               <div class="fg"><label class="fl">Pending Amount (₹)</label><div class="fi-ico"><input class="fi" id="s-pend" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
+            </div>
+            <!-- Loyalty Points Redeem -->
+            <div id="s-loyalty-box" style="display:none;background:rgba(249,200,70,.06);border:1px solid rgba(249,200,70,.3);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+              <!-- Header row: customer info + tick -->
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:16px">⭐</span>
+                  <div>
+                    <div id="s-pts-cust-name" style="font-size:12.5px;font-weight:700;color:var(--accent)"></div>
+                    <div id="s-pts-cust-phone" style="font-size:10px;color:var(--text3)"></div>
+                  </div>
+                </div>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;transition:all .15s" id="s-redeem-toggle-lbl">
+                  <input type="checkbox" id="s-redeem-toggle" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer" onchange="onRedeemToggle()">
+                  <span style="font-size:12px;font-weight:600;color:var(--text)" id="s-redeem-toggle-txt">Use Points</span>
+                </label>
+              </div>
+
+              <!-- Points info bar -->
+              <div id="s-pts-info-bar" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-bottom:8px">
+                <span>⭐ <strong id="s-pts-balance" style="color:var(--accent)">0</strong> pts available</span>
+                <span style="color:var(--text3)">|</span>
+                <span>Max redeem: <strong id="s-pts-max-disc" style="color:var(--green)">₹0</strong></span>
+                <span style="color:var(--text3)">|</span>
+                <span>Expires: <strong id="s-pts-expiry" style="color:var(--text2)">—</strong></span>
+              </div>
+
+              <!-- Result row — only visible when toggled ON -->
+              <div id="s-redeem-result" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+                  <div>
+                    <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Points Used</div>
+                    <div id="s-pts-used-show" style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:var(--accent)">0</div>
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Discount</div>
+                    <div id="s-redeem-disc-show" style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:var(--green)">₹0</div>
+                  </div>
+                  <div>
+                    <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Final Total</div>
+                    <div id="s-final-total-show" style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:var(--blue)">₹0</div>
+                  </div>
+                </div>
+                <div id="s-pts-remaining" style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px"></div>
+              </div>
+
+              <!-- Warning -->
+              <div id="s-redeem-warn" style="font-size:11px;color:var(--accent);margin-top:6px;display:none;background:rgba(249,200,70,.08);padding:6px 10px;border-radius:6px"></div>
+
+              <!-- Hidden inputs for saveSale to read -->
+              <input type="hidden" id="s-redeem-pts" value="0">
+              <input type="hidden" id="s-redeem-disc" value="0">
+              <input type="hidden" id="s-final-total" value="0">
             </div>
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
@@ -1500,8 +1554,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
         <div class="card">
-          <div class="card-h"><h3>🏆 Product Performance</h3></div>
-          <div class="card-b" id="sp-perf"><div class="empty"><div class="ei">📊</div><p>No sales this month yet</p></div></div>
+          <div class="card-h"><h3>⭐ Loyalty Impact on Sales</h3></div>
+          <div class="card-b" id="sp-loyalty-impact"><div class="empty"><div class="ei">⭐</div><p>Loyalty data will appear here as redemptions happen</p></div></div>
         </div>
       </div>
       <div class="card">
@@ -4771,28 +4825,205 @@ function removeProdRow(idx){
 }
 
 function calcSaleTotal(){
-  let total=0,profit=0;
+  let total=0, profit=0;
   document.querySelectorAll('#product-rows>div').forEach(row=>{
-    const qty=+row.querySelector('[id^="pr-qty"]').value||0;
-    const price=+row.querySelector('[id^="pr-price"]').value||0;
-    const disc=+row.querySelector('[id^="pr-disc"]').value||0;
-    const sel=row.querySelector('select');
-    const prodId=sel?+sel.value:0;
-    const prod=S.products.find(p=>p.id===prodId);
+    const qty  = +row.querySelector('[id^="pr-qty"]').value||0;
+    const price= +row.querySelector('[id^="pr-price"]').value||0;
+    const disc = +row.querySelector('[id^="pr-disc"]').value||0;
+    const sel  = row.querySelector('select');
+    const prod = S.products.find(p=>p.id===+(sel?.value||0));
     const lineTotal=(price-disc)*qty;
-    total+=lineTotal;
-    if(prod) profit+=(price-disc-prod.cunit)*qty;
+    total += lineTotal;
+    if(prod) profit += (price-disc-prod.cunit)*qty;
   });
-  document.getElementById('s-total').value=total.toFixed(2);
-  const recv=+document.getElementById('s-recv').value||0;
-  document.getElementById('s-pend').value=Math.max(total-recv,0).toFixed(2);
-  document.getElementById('s-eprofit').value=profit.toFixed(2);
+  document.getElementById('s-total').value = total.toFixed(2);
+  // Apply redeem if toggle is ON
+  const toggled = document.getElementById('s-redeem-toggle')?.checked;
+  const redeemDisc = toggled ? applyAutoRedeem(total) : 0;
+  const finalTotal = Math.max(total - redeemDisc, 0);
+  const recv = +document.getElementById('s-recv').value||0;
+  document.getElementById('s-pend').value = Math.max(finalTotal-recv, 0).toFixed(2);
+  document.getElementById('s-eprofit').value = (profit - redeemDisc).toFixed(2);
+  // Refresh loyalty box info
+  showLoyaltyBox();
 }
 
 function calcPending(){
-  const total=+document.getElementById('s-total').value||0;
-  const recv=+document.getElementById('s-recv').value||0;
-  document.getElementById('s-pend').value=Math.max(total-recv,0).toFixed(2);
+  const total = +document.getElementById('s-total').value||0;
+  const redeemDisc = +document.getElementById('s-redeem-disc').value||0;
+  const finalTotal = Math.max(total - redeemDisc, 0);
+  const recv = +document.getElementById('s-recv').value||0;
+  document.getElementById('s-pend').value = Math.max(finalTotal-recv, 0).toFixed(2);
+}
+
+function showLoyaltyBox(){
+  const custName = document.getElementById('s-cust')?.value.trim();
+  const box = document.getElementById('s-loyalty-box');
+  if(!box) return;
+  if(!custName){ box.style.display='none'; return; }
+
+  const c = S.customers.find(x=>x.name.toLowerCase()===custName.toLowerCase());
+  const pts = (c && !isPointsExpired(c)) ? (c.points||0) : 0;
+
+  if(pts <= 0 || !c){
+    box.style.display='none';
+    // Reset hidden inputs
+    document.getElementById('s-redeem-pts').value=0;
+    document.getElementById('s-redeem-disc').value=0;
+    document.getElementById('s-final-total').value=document.getElementById('s-total').value||0;
+    return;
+  }
+
+  box.style.display = 'block';
+  const ps    = getPtsSettings();
+  const total = +document.getElementById('s-total').value||0;
+  const maxByBill = total * (ps.maxPct/100);
+  const maxByPts  = (pts/100)*ps.redeemVal;
+  const maxDisc   = Math.min(maxByBill, maxByPts);
+  const expiry    = getPointsExpiry(c);
+  const meetsMin  = total >= ps.minOrder;
+
+  // Update info fields
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('s-pts-cust-name', `⭐ ${c.name} — ${pts} pts`);
+  setEl('s-pts-cust-phone', c.phone||'');
+  setEl('s-pts-balance', pts);
+  setEl('s-pts-max-disc', meetsMin ? '₹'+maxDisc.toFixed(0) : '₹0 (need ₹'+ps.minOrder+' min)');
+  setEl('s-pts-expiry', expiry||'—');
+
+  // Colour expiry warning
+  const expEl = document.getElementById('s-pts-expiry');
+  if(expEl && expiry){
+    const daysLeft = Math.ceil((new Date(expiry)-new Date())/86400000);
+    expEl.style.color = daysLeft<7 ? 'var(--red)' : daysLeft<30 ? 'var(--accent)' : 'var(--green)';
+  }
+
+  // If toggle is ON, auto-apply
+  if(document.getElementById('s-redeem-toggle')?.checked){
+    applyAutoRedeem(total);
+    renderRedeemResult();
+  }
+}
+
+// Called when checkbox ticked/unticked
+function onRedeemToggle(){
+  const toggled = document.getElementById('s-redeem-toggle')?.checked;
+  const total   = +document.getElementById('s-total').value||0;
+  const lbl     = document.getElementById('s-redeem-toggle-lbl');
+  const resultEl= document.getElementById('s-redeem-result');
+  const warnEl  = document.getElementById('s-redeem-warn');
+
+  if(toggled){
+    // Highlight the toggle label
+    if(lbl){ lbl.style.background='rgba(249,200,70,.15)'; lbl.style.borderColor='rgba(249,200,70,.5)'; }
+    const disc = applyAutoRedeem(total);
+    if(disc > 0){
+      if(resultEl) resultEl.style.display='block';
+      if(warnEl)   warnEl.style.display='none';
+      renderRedeemResult();
+    } else {
+      // Show why it can't redeem
+      if(resultEl) resultEl.style.display='none';
+    }
+  } else {
+    // Untick — clear discount
+    if(lbl){ lbl.style.background=''; lbl.style.borderColor=''; }
+    document.getElementById('s-redeem-pts').value = 0;
+    document.getElementById('s-redeem-disc').value = 0;
+    document.getElementById('s-final-total').value = total.toFixed(2);
+    if(resultEl) resultEl.style.display='none';
+    if(warnEl)   warnEl.style.display='none';
+    // Recalc totals without discount
+    const recv = +document.getElementById('s-recv').value||0;
+    document.getElementById('s-pend').value = Math.max(total-recv,0).toFixed(2);
+    calcSaleProfit(0);
+  }
+}
+
+// Auto-calculates best redeem amount based on current total + rules
+// Returns actual discount applied
+function applyAutoRedeem(total){
+  const custName = document.getElementById('s-cust')?.value.trim();
+  const c = S.customers.find(x=>x.name.toLowerCase()===custName?.toLowerCase());
+  const ps = getPtsSettings();
+  const warnEl = document.getElementById('s-redeem-warn');
+  const resultEl= document.getElementById('s-redeem-result');
+
+  if(!c || isPointsExpired(c) || (c.points||0) <= 0){
+    if(warnEl){ warnEl.textContent='⭐ No active points to redeem'; warnEl.style.display='block'; }
+    document.getElementById('s-redeem-pts').value=0;
+    document.getElementById('s-redeem-disc').value=0;
+    document.getElementById('s-final-total').value=total.toFixed(2);
+    return 0;
+  }
+
+  const availPts = c.points||0;
+
+  if(total < ps.minOrder){
+    if(warnEl){ warnEl.textContent=`⚠️ Min order ₹${ps.minOrder} required to redeem. Current: ₹${total.toFixed(0)}`; warnEl.style.display='block'; }
+    if(resultEl) resultEl.style.display='none';
+    document.getElementById('s-redeem-pts').value=0;
+    document.getElementById('s-redeem-disc').value=0;
+    document.getElementById('s-final-total').value=total.toFixed(2);
+    return 0;
+  }
+
+  // Max discount allowed
+  const maxByBill = total * (ps.maxPct/100);
+  const maxByPts  = (availPts/100)*ps.redeemVal;
+  const actualDisc = Math.min(maxByBill, maxByPts);
+  // Points needed for actual discount
+  const ptsToUse = Math.ceil((actualDisc/ps.redeemVal)*100);
+  const finalTotal = Math.max(total - actualDisc, 0);
+
+  // Save to hidden inputs
+  document.getElementById('s-redeem-pts').value  = ptsToUse;
+  document.getElementById('s-redeem-disc').value = actualDisc.toFixed(2);
+  document.getElementById('s-final-total').value = finalTotal.toFixed(2);
+
+  // Update pending
+  const recv = +document.getElementById('s-recv').value||0;
+  document.getElementById('s-pend').value = Math.max(finalTotal-recv,0).toFixed(2);
+
+  if(warnEl) warnEl.style.display='none';
+  return actualDisc;
+}
+
+function renderRedeemResult(){
+  const pts   = document.getElementById('s-redeem-pts')?.value||0;
+  const disc  = document.getElementById('s-redeem-disc')?.value||0;
+  const final = document.getElementById('s-final-total')?.value||0;
+  const custName=document.getElementById('s-cust')?.value.trim();
+  const c = S.customers.find(x=>x.name.toLowerCase()===custName?.toLowerCase());
+  const remaining = c ? Math.max((c.points||0)-(+pts),0) : 0;
+
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('s-pts-used-show', pts);
+  setEl('s-redeem-disc-show', '₹'+parseFloat(disc).toFixed(0));
+  setEl('s-final-total-show', '₹'+parseFloat(final).toFixed(0));
+  setEl('s-pts-remaining', `${remaining} pts remaining after this sale`);
+}
+
+function calcSaleProfit(redeemDisc){
+  let profit=0;
+  document.querySelectorAll('#product-rows>div').forEach(row=>{
+    const qty  = +row.querySelector('[id^="pr-qty"]').value||0;
+    const price= +row.querySelector('[id^="pr-price"]').value||0;
+    const disc = +row.querySelector('[id^="pr-disc"]').value||0;
+    const sel  = row.querySelector('select');
+    const prod = S.products.find(p=>p.id===+(sel?.value||0));
+    if(prod) profit+=(price-disc-prod.cunit)*qty;
+  });
+  document.getElementById('s-eprofit').value=(profit-redeemDisc).toFixed(2);
+}
+
+function calcRedeemDiscount(){
+  // Legacy — now handled by onRedeemToggle / applyAutoRedeem
+  if(document.getElementById('s-redeem-toggle')?.checked){
+    const total=+document.getElementById('s-total').value||0;
+    applyAutoRedeem(total);
+    renderRedeemResult();
+  }
 }
 
 
@@ -4906,6 +5137,7 @@ function selectCust(name, phone){
     if(c.bday && bdayEl && !bdayEl.value) bdayEl.value = c.bday;
     if(c.addr && addrEl && !addrEl.value) addrEl.value = c.addr;
   }
+  showLoyaltyBox();
   document.getElementById('product-rows')?.querySelector('select')?.focus();
 }
 
@@ -4940,13 +5172,18 @@ function saveSale(){
       prod.sold=(prod.sold||0)+qty;
     }
   });
+  const redeemPts  = +document.getElementById('s-redeem-pts')?.value||0;
+  const redeemDisc = +document.getElementById('s-redeem-disc')?.value||0;
+  const finalTotal = redeemDisc>0 ? Math.max(total-redeemDisc,0) : total;
   const pending=+document.getElementById('s-pend').value||0;
   const sale={
     id:Date.now(),date:document.getElementById('s-date').value,
     customer:cust,phone,
     mode:document.getElementById('s-pmode').value,
     status:document.getElementById('s-ostatus').value,
-    products,total,recv:+document.getElementById('s-recv').value||0,
+    products,total:finalTotal,originalTotal:total,
+    redeemDisc,redeemPts,
+    recv:+document.getElementById('s-recv').value||0,
     pending,profit:+document.getElementById('s-eprofit').value||0
   };
   S.sales.push(sale);
@@ -4963,12 +5200,23 @@ function saveSale(){
   // Save address if entered
   const addrVal = document.getElementById('s-addr')?.value.trim();
   if(addrVal && !c.addr) c.addr = addrVal;
-  // Award loyalty points
+  // Award loyalty points (on finalTotal, not originalTotal)
   const ppr  = S.settings.pts?.perRupee || +document.getElementById('pts-per-rupee')?.value || 1;
-  const earnedPts = Math.floor((sale.total/10) * ppr); // ₹10 = ppr points
+  const earnedPts = Math.floor((finalTotal/10) * ppr);
+  // Deduct redeemed points first
+  if(redeemPts>0 && redeemDisc>0){
+    c.points = Math.max((c.points||0)-redeemPts, 0);
+    c.pointsHistory = c.pointsHistory||[];
+    c.pointsHistory.push({
+      date:sale.date, used:redeemPts,
+      reason:`Redeemed ₹${redeemDisc.toFixed(0)} discount on sale`,
+      balance:c.points
+    });
+  }
+  // Then earn new points
   c.points=(c.points||0)+earnedPts;
   c.pointsHistory=c.pointsHistory||[];
-  c.pointsHistory.push({date:sale.date,earned:earnedPts,reason:'Sale ₹'+sale.total.toFixed(0),balance:c.points});
+  c.pointsHistory.push({date:sale.date,earned:earnedPts,reason:'Sale ₹'+finalTotal.toFixed(0),balance:c.points});
   // Create order from sale
   if(products.length){
     S.orders.push({id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
@@ -4983,8 +5231,9 @@ function saveSale(){
 }
 
 function clearSale(){
-  ['s-cust','s-phone','s-recv','s-bday','s-addr'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['s-cust','s-phone','s-recv','s-bday','s-addr','s-redeem-pts','s-redeem-disc','s-final-total'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['s-total','s-pend','s-eprofit'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const lb=document.getElementById('s-loyalty-box');if(lb)lb.style.display='none';const tog=document.getElementById('s-redeem-toggle');if(tog)tog.checked=false;const rl=document.getElementById('s-redeem-result');if(rl)rl.style.display='none';const lbl=document.getElementById('s-redeem-toggle-lbl');if(lbl){lbl.style.background='';lbl.style.borderColor='';}
   document.getElementById('product-rows').innerHTML='';prodRowCount=0;addProductRow();
 }
 
@@ -5619,6 +5868,8 @@ function renderSmartProfit(){
   if(el('sp-best')) el('sp-best').textContent=best?best[0].substring(0,14):'—';
   // Profit per product table with period filter
   renderProductPerformance();
+  // Loyalty impact
+  renderLoyaltyImpact();
 }
 
 function renderProductPerformance(days){
@@ -5641,6 +5892,98 @@ function renderProductPerformance(days){
     const revenue=(soldQty*p.sprice).toFixed(0);
     return `<tr><td><strong>${p.name}</strong></td><td style="color:var(--blue)">${soldQty} sold (${days}d)</td><td>₹${p.cunit.toFixed(2)}</td><td style="color:var(--accent)">₹${p.sprice.toFixed(2)}</td><td style="color:${mColor}">₹${profit.toFixed(2)} (${margin2}%)</td><td style="color:var(--green)">₹${revenue}</td></tr>`;
   }).join('');
+}
+
+// ===== LOYALTY IMPACT ANALYSIS =====
+function renderLoyaltyImpact(){
+  const el = document.getElementById('sp-loyalty-impact');
+  if(!el) return;
+  const ps = getPtsSettings();
+
+  // All sales with loyalty redeem
+  const redeemSales = S.sales.filter(s=>s.redeemDisc>0);
+  const totalDiscGiven   = S.sales.reduce((a,s)=>a+(s.redeemDisc||0),0);
+  const totalPtsIssued   = S.customers.reduce((a,c)=>a+(c.pointsHistory||[]).reduce((b,h)=>b+(h.earned||0),0),0);
+  const totalPtsRedeemed = S.customers.reduce((a,c)=>a+(c.pointsHistory||[]).reduce((b,h)=>b+(h.used||0),0),0);
+  const totalRedeemVal   = (totalPtsRedeemed/100)*ps.redeemVal;
+
+  // Sales WITH loyalty redeem vs WITHOUT — avg order value
+  const withRedeem    = S.sales.filter(s=>s.redeemDisc>0);
+  const withoutRedeem = S.sales.filter(s=>!s.redeemDisc);
+  const avgWith    = withRedeem.length    ? withRedeem.reduce((a,s)=>a+s.total,0)/withRedeem.length       : 0;
+  const avgWithout = withoutRedeem.length ? withoutRedeem.reduce((a,s)=>a+s.total,0)/withoutRedeem.length : 0;
+
+  // Customers who have redeemed — how much total did they spend?
+  const redeemerNames = [...new Set(redeemSales.map(s=>s.customer))];
+  const redeemerSpend = redeemerNames.reduce((a,name)=>{
+    return a + S.sales.filter(s=>s.customer===name).reduce((b,s)=>b+s.total,0);
+  },0);
+
+  // Points active (not expired, not yet redeemed) — outstanding liability
+  const outstanding = S.customers.reduce((a,c)=>{
+    if(isPointsExpired(c)) return a;
+    return a + ((c.points||0)/100)*ps.redeemVal;
+  },0);
+
+  // ROI: extra revenue from loyalty customers vs cost of discounts
+  const roi = totalDiscGiven>0 ? ((redeemerSpend - totalDiscGiven)/totalDiscGiven*100).toFixed(0) : null;
+
+  if(!S.sales.length){
+    el.innerHTML='<div class="empty"><div class="ei">⭐</div><p>Record sales to see loyalty impact</p></div>';
+    return;
+  }
+
+  el.innerHTML=`
+    <!-- Key metrics -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Discounts Given</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:17px;color:var(--red)">₹${totalDiscGiven.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">${redeemSales.length} redemptions</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Outstanding Liability</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:17px;color:var(--accent)">₹${outstanding.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">Unredeemed points value</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Redeemer Avg Order</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:17px;color:var(--green)">₹${avgWith.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3);color:${avgWith>avgWithout?'var(--green)':'var(--text3)'}">${avgWith>avgWithout?'▲ Higher than avg':'≈ Similar to avg'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Non-Loyalty Avg Order</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:17px;color:var(--blue)">₹${avgWithout.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">Without redemptions</div>
+      </div>
+    </div>
+
+    <!-- ROI insight -->
+    ${roi!==null?`<div style="background:rgba(${+roi>100?'63,185,80':'249,200,70'},.08);border:1px solid rgba(${+roi>100?'63,185,80':'249,200,70'},.2);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px">
+      ${+roi>100?'🎉':'📊'} <strong>Loyalty ROI: ${roi}%</strong> — For every ₹1 spent on discounts, loyalty customers brought ₹${(+roi/100+1).toFixed(2)} in revenue.
+      ${+roi>200?'<br>💡 Your loyalty program is performing excellently!':+roi>100?'<br>💡 Good ROI — loyalty is paying off.':'<br>💡 Loyalty program is early-stage. Keep building the customer base.'}
+    </div>`:''}
+
+    <!-- Points summary -->
+    <div style="font-size:11px;color:var(--text2);border-top:1px solid var(--border);padding-top:10px">
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(48,54,61,.3)">
+        <span>Total Points Issued</span><strong style="color:var(--accent)">${totalPtsIssued} pts</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(48,54,61,.3)">
+        <span>Total Points Redeemed</span><strong style="color:var(--green)">${totalPtsRedeemed} pts = ₹${totalRedeemVal.toFixed(0)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(48,54,61,.3)">
+        <span>Customers with Redemptions</span><strong>${redeemerNames.length}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0">
+        <span>Redeemer Total Spend</span><strong style="color:var(--blue)">₹${redeemerSpend.toFixed(0)}</strong>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;font-size:10.5px;color:var(--text3);text-align:center">
+      💡 Adjust points settings in <a onclick="nav('loyalty')" style="color:var(--blue);cursor:pointer;text-decoration:underline">Loyalty & Referrals</a> to optimise your program
+    </div>
+  `;
 }
 
 // ===== SALES FORECAST AI =====
@@ -5779,6 +6122,7 @@ function updateDashStats(){
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
   const mTotal=S.sales.reduce((a,s)=>a+s.total,0);
   const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
+  const loyDisc=S.sales.reduce((a,s)=>a+(s.redeemDisc||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
   document.getElementById('d-profit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
@@ -5786,6 +6130,8 @@ function updateDashStats(){
   document.getElementById('d-monthly').textContent='₹'+mTotal.toFixed(2);
   document.getElementById('d-ctotal').textContent='₹'+(mTotal+S.teaEntries.reduce((a,e)=>a+e.income,0)).toFixed(2);
   document.getElementById('d-cprofit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
+  const ldEl=document.getElementById('d-loyalty-disc');
+  if(ldEl) ldEl.textContent='₹'+loyDisc.toFixed(0);
   // Recent orders
   const otb=document.getElementById('dash-orders');
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
