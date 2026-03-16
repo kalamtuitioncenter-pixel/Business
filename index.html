@@ -419,6 +419,28 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 /* SETTINGS */
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+/* Smart Reorder Engine cards */
+.reorder-card{border-radius:10px;padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);transition:all .15s}
+.reorder-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.reorder-card.critical{background:rgba(248,81,73,.06);border-color:rgba(248,81,73,.3)}
+.reorder-card.soon{background:rgba(249,200,70,.05);border-color:rgba(249,200,70,.2)}
+.reorder-card.ok{background:rgba(63,185,80,.04);border-color:rgba(63,185,80,.15)}
+.rc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:10px}
+.rc-name{font-weight:700;font-size:13.5px;color:var(--text)}
+.rc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.rc-badge.critical{background:rgba(248,81,73,.15);color:var(--red)}
+.rc-badge.soon{background:rgba(249,200,70,.12);color:var(--accent)}
+.rc-badge.ok{background:rgba(63,185,80,.12);color:var(--green)}
+.rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.rc-stat{text-align:center}
+.rc-stat-val{font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;line-height:1}
+.rc-stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.rc-insight{font-size:11.5px;color:var(--text2);background:var(--surface3);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.5}
+.rc-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.rc-suggest{font-size:11px;color:var(--text3);flex:1}
+.trend-up{color:var(--green)}
+.trend-dn{color:var(--red)}
+.trend-flat{color:var(--text3)}
 /* Template variable chips */
 .tmpl-var{display:inline-block;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25);border-radius:4px;padding:1px 6px;font-size:10px;font-family:monospace;margin:0 2px;cursor:pointer}
 /* Bulk WA customer list */
@@ -512,6 +534,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
   <div class="sb-section">
     <div class="sb-sec-label">Intelligence</div>
     <div class="ni" id="ni-inventory" onclick="nav('inventory')"><span class="ico">🔍</span>Inventory Intelligence</div>
+    <div class="ni" id="ni-reorder" onclick="nav('reorder')"><span class="ico">🧠</span>Smart Reorder Engine</div>
+    <div class="ni" id="ni-repacktrack" onclick="nav('repacktrack')"><span class="ico">📦</span>Repacking Tracker</div>
+    <div class="ni" id="ni-packstock" onclick="nav('packstock')"><span class="ico">🎁</span>Packaging Stock</div>
     <div class="ni" id="ni-smartprofit" onclick="nav('smartprofit')"><span class="ico">✅</span>Smart Profit Dashboard</div>
     <div class="ni" id="ni-demand" onclick="nav('demand')"><span class="ico">📈</span>Demand Prediction</div>
     <div class="ni" id="ni-autoreport" onclick="nav('autoreport')"><span class="ico">🤖</span>Auto Business Report</div>
@@ -920,9 +945,15 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                     <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Total Revenue</div><div id="sum-total-revenue" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent);font-size:16px">₹0</div></div>
                     <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">Total Profit</div><div id="sum-total-profit" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--green);font-size:16px">₹0</div></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:8px">
                     <div id="sum-remaining" style="font-size:12px;color:var(--text2)">Remaining: 0</div>
                     <div id="sum-margin" style="font-size:12px;font-weight:600;color:var(--green)">Margin: 0%</div>
+                  </div>
+
+                  <!-- ── Packaging Balance ── -->
+                  <div id="sum-pack-balance">
+                    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🎁 Packaging Balance</div>
+                    <div id="sum-pack-rows" style="display:flex;flex-direction:column;gap:6px"></div>
                   </div>
                 </div>
               </div>
@@ -1305,30 +1336,63 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
     <!-- ===== INVENTORY INTELLIGENCE ===== -->
     <div class="page" id="p-inventory">
-      <div class="ph"><h1>🔍 Inventory Intelligence</h1><p>Smart stock tracking with reorder predictions</p></div>
+      <div class="ph"><h1>🔍 Smart Reorder Engine</h1><p>AI-powered stock assistant — knows when to reorder, how much, and why</p></div>
+
+      <!-- Stat cards -->
       <div class="sc-grid sc-grid-resp">
-        <div class="sc y"><div class="sc-ico">⚠️</div><div class="sc-label">Low Stock Items</div><div class="sc-val" id="inv-low">0</div><div class="sc-sub">Below threshold</div></div>
-        <div class="sc r"><div class="sc-ico">📦</div><div class="sc-label">Out of Stock</div><div class="sc-val" id="inv-out">0</div><div class="sc-sub">Zero balance</div></div>
-        <div class="sc g"><div class="sc-ico">₹</div><div class="sc-label">Stock Value</div><div class="sc-val" id="inv-val">₹0.00</div><div class="sc-sub">At selling price</div></div>
-        <div class="sc b"><div class="sc-ico">📋</div><div class="sc-label">Total Products</div><div class="sc-val" id="inv-total">0</div><div class="sc-sub">In catalog</div></div>
+        <div class="sc r nav-card" onclick="document.getElementById('inv-reorder-section').scrollIntoView({behavior:'smooth'})">
+          <div class="sc-ico">🚨</div><div class="sc-label">Reorder Now</div>
+          <div class="sc-val" id="inv-reorder-now">0</div><div class="sc-sub">Critical — order today</div>
+        </div>
+        <div class="sc y nav-card" onclick="document.getElementById('inv-reorder-section').scrollIntoView({behavior:'smooth'})">
+          <div class="sc-ico">⚠️</div><div class="sc-label">Order Soon</div>
+          <div class="sc-val" id="inv-order-soon">0</div><div class="sc-sub">Within 7 days</div>
+        </div>
+        <div class="sc g">
+          <div class="sc-ico">✅</div><div class="sc-label">Healthy Stock</div>
+          <div class="sc-val" id="inv-healthy">0</div><div class="sc-sub">No action needed</div>
+        </div>
+        <div class="sc b">
+          <div class="sc-ico">₹</div><div class="sc-label">Stock Value</div>
+          <div class="sc-val" id="inv-val">₹0</div><div class="sc-sub">At sell price</div>
+        </div>
       </div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-h"><h3>📦 Stock Status</h3><button class="btn btn-o" style="font-size:10px" onclick="renderInventory()">🔄 Refresh</button></div>
-          <div class="card-b">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Product</th><th>Balance</th><th>Used Today</th><th>30D Usage</th><th>Daily Avg</th><th>Days Left</th><th>Status</th></tr></thead>
-              <tbody id="inv-tbody"></tbody>
-            </table></div>
+
+      <!-- Smart Reorder Cards -->
+      <div id="inv-reorder-section">
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>🤖 Smart Reorder Suggestions</h3>
+            <div style="display:flex;gap:6px;align-items:center;margin-left:auto">
+              <select class="fs" id="inv-period" style="font-size:11px" onchange="renderInventory()">
+                <option value="7">Last 7 days</option>
+                <option value="14">Last 14 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              <button class="btn btn-o" style="font-size:10px" onclick="renderInventory()">🔄 Refresh</button>
+            </div>
+          </div>
+          <div class="card-b" id="inv-reorder-cards">
+            <div class="empty"><div class="ei">🤖</div><p>Loading smart suggestions...</p></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-h"><h3>⚠️ Low Stock & Reorder Guide</h3></div>
-          <div class="card-b" id="inv-reorder"><div class="empty"><div class="ei">✅</div><p>All stock levels are healthy!</p></div></div>
+      </div>
+
+      <!-- Full Stock Table -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-h"><h3>📦 Full Stock Overview</h3></div>
+        <div class="card-b" style="padding:0">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Product</th><th>Balance</th><th>Daily Avg</th><th>Days Left</th><th>Trend</th><th>Reorder Qty</th><th>Status</th></tr></thead>
+            <tbody id="inv-tbody"></tbody>
+          </table></div>
         </div>
       </div>
+
+      <!-- 30-day usage chart -->
       <div class="card">
-        <div class="card-h"><h3>📊 30-Day Usage Chart</h3></div>
+        <div class="card-h"><h3>📊 Sales Velocity (Usage Rate)</h3></div>
         <div class="card-b" id="inv-30d"></div>
       </div>
     </div>
@@ -2189,6 +2253,347 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
     </div>
 
+    <!-- ===== SMART REORDER ENGINE ===== -->
+    <div class="page" id="p-reorder">
+      <div class="ph"><h1>🧠 Smart Reorder Engine</h1><p>Full supplier order workflow — from prediction to receiving</p></div>
+
+      <!-- Stat Cards -->
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc r nav-card" onclick="soTab(document.querySelector('#p-reorder .tab'),['so-dashboard','so-orders','so-repack','so-reports'],'so-dashboard')">
+          <div class="sc-ico">🚨</div><div class="sc-label">Order Now</div><div class="sc-val" id="so-cnt-now">0</div><div class="sc-sub">Critical products</div>
+        </div>
+        <div class="sc y"><div class="sc-ico">📦</div><div class="sc-label">Orders Pending</div><div class="sc-val" id="so-cnt-pending">0</div><div class="sc-sub">Awaiting receipt</div></div>
+        <div class="sc o"><div class="sc-ico">⚠️</div><div class="sc-label">Delayed Orders</div><div class="sc-val" id="so-cnt-delayed">0</div><div class="sc-sub">Past expected date</div></div>
+        <div class="sc b"><div class="sc-ico">📋</div><div class="sc-label">Repack Pending</div><div class="sc-val" id="so-cnt-repack">0</div><div class="sc-sub">Received, awaiting repack</div></div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="soTab(this,'so-dashboard')">📊 Overview</div>
+        <div class="tab" onclick="soTab(this,'so-orders')">📋 Supplier Orders</div>
+        <div class="tab" onclick="soTab(this,'so-repack')">🔄 Repack Status</div>
+        <div class="tab" onclick="soTab(this,'so-reports')">📈 Reports</div>
+        <div class="tab" onclick="soTab(this,'so-new')">➕ New Order</div>
+      </div>
+
+      <!-- ── Overview ── -->
+      <div id="so-dashboard">
+        <!-- Reorder Suggestions -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="flex-wrap:wrap;gap:8px">
+            <h3>🤖 Smart Reorder Suggestions</h3>
+            <select class="fs" id="so-period" style="font-size:11px" onchange="renderReorderEngine()">
+              <option value="7">7-day trend</option>
+              <option value="14">14-day trend</option>
+              <option value="30" selected>30-day trend</option>
+            </select>
+          </div>
+          <div class="card-b" id="so-suggestions">
+            <div class="empty"><div class="ei">🤖</div><p>Loading suggestions...</p></div>
+          </div>
+        </div>
+        <!-- Dead stock / Overstock alerts -->
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>💀 Dead Stock / Slow Moving</h3></div>
+            <div class="card-b" id="so-dead-stock"><div class="empty"><div class="ei">✅</div><p>No dead stock found!</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>📦 Overstocked Items</h3></div>
+            <div class="card-b" id="so-overstock"><div class="empty"><div class="ei">✅</div><p>No overstock detected</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Supplier Orders ── -->
+      <div id="so-orders" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <input class="fi" id="so-search" placeholder="🔍 Search orders..." style="flex:1" oninput="renderSupplierOrders()">
+          <select class="fs" id="so-status-filter" style="font-size:11px" onchange="renderSupplierOrders()">
+            <option value="all">All Status</option>
+            <option value="Planned">Planned</option>
+            <option value="Ordered">Ordered</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Received">Received</option>
+            <option value="Partial">Partial</option>
+            <option value="Delayed">Delayed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Product</th><th>Supplier</th><th>Qty</th><th>Order Date</th><th>Expected</th><th>Lead Time</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="so-orders-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Repack Status ── -->
+      <div id="so-repack" style="display:none">
+        <div class="card">
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Product</th><th>Received Qty</th><th>Repacked</th><th>Repack Date</th><th>Stickers Used</th><th>Covers Used</th><th>Output Packs</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="so-repack-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Reports ── -->
+      <div id="so-reports" style="display:none">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>📊 Order Planning Summary</h3></div>
+            <div class="card-b" id="so-report-plan"><div class="empty"><div class="ei">📊</div><p>No orders yet</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>🚛 Supplier Performance</h3></div>
+            <div class="card-b" id="so-report-supplier"><div class="empty"><div class="ei">🚛</div><p>No orders yet</p></div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><h3>📋 Stockout Risk Report</h3></div>
+          <div class="card-b" id="so-report-risk"><div class="empty"><div class="ei">✅</div><p>No stockout risk detected</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── New Order ── -->
+      <div id="so-new" style="display:none">
+        <div class="card" style="max-width:600px">
+          <div class="card-h"><h3>➕ Create Supplier Order</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Product</label>
+                <input class="fi" id="so-prod" list="so-prod-dl" placeholder="Select product..." autocomplete="off" oninput="soAutoFill()">
+                <datalist id="so-prod-dl"></datalist>
+              </div>
+              <div class="fg"><label class="fl">Supplier Name</label>
+                <input class="fi" id="so-sup-name" list="so-sup-dl" placeholder="Supplier name" autocomplete="off">
+                <datalist id="so-sup-dl"></datalist>
+              </div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Supplier Phone</label><input class="fi" id="so-sup-phone" type="tel" placeholder="+91..."></div>
+              <div class="fg"><label class="fl">Lead Time (days)</label><input class="fi" id="so-lead" type="number" value="3" min="1" oninput="soCalcDates()"></div>
+              <div class="fg"><label class="fl">Min Order Qty</label><input class="fi" id="so-min-qty" type="number" placeholder="1" min="1"></div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Order Quantity</label><input class="fi" id="so-qty" type="number" placeholder="0" min="1"></div>
+              <div class="fg"><label class="fl">Unit Buy Price (₹)</label><input class="fi" id="so-price" type="number" placeholder="0"></div>
+              <div class="fg"><label class="fl">Total Cost (₹) — Auto</label><input class="fi" id="so-total" readonly style="background:var(--surface3);color:var(--accent);font-weight:700"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Order Date</label><input class="fi" id="so-order-date" type="date" oninput="soCalcDates()"></div>
+              <div class="fg"><label class="fl">Expected Receive Date — Auto</label><input class="fi" id="so-exp-date" type="date" style="color:var(--blue)"></div>
+            </div>
+            <div class="fg"><label class="fl">Status</label>
+              <select class="fs" id="so-status">
+                <option>Planned</option><option>Ordered</option><option>In Transit</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="so-notes" rows="2" placeholder="Any special instructions..."></textarea></div>
+            <div class="fg" style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px">📦 Suggested by AI</div>
+              <div id="so-ai-hint" style="font-size:11.5px;color:var(--text2)">Select a product to see AI suggestion</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveSupplierOrder()">💾 Save Order</button>
+              <button class="btn btn-o" onclick="clearSupplierOrderForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REPACKING TRACKER ===== -->
+    <div class="page" id="p-repacktrack">
+      <div class="ph"><h1>📦 Repacking Tracker</h1><p>Track all repacking sessions — input, output, packaging usage</p></div>
+
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc b"><div class="sc-ico">🔄</div><div class="sc-label">Sessions This Month</div><div class="sc-val" id="rp-cnt-month">0</div><div class="sc-sub">Repack sessions</div></div>
+        <div class="sc y"><div class="sc-ico">📦</div><div class="sc-label">Packs Made</div><div class="sc-val" id="rp-cnt-packs">0</div><div class="sc-sub">This month</div></div>
+        <div class="sc r"><div class="sc-ico">🏷️</div><div class="sc-label">Stickers Used</div><div class="sc-val" id="rp-stickers">0</div><div class="sc-sub">This month</div></div>
+        <div class="sc g"><div class="sc-ico">🛍️</div><div class="sc-label">Covers Used</div><div class="sc-val" id="rp-covers">0</div><div class="sc-sub">This month</div></div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="rpTab(this,'rp-log')">📋 Repack Log</div>
+        <div class="tab" onclick="rpTab(this,'rp-new')">➕ New Repack Session</div>
+        <div class="tab" onclick="rpTab(this,'rp-history')">📜 History</div>
+      </div>
+
+      <!-- Repack Log -->
+      <div id="rp-log">
+        <div class="card">
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Date</th><th>Product</th><th>Input Qty</th><th>Pack Size</th><th>Output Packs</th><th>Stickers</th><th>Covers</th><th>Wastage</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="rp-log-tbody"><tr><td colspan="11"><div class="empty"><div class="ei">📦</div><p>No repack sessions yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Repack -->
+      <div id="rp-new" style="display:none">
+        <div class="card" style="max-width:580px">
+          <div class="card-h"><h3>➕ New Repack Session</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Product</label>
+                <input class="fi" id="rp-prod" list="rp-prod-dl" placeholder="Select product..." autocomplete="off" oninput="rpAutoFill()">
+                <datalist id="rp-prod-dl"></datalist>
+              </div>
+              <div class="fg"><label class="fl">Repack Date</label><input class="fi" id="rp-date" type="date"></div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Input Quantity</label><input class="fi" id="rp-input-qty" type="number" placeholder="e.g. 5 kg" min="0" oninput="rpCalc()"></div>
+              <div class="fg"><label class="fl">Pack Size (per pack)</label><input class="fi" id="rp-pack-size" type="number" placeholder="e.g. 100" min="1" oninput="rpCalc()"></div>
+              <div class="fg"><label class="fl">Output Packs — Auto</label><input class="fi" id="rp-output" readonly style="background:var(--surface3);color:var(--green);font-weight:700"></div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Stickers Per Pack</label><input class="fi" id="rp-sticker-per" type="number" placeholder="1" value="1" min="0" oninput="rpCalc()"></div>
+              <div class="fg"><label class="fl">Covers Per Pack</label><input class="fi" id="rp-cover-per" type="number" placeholder="1" value="1" min="0" oninput="rpCalc()"></div>
+              <div class="fg"><label class="fl">Wastage %</label><input class="fi" id="rp-wastage" type="number" placeholder="0" value="0" min="0" max="50" oninput="rpCalc()"></div>
+            </div>
+            <!-- Auto-calculated summary -->
+            <div id="rp-calc-summary" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📊 Repack Summary</div>
+              <div class="fr2" style="gap:8px">
+                <div><div style="font-size:10px;color:var(--text3)">Total Stickers Needed</div><div id="rp-sum-stickers" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent);font-size:16px">0</div></div>
+                <div><div style="font-size:10px;color:var(--text3)">Total Covers Needed</div><div id="rp-sum-covers" style="font-family:Poppins,sans-serif;font-weight:700;color:var(--blue);font-size:16px">0</div></div>
+                <div><div style="font-size:10px;color:var(--text3)">Sticker Stock After</div><div id="rp-sum-stk-after" style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px">—</div></div>
+                <div><div style="font-size:10px;color:var(--text3)">Cover Stock After</div><div id="rp-sum-cvr-after" style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px">—</div></div>
+              </div>
+              <div id="rp-pack-warning" style="margin-top:8px;font-size:11.5px;color:var(--red);display:none"></div>
+            </div>
+            <div class="fg"><label class="fl">Linked Supplier Order (optional)</label>
+              <select class="fs" id="rp-linked-order"><option value="">— None —</option></select>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="rp-notes" rows="2" placeholder="e.g. Batch B, slight colour variation..."></textarea></div>
+            <button class="btn btn-y" style="width:100%;justify-content:center;margin-top:4px" onclick="saveRepackSession()">✅ Record Repack Session</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div id="rp-history" style="display:none">
+        <div class="card">
+          <div class="card-h"><h3>📜 Packaging Usage History</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Date</th><th>Material</th><th>Action</th><th>Qty Change</th><th>Balance After</th><th>Notes</th></tr></thead>
+              <tbody id="rp-history-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">📜</div><p>No history yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PACKAGING STOCK ===== -->
+    <div class="page" id="p-packstock">
+      <div class="ph"><h1>🎁 Packaging Stock</h1><p>Track stickers, covers and all packaging materials</p></div>
+
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc r"><div class="sc-ico">🏷️</div><div class="sc-label">Sticker Stock</div><div class="sc-val" id="ps-sticker-stock">0</div><div class="sc-sub">Units available</div></div>
+        <div class="sc b"><div class="sc-ico">🛍️</div><div class="sc-label">Cover Stock</div><div class="sc-val" id="ps-cover-stock">0</div><div class="sc-sub">Units available</div></div>
+        <div class="sc y"><div class="sc-ico">📦</div><div class="sc-label">Packs Possible</div><div class="sc-val" id="ps-packs-possible">0</div><div class="sc-sub">With current materials</div></div>
+        <div class="sc g"><div class="sc-ico">📅</div><div class="sc-label">Days of Supply</div><div class="sc-val" id="ps-days-supply">—</div><div class="sc-sub">At current repack rate</div></div>
+      </div>
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="psTab(this,'ps-stock')">📋 Materials Stock</div>
+        <div class="tab" onclick="psTab(this,'ps-add')">➕ Add Material</div>
+        <div class="tab" onclick="psTab(this,'ps-alerts')">⚠️ Alerts & Orders</div>
+        <div class="tab" onclick="psTab(this,'ps-analysis')">📊 Usage Analysis</div>
+      </div>
+
+      <!-- Materials List -->
+      <div id="ps-stock">
+        <div class="card">
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Material</th><th>Type</th><th>In Stock</th><th>Min Stock</th><th>Packs Possible</th><th>Days Left</th><th>Reorder Qty</th><th>Order By</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="ps-tbody"><tr><td colspan="10"><div class="empty"><div class="ei">🎁</div><p>No packaging materials added yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Material -->
+      <div id="ps-add" style="display:none">
+        <div class="card" style="max-width:560px">
+          <div class="card-h"><h3 id="ps-form-title">➕ Add Packaging Material</h3></div>
+          <div class="card-b">
+            <input type="hidden" id="ps-edit-id">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Material Name</label><input class="fi" id="ps-name" placeholder="e.g. 100g Sticker, Poly Cover..."></div>
+              <div class="fg"><label class="fl">Type</label>
+                <select class="fs" id="ps-type">
+                  <option>Sticker</option><option>Cover/Bag</option><option>Box</option>
+                  <option>Label</option><option>Tape</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Current Stock</label><input class="fi" id="ps-stock-qty" type="number" placeholder="0" min="0" oninput="psCalc()"></div>
+              <div class="fg"><label class="fl">Unit</label>
+                <select class="fs" id="ps-unit"><option>Nos</option><option>Pcs</option><option>Rolls</option><option>Sheets</option><option>Packets</option></select>
+              </div>
+              <div class="fg"><label class="fl">Used Per Pack</label><input class="fi" id="ps-per-pack" type="number" placeholder="1" value="1" min="0.1" step="0.1" oninput="psCalc()"></div>
+            </div>
+            <div class="fr3">
+              <div class="fg"><label class="fl">Min Stock (Alert)</label><input class="fi" id="ps-min-stock" type="number" placeholder="50" min="0"></div>
+              <div class="fg"><label class="fl">Safety Stock</label><input class="fi" id="ps-safety" type="number" placeholder="100" min="0"></div>
+              <div class="fg"><label class="fl">Reorder Qty</label><input class="fi" id="ps-reorder-qty" type="number" placeholder="500" min="1"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Supplier Name</label><input class="fi" id="ps-sup-name" placeholder="Supplier for this material"></div>
+              <div class="fg"><label class="fl">Lead Time (days)</label><input class="fi" id="ps-lead" type="number" value="3" min="1"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Buy Price per Unit (₹)</label><input class="fi" id="ps-price" type="number" placeholder="0"></div>
+              <div class="fg"><label class="fl">Linked Products</label><input class="fi" id="ps-linked" placeholder="e.g. Tea 100g, Tea 250g"></div>
+            </div>
+            <div id="ps-calc-hint" style="font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:8px"></div>
+            <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="ps-notes" rows="2" placeholder="Any notes..."></textarea></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-y" style="flex:1;justify-content:center" onclick="savePackMaterial()">💾 Save Material</button>
+              <button class="btn btn-o" onclick="clearPackForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="ps-alerts" style="display:none">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h"><h3>⚠️ Packaging Alerts & Reorder Plan</h3><button class="btn btn-o" style="font-size:10px" onclick="renderPackStock()">🔄 Refresh</button></div>
+          <div class="card-b" id="ps-alerts-content"><div class="empty"><div class="ei">✅</div><p>All packaging materials are healthy!</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🔗 Packaging Bottleneck Analysis</h3></div>
+          <div class="card-b" id="ps-bottleneck"><div class="empty"><div class="ei">🔗</div><p>Add products and packaging to see analysis</p></div></div>
+        </div>
+      </div>
+
+      <!-- Analysis -->
+      <div id="ps-analysis" style="display:none">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>📊 Material Consumption Rate</h3></div>
+            <div class="card-b" id="ps-consumption"><div class="empty"><div class="ei">📊</div><p>Record repacks to see consumption analysis</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>📋 Material Dependency Map</h3></div>
+            <div class="card-b" id="ps-dependency"><div class="empty"><div class="ei">📋</div><p>Link materials to products to see dependencies</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -2333,7 +2738,14 @@ const S = {
   settings:{bizName:'Meenatchi Traders',owner:'',logo:'',waTmpl:{}},
   gs:{scriptUrl:'',sheetUrl:'',tabs:'DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report',connected:false,lastSync:''},
   categories:['Tea','Nattu Sakkarai','Scrubber','MCS Items','Grocery','Spices','Snacks','Oils','Dry Fruits','Other'],
-  target:{sales:0,profit:0,orders:0,set:false}
+  target:{sales:0,profit:0,orders:0,set:false},
+  // ── NEW: Smart Reorder & Packaging module ──
+  supplierOrders:[],    // supplier purchase orders
+  repackLog:[],         // repacking sessions
+  packMaterials:[],     // sticker/cover/other packaging stock
+  packUsageHistory:[],  // packaging consumption log
+  reorderSettings:{},  // per-product reorder config overrides
+  stockCorrections:[]   // manual stock adjustment log
 };
 
 // ===== LOCALSTORAGE PERSISTENCE =====
@@ -2357,7 +2769,9 @@ function loadPersistedState(){
     // Merge saved values into S
     const keys = ['sales','products','customers','orders','students','staff',
                   'teaEntries','suppliers','orderCounter','settings','gs',
-                  'categories','target','reminders','productRules','bdayGifts','referrals'];
+                  'categories','target','reminders','productRules','bdayGifts','referrals',
+                  'supplierOrders','repackLog','packMaterials','packUsageHistory',
+                  'reorderSettings','stockCorrections'];
     keys.forEach(k => {
       if(saved[k] !== undefined) S[k] = saved[k];
     });
@@ -2382,8 +2796,8 @@ function autoSave(){
 }
 
 // ===== NAVIGATION =====
-const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️'};
-const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings'};
+const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
+const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
 
 function nav(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2405,6 +2819,9 @@ function nav(page){
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
   if(page==='bizanalytics'){ renderBaMonthly(); }
+  if(page==='reorder'){     renderReorderEngine(); soPopulateDatalists(); }
+  if(page==='repacktrack'){ renderRepackLog(); renderRepackStats(); rpPopulateDatalists(); }
+  if(page==='packstock'){   renderPackStock(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
   if(page==='loyalty'){ renderLoyalty(); }
@@ -3551,6 +3968,88 @@ function calcPackBreakdown(){
     }
     const usedLbl = document.getElementById('sum-used-label');
     if(usedLbl) usedLbl.textContent = 'Used ('+uLbl+')';
+
+    // ── Packaging Balance ────────────────────────────────────
+    // Collect total stickers and covers needed across all pack variants
+    let totalStickersNeeded = 0;
+    let totalCoversNeeded   = 0;
+    // Per-variant breakdown for display
+    const variantBreakdown = [];
+    units.forEach(u => {
+      const qty      = +document.getElementById('qty-'+u.value)?.value||0;
+      const sticker  = +document.getElementById('sticker-'+u.value)?.value||0;
+      const cover    = +document.getElementById('cover-'+u.value)?.value||0;
+      if(qty > 0){
+        const stkNeeded = qty * (sticker>0 ? 1 : 0); // sticker cost>0 means 1 sticker per pack
+        const cvrNeeded = qty * (cover>0   ? 1 : 0);
+        totalStickersNeeded += qty; // 1 sticker per pack always
+        totalCoversNeeded   += qty; // 1 cover per pack always
+        variantBreakdown.push({label:u.label, qty, stkNeeded:qty, cvrNeeded:qty});
+      }
+    });
+
+    const packRowsEl = document.getElementById('sum-pack-rows');
+    if(packRowsEl && totalPacksAll > 0){
+      // Get packaging stock from S.packMaterials
+      const stickerMat = S.packMaterials?.find(m=>m.type==='Sticker');
+      const coverMat   = S.packMaterials?.find(m=>m.type==='Cover/Bag');
+      const stkStock   = stickerMat?.qty || 0;
+      const cvrStock   = coverMat?.qty   || 0;
+      const stkAfter   = stkStock - totalStickersNeeded;
+      const cvrAfter   = cvrStock - totalCoversNeeded;
+
+      const packRow = (icon, name, needed, inStock, after) => {
+        if(inStock === 0 && needed === 0) return '';
+        const hasStock   = inStock > 0;
+        const isEnough   = inStock >= needed;
+        const afterColor = after < 0 ? 'var(--red)' : after < 50 ? 'var(--accent)' : 'var(--green)';
+        const statusBadge = !hasStock
+          ? `<span style="font-size:9px;background:rgba(88,166,255,.12);color:var(--blue);border-radius:4px;padding:1px 6px">Not tracked</span>`
+          : isEnough
+          ? `<span style="font-size:9px;background:rgba(63,185,80,.12);color:var(--green);border-radius:4px;padding:1px 6px">✅ Enough</span>`
+          : `<span style="font-size:9px;background:rgba(248,81,73,.12);color:var(--red);border-radius:4px;padding:1px 6px">⚠️ Short ${Math.abs(after)}</span>`;
+
+        // Progress bar: how much of needed is covered
+        const pct = hasStock ? Math.min((inStock/Math.max(needed,1))*100, 100) : 0;
+        const barColor = !hasStock ? 'var(--border)' : isEnough ? 'var(--green)' : 'var(--red)';
+
+        return `<div style="background:var(--surface3);border-radius:6px;padding:8px 10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:600">${icon} ${name}</span>
+            ${statusBadge}
+          </div>
+          <div style="display:flex;gap:12px;font-size:10.5px;color:var(--text3);margin-bottom:5px;flex-wrap:wrap">
+            <span>Need: <strong style="color:var(--text)">${needed}</strong></span>
+            <span>In Stock: <strong style="color:${hasStock?'var(--blue)':'var(--text3)'}">${hasStock?inStock:'—'}</strong></span>
+            ${hasStock?`<span>After: <strong style="color:${afterColor}">${after}</strong></span>`:''}
+          </div>
+          <div style="background:var(--border);border-radius:3px;height:5px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;transition:width .4s"></div>
+          </div>
+          ${!hasStock?`<div style="font-size:10px;color:var(--text3);margin-top:4px">💡 Add stickers/covers in <a onclick="nav('packstock')" style="color:var(--blue);cursor:pointer;text-decoration:underline">Packaging Stock</a> to track balance</div>`:''}
+        </div>`;
+      };
+
+      const stkRow = packRow('🏷️','Stickers', totalStickersNeeded, stkStock, stkAfter);
+      const cvrRow = packRow('🛍️','Covers/Bags', totalCoversNeeded, cvrStock, cvrAfter);
+
+      // Variant breakdown (mini table)
+      const breakdownHtml = variantBreakdown.length > 1 ? `
+        <div style="margin-top:8px;font-size:10px;color:var(--text3)">
+          <div style="font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">Per Variant:</div>
+          ${variantBreakdown.map(v=>`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(48,54,61,.3)">
+            <span>${v.label}</span>
+            <span style="color:var(--text2)">${v.qty} packs · 🏷️${v.stkNeeded} · 🛍️${v.cvrNeeded}</span>
+          </div>`).join('')}
+        </div>` : '';
+
+      packRowsEl.innerHTML = (stkRow || cvrRow)
+        ? stkRow + cvrRow + breakdownHtml
+        : `<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:8px">💡 Add sticker/cover costs per pack to see packaging balance. Go to <a onclick="nav('packstock')" style="color:var(--blue);cursor:pointer;text-decoration:underline">Packaging Stock</a> to set up materials.</div>`;
+
+    } else if(packRowsEl){
+      packRowsEl.innerHTML = '';
+    }
   }
 }
 
@@ -4342,33 +4841,217 @@ function renderStaffTable(){
 
 // ===== INVENTORY =====
 function renderInventory(){
-  const low=S.products.filter(p=>{const b=p.stock-p.sold;return b>0&&b<=p.alert;}).length;
-  const out=S.products.filter(p=>p.stock-p.sold<=0).length;
-  const val=S.products.reduce((a,p)=>a+(p.stock-p.sold)*p.sprice,0);
-  document.getElementById('inv-low').textContent=low;
-  document.getElementById('inv-out').textContent=out;
-  document.getElementById('inv-val').textContent='₹'+val.toFixed(2);
-  document.getElementById('inv-total').textContent=S.products.length;
-  const tb=document.getElementById('inv-tbody');
-  if(!S.products.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>No products</p></div></td></tr>';return;}
-  tb.innerHTML=S.products.map(p=>{
-    const bal=p.stock-p.sold;
-    const used30=S.sales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
-    const davg=(used30/30).toFixed(1);
-    const daysLeft=+davg>0?Math.floor(bal/+davg):'∞';
-    const status=bal<=0?'<span class="badge br">OUT</span>':bal<=p.alert?'<span class="badge by">LOW</span>':'<span class="badge bg">✅ OK</span>';
-    return `<tr><td><strong>${p.name}</strong></td><td style="color:${bal<=p.alert?'var(--red)':'var(--accent)'};font-weight:700">${bal} ${p.unit||'packs'}</td><td>0</td><td>${used30}</td><td>${davg}/day</td><td>${daysLeft}</td><td>${status}</td></tr>`;
-  }).join('');
-  const reorder=document.getElementById('inv-reorder');
-  const lowProds=S.products.filter(p=>p.stock-p.sold<=p.alert);
-  if(!lowProds.length){reorder.innerHTML='<div class="empty"><div class="ei">✅</div><p>All stock levels are healthy!</p></div>';}
-  else{reorder.innerHTML=lowProds.map(p=>`<div style="background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:11.5px"><strong style="color:var(--red)">${p.name}</strong><br><span style="color:var(--text3)">Balance: ${p.stock-p.sold} ${p.unit||'packs'} · Alert: ${p.alert}</span></div>`).join('');}
-  const inv30=document.getElementById('inv-30d');
-  inv30.innerHTML=S.products.map(p=>{
-    const used=S.sales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
-    const pct=Math.min((used/Math.max(p.stock,1))*100,100);
-    return `<div class="sb-item"><div class="sb-row"><span style="font-weight:500">${p.name}</span><span style="color:var(--blue);font-weight:700">${used} ${p.unit||'packs'}</span></div><div class="sb-bg"><div class="sb-fill" style="width:${pct}%;background:var(--blue)"></div></div></div>`;
-  }).join('');
+  if(!S.products.length){
+    document.getElementById('inv-reorder-cards').innerHTML='<div class="empty"><div class="ei">📦</div><p>Add products to see smart reorder suggestions</p></div>';
+    return;
+  }
+
+  const days     = +document.getElementById('inv-period')?.value || 30;
+  const now      = new Date();
+  const cutoff   = new Date(); cutoff.setDate(cutoff.getDate()-days);
+  const cutStr   = cutoff.toISOString().slice(0,10);
+  const prevCut  = new Date(); prevCut.setDate(prevCut.getDate()-(days*2));
+  const prevStr  = prevCut.toISOString().slice(0,10);
+
+  // Compute analytics per product
+  const products = S.products.map(p=>{
+    const bal = Math.max((p.stock||0) - (p.sold||0), 0);
+
+    // Sales in period
+    const periodSales = S.sales.filter(s=>s.date>=cutStr);
+    const prevSales   = S.sales.filter(s=>s.date>=prevStr && s.date<cutStr);
+
+    const soldPeriod = periodSales.reduce((a,s)=>{
+      const pp=s.products?.find(x=>x.name===p.name); return a+(pp?pp.qty:0);
+    },0);
+    const soldPrev = prevSales.reduce((a,s)=>{
+      const pp=s.products?.find(x=>x.name===p.name); return a+(pp?pp.qty:0);
+    },0);
+
+    const dailyAvg   = soldPeriod / days;
+    const daysLeft   = dailyAvg > 0 ? Math.floor(bal / dailyAvg) : Infinity;
+
+    // Trend: compare this period vs last period
+    const trend = soldPrev === 0
+      ? (soldPeriod > 0 ? 'up' : 'flat')
+      : soldPeriod > soldPrev * 1.1 ? 'up'
+      : soldPeriod < soldPrev * 0.9 ? 'down'
+      : 'flat';
+    const trendPct = soldPrev > 0
+      ? Math.round(((soldPeriod - soldPrev) / soldPrev) * 100)
+      : null;
+
+    // Suggested reorder quantity:
+    // Cover 30 days of sales + safety buffer (7 days extra)
+    const leadTimeDays = 3; // assume 3 days to receive stock
+    const safetyDays   = 7;
+    const reorderQty = Math.ceil(dailyAvg * (30 + safetyDays + leadTimeDays));
+
+    // Urgency
+    let urgency;
+    if(bal <= 0)         urgency = 'critical'; // out of stock
+    else if(daysLeft<=3) urgency = 'critical'; // runs out in 3 days
+    else if(daysLeft<=7) urgency = 'soon';     // runs out in a week
+    else if(bal<=p.alert)urgency = 'soon';     // below alert threshold
+    else                 urgency = 'ok';
+
+    // Smart insight text
+    let insight = '';
+    if(bal <= 0){
+      insight = `🚨 Out of stock! You've sold ${soldPeriod} units in the last ${days} days. Customers may be going elsewhere. Order immediately.`;
+    } else if(daysLeft <= 3){
+      insight = `🔴 Only ${daysLeft} day${daysLeft===1?'':'s'} of stock left at current sales rate. Order today to avoid stockout.`;
+    } else if(daysLeft <= 7){
+      insight = `🟡 ${daysLeft} days of stock remaining. Based on ${dailyAvg.toFixed(1)}/day average, you'll run out ${daysLeft<=3?'very soon':'this week'}.`;
+    } else if(trend==='up'){
+      insight = `📈 Demand is rising ${trendPct!==null?'(+'+trendPct+'%) ':''}— stock may deplete faster than expected. Consider ordering ahead.`;
+    } else if(daysLeft < 30){
+      insight = `⏰ At ${dailyAvg.toFixed(1)} units/day, stock lasts ~${daysLeft} more days. Plan your next order within the week.`;
+    } else {
+      insight = `✅ Stock is healthy. At current rate of ${dailyAvg.toFixed(1)}/day, you have ~${daysLeft===Infinity?'∞':daysLeft} days of supply.`;
+    }
+
+    return { p, bal, soldPeriod, dailyAvg, daysLeft, trend, trendPct, reorderQty, urgency, insight };
+  });
+
+  // Sort: critical first, then soon, then ok — within each group by days left
+  products.sort((a,b)=>{
+    const order = {critical:0, soon:1, ok:2};
+    if(order[a.urgency] !== order[b.urgency]) return order[a.urgency]-order[b.urgency];
+    const da = a.daysLeft===Infinity?9999:a.daysLeft;
+    const db = b.daysLeft===Infinity?9999:b.daysLeft;
+    return da - db;
+  });
+
+  // Update stat cards
+  const reorderNow = products.filter(x=>x.urgency==='critical').length;
+  const orderSoon  = products.filter(x=>x.urgency==='soon').length;
+  const healthy    = products.filter(x=>x.urgency==='ok').length;
+  const stockVal   = S.products.reduce((a,p)=>a+Math.max((p.stock||0)-(p.sold||0),0)*p.sprice,0);
+
+  const el=id=>document.getElementById(id);
+  if(el('inv-reorder-now')) el('inv-reorder-now').textContent = reorderNow;
+  if(el('inv-order-soon'))  el('inv-order-soon').textContent  = orderSoon;
+  if(el('inv-healthy'))     el('inv-healthy').textContent     = healthy;
+  if(el('inv-val'))         el('inv-val').textContent         = '₹'+stockVal.toFixed(0);
+  // Keep old IDs working for other renders
+  if(el('inv-low'))   el('inv-low').textContent  = reorderNow+orderSoon;
+  if(el('inv-out'))   el('inv-out').textContent  = reorderNow;
+  if(el('inv-total')) el('inv-total').textContent = S.products.length;
+
+  // ── Smart Reorder Cards ─────────────────────────────────────
+  const cardsEl = el('inv-reorder-cards');
+  if(cardsEl){
+    if(reorderNow===0 && orderSoon===0){
+      cardsEl.innerHTML = '<div class="empty"><div class="ei">✅</div><p>All products are well stocked! No reorders needed right now.</p></div>';
+    } else {
+      cardsEl.innerHTML = products.filter(x=>x.urgency!=='ok').map(({p,bal,soldPeriod,dailyAvg,daysLeft,trend,trendPct,reorderQty,urgency,insight})=>{
+        const trendIcon = trend==='up'?'📈':trend==='down'?'📉':'➡️';
+        const trendTxt  = trend==='up'
+          ? `<span class="trend-up">▲${trendPct!==null?trendPct+'%':'rising'}</span>`
+          : trend==='down'
+          ? `<span class="trend-dn">▼${trendPct!==null?Math.abs(trendPct)+'%':'falling'}</span>`
+          : `<span class="trend-flat">→ Stable</span>`;
+        const daysLabel = daysLeft===Infinity ? '∞' : daysLeft+'d';
+        const daysColor = daysLeft<=3?'var(--red)':daysLeft<=7?'var(--accent)':'var(--green)';
+        const reorderCost = reorderQty * (p.bprice||0);
+        return `<div class="reorder-card ${urgency}">
+          <div class="rc-top">
+            <div>
+              <div class="rc-name">${p.name}</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:2px">${p.cat||'—'} · ${p.unit||'packs'}</div>
+            </div>
+            <span class="rc-badge ${urgency}">${urgency==='critical'?'🚨 Reorder Now':'⚠️ Order Soon'}</span>
+          </div>
+          <div class="rc-stats">
+            <div class="rc-stat">
+              <div class="rc-stat-val" style="color:${daysColor}">${daysLabel}</div>
+              <div class="rc-stat-lbl">Days Left</div>
+            </div>
+            <div class="rc-stat">
+              <div class="rc-stat-val" style="color:var(--accent)">${bal}</div>
+              <div class="rc-stat-lbl">In Stock</div>
+            </div>
+            <div class="rc-stat">
+              <div class="rc-stat-val" style="color:var(--blue)">${dailyAvg.toFixed(1)}</div>
+              <div class="rc-stat-lbl">Daily Avg</div>
+            </div>
+            <div class="rc-stat">
+              <div class="rc-stat-val">${trendIcon}</div>
+              <div class="rc-stat-lbl">${trendTxt}</div>
+            </div>
+          </div>
+          <div class="rc-insight">💡 ${insight}</div>
+          <div class="rc-actions">
+            <div class="rc-suggest">
+              📦 Suggested order: <strong style="color:var(--accent)">${reorderQty} ${p.unit||'packs'}</strong>
+              ${reorderCost>0?`<span style="color:var(--text3)"> · Est. cost: ₹${reorderCost.toFixed(0)}</span>`:''}
+              <span style="color:var(--text3)"> · covers ~37 days</span>
+            </div>
+            <button class="btn btn-y" style="font-size:10px;padding:4px 10px" onclick="openEditProduct(${p.id})">📥 Update Stock</button>
+            <button class="btn btn-b" style="font-size:10px;padding:4px 10px" onclick="copyReorderMsg('${p.name.replace(/'/g,"\\'")}',${reorderQty},'${(p.unit||'packs').replace(/'/g,"\\'")}')">📋 Copy Order</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Full Stock Table ─────────────────────────────────────────
+  const tb = el('inv-tbody');
+  if(tb){
+    tb.innerHTML = products.map(({p,bal,soldPeriod,dailyAvg,daysLeft,trend,trendPct,reorderQty,urgency})=>{
+      const trendIcon = trend==='up'?`<span class="trend-up">▲${trendPct!==null?trendPct+'%':''}</span>`:trend==='down'?`<span class="trend-dn">▼${trendPct!==null?Math.abs(trendPct)+'%':''}</span>`:`<span class="trend-flat">→</span>`;
+      const status = bal<=0 ? '<span class="badge br">OUT</span>'
+                   : urgency==='critical' ? '<span class="badge br">🚨 Reorder</span>'
+                   : urgency==='soon'     ? '<span class="badge by">⚠️ Soon</span>'
+                   : '<span class="badge bg">✅ OK</span>';
+      const daysColor=daysLeft<=3?'var(--red)':daysLeft<=7?'var(--accent)':'var(--text)';
+      return `<tr>
+        <td><strong>${p.name}</strong><div style="font-size:9px;color:var(--text3)">${p.cat||'—'}</div></td>
+        <td style="color:${bal<=p.alert?'var(--red)':'var(--accent)'};font-weight:700">${bal} ${p.unit||''}</td>
+        <td style="color:var(--blue)">${dailyAvg>0?dailyAvg.toFixed(1)+'/day':'No sales'}</td>
+        <td style="color:${daysColor};font-weight:600">${daysLeft===Infinity?'∞':daysLeft+'d'}</td>
+        <td>${trendIcon}</td>
+        <td style="color:var(--accent);font-weight:600">${reorderQty>0?reorderQty+' '+p.unit:'—'}</td>
+        <td>${status}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Usage velocity bars ──────────────────────────────────────
+  const inv30 = el('inv-30d');
+  if(inv30){
+    const maxSold = Math.max(...products.map(x=>x.soldPeriod), 1);
+    inv30.innerHTML = products.map(({p,soldPeriod,dailyAvg,urgency})=>{
+      const pct = Math.min((soldPeriod/maxSold)*100, 100);
+      const barColor = urgency==='critical'?'var(--red)':urgency==='soon'?'var(--accent)':'var(--blue)';
+      return `<div class="sb-item">
+        <div class="sb-row">
+          <span style="font-weight:500;font-size:12px">${p.name}</span>
+          <span style="color:${barColor};font-weight:700">${soldPeriod} sold · ${dailyAvg.toFixed(1)}/day</span>
+        </div>
+        <div class="sb-bg" style="height:8px;margin-top:4px">
+          <div class="sb-fill" style="width:${pct}%;background:${barColor};height:100%;border-radius:4px;transition:width .5s"></div>
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty"><div class="ei">📊</div><p>No sales data yet</p></div>';
+  }
+}
+
+function copyReorderMsg(name, qty, unit){
+  const biz = S.settings.bizName||'Meenatchi Traders';
+  const msg = `📦 Reorder Request — ${biz}\n\nProduct: ${name}\nQuantity: ${qty} ${unit}\nDate: ${new Date().toLocaleDateString('en-IN')}\n\nPlease confirm availability and price. Thank you!`;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(()=>toast('📋 Order message copied to clipboard!'));
+  } else {
+    // Fallback for WebIntoApp
+    const ta=document.createElement('textarea');
+    ta.value=msg; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 Order message copied!');
+  }
 }
 
 // ===== SMART PROFIT =====
@@ -5183,6 +5866,848 @@ function generateReportPDF(){
   a.href=url; a.target='_blank'; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),5000);
   toast('📄 PDF report opened — use Print → Save as PDF');
+}
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║   SMART REORDER ENGINE — FULL MODULE                        ║
+// ║   Supplier Orders · Repacking · Packaging Stock             ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ─── Tab helpers ───────────────────────────────────────────────
+function soTab(el,id){
+  if(!el) return;
+  tabSwitch(el,id,['so-dashboard','so-orders','so-repack','so-reports','so-new']);
+  if(id==='so-dashboard') renderReorderEngine();
+  if(id==='so-orders')    renderSupplierOrders();
+  if(id==='so-repack')    renderRepackStatus();
+  if(id==='so-reports')   renderSOReports();
+  if(id==='so-new')       { soPopulateDatalists(); soSetDefaults(); }
+}
+function rpTab(el,id){
+  tabSwitch(el,id,['rp-log','rp-new','rp-history']);
+  if(id==='rp-log')     renderRepackLog();
+  if(id==='rp-new')     rpPopulateDatalists();
+  if(id==='rp-history') renderPackUsageHistory();
+}
+function psTab(el,id){
+  tabSwitch(el,id,['ps-stock','ps-add','ps-alerts','ps-analysis']);
+  if(id==='ps-stock')    renderPackStock();
+  if(id==='ps-alerts')   renderPackAlerts();
+  if(id==='ps-analysis') renderPackAnalysis();
+}
+
+// ─── Core analytics engine (shared) ────────────────────────────
+function getProductAnalytics(p, days){
+  days = days || 30;
+  const now    = new Date();
+  const cut1   = new Date(); cut1.setDate(cut1.getDate()-days);
+  const cut2   = new Date(); cut2.setDate(cut2.getDate()-(days*2));
+  const c1Str  = cut1.toISOString().slice(0,10);
+  const c2Str  = cut2.toISOString().slice(0,10);
+
+  const recentSales = S.sales.filter(s=>s.date>=c1Str);
+  const prevSales   = S.sales.filter(s=>s.date>=c2Str && s.date<c1Str);
+  const allSales    = S.sales;
+
+  const soldRecent = recentSales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
+  const soldPrev   = prevSales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
+  const soldAll    = allSales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
+
+  // Weighted avg: 70% recent, 30% prev period
+  const wAvgDaily = soldPrev > 0
+    ? (soldRecent/days)*0.7 + (soldPrev/days)*0.3
+    : soldRecent/days;
+
+  const bal       = Math.max((p.stock||0)-(p.sold||0), 0);
+  const leadTime  = (S.reorderSettings[p.id]?.leadTime) || 3;
+  const safetyDays= (S.reorderSettings[p.id]?.safetyDays) || 7;
+  const targetDays= (S.reorderSettings[p.id]?.targetDays) || 30;
+  const packSize  = (S.reorderSettings[p.id]?.packSize) || 1;
+
+  // Reorder point: (wAvgDaily * leadTime) + (wAvgDaily * safetyDays)
+  const reorderPoint   = wAvgDaily > 0 ? Math.ceil(wAvgDaily * (leadTime + safetyDays)) : p.alert;
+  const daysLeft       = wAvgDaily > 0 ? Math.floor(bal / wAvgDaily) : Infinity;
+  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000).toISOString().slice(0,10) : null;
+  const orderByDate    = wAvgDaily > 0
+    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000).toISOString().slice(0,10)
+    : null;
+  const expectedReceive= orderByDate
+    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000).toISOString().slice(0,10)
+    : null;
+
+  // Suggested reorder qty: target days supply, rounded to pack size
+  const rawSuggest    = Math.ceil(wAvgDaily * (targetDays + safetyDays + leadTime));
+  const suggestedQty  = packSize > 1 ? Math.ceil(rawSuggest/packSize)*packSize : rawSuggest;
+
+  // Trend
+  const trendPct = soldPrev > 0 ? Math.round(((soldRecent-soldPrev)/soldPrev)*100) : null;
+  const trend    = trendPct === null ? 'new' : trendPct>10 ? 'up' : trendPct<-10 ? 'down' : 'flat';
+
+  // Labels
+  const daysSinceLastSale = (() => {
+    const lastS = S.sales.filter(s=>s.products?.some(x=>x.name===p.name)).slice(-1)[0];
+    if(!lastS) return Infinity;
+    return Math.floor((now-new Date(lastS.date))/86400000);
+  })();
+
+  let label='ok', urgency='ok';
+  if(bal<=0){ label='Out of Stock'; urgency='critical'; }
+  else if(bal <= reorderPoint && wAvgDaily>0){ label='Reorder Now'; urgency='critical'; }
+  else if(daysLeft<=7){ label='Reorder Soon'; urgency='soon'; }
+  else if(daysLeft<=14){ label='Order This Week'; urgency='soon'; }
+  else if(soldAll===0 || daysSinceLastSale>60){ label='Dead Stock'; urgency='dead'; }
+  else if(soldRecent===0 && soldPrev>0){ label='Slow Moving'; urgency='slow'; }
+  else if(bal > wAvgDaily*90 && wAvgDaily>0){ label='Overstocked'; urgency='over'; }
+  else if(trend==='up'){ label='Fast Moving'; urgency='ok'; }
+
+  return { p, bal, soldRecent, soldPrev, wAvgDaily, daysLeft, stockoutDate, orderByDate,
+           expectedReceive, reorderPoint, suggestedQty, leadTime, safetyDays, targetDays,
+           trendPct, trend, label, urgency, daysSinceLastSale };
+}
+
+// ─── Smart Reorder Engine main render ──────────────────────────
+function renderReorderEngine(){
+  const days = +document.getElementById('so-period')?.value || 30;
+  if(!S.products.length){
+    const el=document.getElementById('so-suggestions');
+    if(el) el.innerHTML='<div class="empty"><div class="ei">📦</div><p>Add products to see reorder suggestions</p></div>';
+    return;
+  }
+  const analytics = S.products.map(p=>getProductAnalytics(p,days));
+  analytics.sort((a,b)=>{
+    const o={critical:0,soon:1,dead:2,slow:3,over:4,ok:5};
+    return (o[a.urgency]||5)-(o[b.urgency]||5);
+  });
+
+  // Update stat cards
+  const now  = new Date();
+  const pending= S.supplierOrders.filter(o=>!['Received','Cancelled'].includes(o.status));
+  const delayed= S.supplierOrders.filter(o=>o.status!=='Received'&&o.status!=='Cancelled'&&o.expDate&&new Date(o.expDate)<now);
+  const rpPend = S.supplierOrders.filter(o=>o.status==='Received'&&!o.repacked);
+  const setEl  = (id,v)=>{ const e=document.getElementById(id); if(e)e.textContent=v; };
+  setEl('so-cnt-now',     analytics.filter(a=>a.urgency==='critical').length);
+  setEl('so-cnt-pending', pending.length);
+  setEl('so-cnt-delayed', delayed.length);
+  setEl('so-cnt-repack',  rpPend.length);
+
+  // Suggestions cards
+  const sugEl = document.getElementById('so-suggestions');
+  if(sugEl){
+    const actionItems = analytics.filter(a=>a.urgency!=='ok'&&a.urgency!=='over');
+    if(!actionItems.length){
+      sugEl.innerHTML='<div class="empty"><div class="ei">✅</div><p>All products are well stocked! No reorders needed.</p></div>';
+    } else {
+      sugEl.innerHTML = actionItems.map(a=>{
+        const {p,bal,wAvgDaily,daysLeft,stockoutDate,orderByDate,expectedReceive,suggestedQty,trendPct,trend,label,urgency,leadTime}=a;
+        const urgClass = urgency==='critical'?'critical':urgency==='soon'?'soon':urgency==='dead'||urgency==='slow'?'slow':'over';
+        const badgeColors = {critical:'br',soon:'by',slow:'bp',over:'bb'};
+        const badgeCls = badgeColors[urgClass]||'bb';
+        const trendIcon = trend==='up'?'📈':trend==='down'?'📉':trend==='new'?'🆕':'➡️';
+        const trendStr  = trendPct!==null?(trendPct>0?`▲${trendPct}%`:`▼${Math.abs(trendPct)}%`):'New';
+        const daysTxt = daysLeft===Infinity?'∞':daysLeft+'d';
+        const dayColor= daysLeft<=3?'var(--red)':daysLeft<=7?'var(--accent)':'var(--text)';
+
+        // Check if order already exists
+        const existingOrder = S.supplierOrders.find(o=>o.productId===p.id && !['Received','Cancelled'].includes(o.status));
+        const orderBtn = existingOrder
+          ? `<span class="badge bb" style="font-size:10px">📦 Ordered (${existingOrder.status})</span>`
+          : `<button class="btn btn-y" style="font-size:10px;padding:4px 10px" onclick="prefillOrder(${p.id})">🛒 Create Order</button>`;
+
+        return `<div class="reorder-card ${urgClass}">
+          <div class="rc-top">
+            <div>
+              <div class="rc-name">${p.name}</div>
+              <div style="font-size:10px;color:var(--text3)">${p.cat||'—'} · ${p.unit||'packs'}</div>
+            </div>
+            <span class="badge ${badgeCls}" style="font-size:10px">${label}</span>
+          </div>
+          <div class="rc-stats">
+            <div class="rc-stat"><div class="rc-stat-val" style="color:${dayColor}">${daysTxt}</div><div class="rc-stat-lbl">Days Left</div></div>
+            <div class="rc-stat"><div class="rc-stat-val" style="color:var(--accent)">${bal}</div><div class="rc-stat-lbl">In Stock</div></div>
+            <div class="rc-stat"><div class="rc-stat-val" style="color:var(--blue)">${wAvgDaily.toFixed(1)}</div><div class="rc-stat-lbl">Daily Avg</div></div>
+            <div class="rc-stat"><div class="rc-stat-val">${trendIcon}</div><div class="rc-stat-lbl">${trendStr}</div></div>
+          </div>
+          <div class="rc-insight">
+            ${urgency==='critical'&&bal<=0?`🚨 Out of stock! Order immediately to avoid losing sales.`
+              :urgency==='critical'?`🔴 Only ${daysTxt} of stock left. ${orderByDate?'Order by: <strong>'+orderByDate+'</strong>':''}.`
+              :urgency==='dead'||urgency==='slow'?`💀 No or very low sales in recent period. Consider discounting or returning to supplier.`
+              :urgency==='over'?`📦 Overstocked — ${daysTxt} of supply. Pause ordering until stock reduces.`
+              :`⚠️ Stock will run low in ${daysTxt}. Plan your order soon.`}
+          </div>
+          <div class="rc-actions">
+            <div class="rc-suggest">
+              📦 Suggest: <strong style="color:var(--accent)">${suggestedQty} ${p.unit||'packs'}</strong>
+              ${orderByDate?`<span style="color:var(--text3)"> · Order by: ${orderByDate}</span>`:''}
+              ${expectedReceive?`<span style="color:var(--text3)"> · Receive by: ${expectedReceive}</span>`:''}
+              ${stockoutDate&&urgency!=='over'?`<span style="color:var(--red)"> · Stockout: ${stockoutDate}</span>`:''}
+            </div>
+            ${orderBtn}
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Dead stock / Overstock panels
+  const deadEl = document.getElementById('so-dead-stock');
+  const overEl = document.getElementById('so-overstock');
+  const deadItems = analytics.filter(a=>a.urgency==='dead'||a.urgency==='slow');
+  const overItems = analytics.filter(a=>a.urgency==='over');
+  if(deadEl) deadEl.innerHTML = deadItems.length
+    ? deadItems.map(a=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><strong style="font-size:12.5px">${a.p.name}</strong><div style="font-size:10px;color:var(--text3)">${a.p.cat||'—'} · Stock: ${a.bal} · Sold last 30d: ${a.soldRecent}</div></div>
+        <span class="badge bp" style="font-size:9px">${a.label}</span></div>`).join('')
+    : '<div class="empty"><div class="ei">✅</div><p>No dead stock found!</p></div>';
+  if(overEl) overEl.innerHTML = overItems.length
+    ? overItems.map(a=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div><strong style="font-size:12.5px">${a.p.name}</strong><div style="font-size:10px;color:var(--text3)">Stock: ${a.bal} · ~${a.daysLeft===Infinity?'∞':a.daysLeft}d supply · Avg: ${a.wAvgDaily.toFixed(1)}/day</div></div>
+        <span class="badge bb" style="font-size:9px">Overstocked</span></div>`).join('')
+    : '<div class="empty"><div class="ei">✅</div><p>No overstock detected</p></div>';
+}
+
+function prefillOrder(prodId){
+  nav('reorder');
+  setTimeout(()=>{
+    soTab(document.querySelector('#p-reorder .tab-bar .tab:nth-child(5)'),'so-new');
+    const p = S.products.find(x=>x.id===prodId);
+    if(!p) return;
+    const a = getProductAnalytics(p);
+    document.getElementById('so-prod').value  = p.name;
+    document.getElementById('so-qty').value   = a.suggestedQty;
+    document.getElementById('so-price').value = p.bprice||0;
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById('so-order-date').value = today;
+    soCalcDates();
+    soAutoFill();
+  }, 200);
+}
+
+// ─── Supplier Order CRUD ────────────────────────────────────────
+function soPopulateDatalists(){
+  const pdl=document.getElementById('so-prod-dl');
+  if(pdl) pdl.innerHTML=S.products.map(p=>`<option value="${p.name}">`).join('');
+  const sdl=document.getElementById('so-sup-dl');
+  if(sdl) sdl.innerHTML=S.suppliers.map(s=>`<option value="${s.name}">`).join('');
+  soSetDefaults();
+}
+function soSetDefaults(){
+  const today=new Date().toISOString().slice(0,10);
+  const od=document.getElementById('so-order-date');
+  if(od&&!od.value) od.value=today;
+  soCalcDates();
+}
+function soCalcDates(){
+  const orderDate=document.getElementById('so-order-date')?.value;
+  const lead=+document.getElementById('so-lead')?.value||3;
+  if(!orderDate) return;
+  const exp=new Date(new Date(orderDate).getTime()+lead*86400000).toISOString().slice(0,10);
+  const ed=document.getElementById('so-exp-date');
+  if(ed) ed.value=exp;
+  // Auto-calc total
+  const qty=+document.getElementById('so-qty')?.value||0;
+  const price=+document.getElementById('so-price')?.value||0;
+  const tot=document.getElementById('so-total');
+  if(tot) tot.value=qty&&price?'₹'+(qty*price).toFixed(0):'';
+}
+function soAutoFill(){
+  const name=document.getElementById('so-prod')?.value.trim();
+  if(!name) return;
+  const p=S.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!p) return;
+  const a=getProductAnalytics(p);
+  const hint=document.getElementById('so-ai-hint');
+  if(hint){
+    hint.innerHTML=`📊 <strong>${p.name}</strong> — ${a.daysLeft===Infinity?'No sales data':a.daysLeft+'d stock left'} · Avg: ${a.wAvgDaily.toFixed(1)}/day · Suggest: <strong style="color:var(--accent)">${a.suggestedQty} ${p.unit||'packs'}</strong>${a.orderByDate?` · Order by: <strong>${a.orderByDate}</strong>`:''}${a.stockoutDate&&a.urgency!=='over'?` · Stockout risk: <strong style="color:var(--red)">${a.stockoutDate}</strong>`:''}`;
+  }
+  if(p.bprice&&!document.getElementById('so-price')?.value) document.getElementById('so-price').value=p.bprice;
+  if(!document.getElementById('so-qty')?.value) document.getElementById('so-qty').value=a.suggestedQty;
+  soCalcDates();
+}
+function saveSupplierOrder(){
+  const prod=document.getElementById('so-prod')?.value.trim();
+  if(!prod){ toast('⚠️ Select a product'); return; }
+  const qty=+document.getElementById('so-qty')?.value||0;
+  if(!qty){ toast('⚠️ Enter order quantity'); return; }
+  const orderDate=document.getElementById('so-order-date')?.value;
+  if(!orderDate){ toast('⚠️ Enter order date'); return; }
+  const expDate=document.getElementById('so-exp-date')?.value;
+  const p=S.products.find(x=>x.name.toLowerCase()===prod.toLowerCase());
+  const order={
+    id: Date.now(),
+    productId: p?.id||null,
+    productName: prod,
+    unit: p?.unit||'packs',
+    supplier: document.getElementById('so-sup-name')?.value.trim()||'',
+    supPhone: document.getElementById('so-sup-phone')?.value.trim()||'',
+    leadTime: +document.getElementById('so-lead')?.value||3,
+    minQty: +document.getElementById('so-min-qty')?.value||1,
+    qty,
+    price: +document.getElementById('so-price')?.value||0,
+    status: document.getElementById('so-status')?.value||'Planned',
+    orderDate,
+    expDate: expDate||'',
+    receivedDate: '',
+    receivedQty: 0,
+    repackDate: '',
+    repacked: false,
+    notes: document.getElementById('so-notes')?.value.trim()||'',
+    history: [{date:new Date().toISOString(),action:'Created',by:'User'}]
+  };
+  // Duplicate detection
+  const dup=S.supplierOrders.find(o=>o.productName===prod&&!['Received','Cancelled'].includes(o.status));
+  if(dup&&!confirm(`An open order for "${prod}" already exists (${dup.status}). Create another?`)) return;
+  S.supplierOrders.push(order);
+  autoSave();
+  clearSupplierOrderForm();
+  renderSupplierOrders();
+  updateReorderStats();
+  toast('✅ Supplier order created!');
+  soTab(document.querySelector('#p-reorder .tab-bar .tab:nth-child(2)'),'so-orders');
+}
+function clearSupplierOrderForm(){
+  ['so-prod','so-sup-name','so-sup-phone','so-qty','so-price','so-total','so-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('so-lead').value=3;
+  document.getElementById('so-min-qty').value=1;
+  document.getElementById('so-status').value='Planned';
+  const today=new Date().toISOString().slice(0,10);
+  const od=document.getElementById('so-order-date');if(od)od.value=today;
+  soCalcDates();
+  const hint=document.getElementById('so-ai-hint');if(hint)hint.textContent='Select a product to see AI suggestion';
+}
+function renderSupplierOrders(){
+  const tb=document.getElementById('so-orders-tbody');
+  if(!tb) return;
+  const q=(document.getElementById('so-search')?.value||'').toLowerCase();
+  const sf=document.getElementById('so-status-filter')?.value||'all';
+  let list=S.supplierOrders.filter(o=>{
+    const matchQ=!q||o.productName.toLowerCase().includes(q)||o.supplier.toLowerCase().includes(q);
+    const matchS=sf==='all'||o.status===sf;
+    return matchQ&&matchS;
+  }).sort((a,b)=>new Date(b.orderDate)-new Date(a.orderDate));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📋</div><p>No supplier orders yet</p></div></td></tr>'; return; }
+  const now=new Date();
+  const sc={Planned:'bb',Ordered:'by','In Transit':'bp',Received:'bg',Partial:'bp',Delayed:'br',Cancelled:'br'};
+  tb.innerHTML=list.map(o=>{
+    const isDelayed=o.expDate&&new Date(o.expDate)<now&&!['Received','Cancelled'].includes(o.status);
+    const displayStatus=isDelayed&&o.status!=='Delayed'?'Delayed':o.status;
+    const statusCls=sc[displayStatus]||'bb';
+    return `<tr>
+      <td><strong>${o.productName}</strong>${o.notes?`<div style="font-size:9px;color:var(--text3)">${o.notes.substring(0,30)}</div>`:''}</td>
+      <td>${o.supplier||'—'}<div style="font-size:9px;color:var(--text3)">${o.supPhone||''}</div></td>
+      <td style="font-weight:700;color:var(--accent)">${o.qty} ${o.unit||''}</td>
+      <td>${o.orderDate||'—'}</td>
+      <td style="color:${isDelayed?'var(--red)':'var(--text)'}">${o.expDate||'—'}</td>
+      <td>${o.leadTime||3}d</td>
+      <td><span class="badge ${statusCls}">${displayStatus}</span></td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-b" style="font-size:9px;padding:2px 6px" onclick="openUpdateOrder(${o.id})">✏️</button>
+        <button class="btn btn-r" style="font-size:9px;padding:2px 6px" onclick="deleteSupplierOrder(${o.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function openUpdateOrder(id){
+  const o=S.supplierOrders.find(x=>x.id===id);
+  if(!o) return;
+  const statusOpts=['Planned','Ordered','In Transit','Received','Partial','Delayed','Cancelled'];
+  const html=`<div style="padding:10px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Update Order: ${o.productName}</div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="fs" id="uo-status">${statusOpts.map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Received Date</label><input class="fi" id="uo-rec-date" type="date" value="${o.receivedDate||''}"></div>
+      <div class="fg"><label class="fl">Received Qty</label><input class="fi" id="uo-rec-qty" type="number" value="${o.receivedQty||o.qty}" min="0"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="uo-notes" value="${o.notes||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveOrderUpdate(${id})">💾 Save</button>
+      <button class="btn btn-o" onclick="closeModal('update-order-modal')">Cancel</button>
+    </div>
+  </div>`;
+  let modal=document.getElementById('update-order-modal');
+  if(!modal){ modal=document.createElement('div'); modal.id='update-order-modal'; modal.className='mo'; modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open');}); document.body.appendChild(modal); }
+  modal.innerHTML=`<div class="mo-box" style="max-width:420px"><div class="mo-h"><h2>✏️ Update Order</h2><button class="xbtn" onclick="closeModal('update-order-modal')">✕</button></div><div class="mo-b">${html}</div></div>`;
+  openModal('update-order-modal');
+}
+function saveOrderUpdate(id){
+  const o=S.supplierOrders.find(x=>x.id===id);
+  if(!o) return;
+  const newStatus=document.getElementById('uo-status')?.value||o.status;
+  const recDate=document.getElementById('uo-rec-date')?.value||'';
+  const recQty=+document.getElementById('uo-rec-qty')?.value||0;
+  const notes=document.getElementById('uo-notes')?.value||o.notes;
+  // Validate date sequence
+  if(recDate&&o.orderDate&&recDate<o.orderDate){ toast('⚠️ Received date cannot be before order date'); return; }
+  o.history=o.history||[];
+  if(newStatus!==o.status) o.history.push({date:new Date().toISOString(),action:`Status: ${o.status}→${newStatus}`,by:'User'});
+  o.status=newStatus; o.receivedDate=recDate; o.receivedQty=recQty; o.notes=notes;
+  if(newStatus==='Received'||newStatus==='Partial'){
+    // Add stock to product
+    const p=S.products.find(x=>x.id===o.productId||x.name===o.productName);
+    if(p&&recQty>0&&!o._stockAdded){
+      p.stock=(p.stock||0)+recQty;
+      o._stockAdded=true;
+      logStockCorrection(p.name,recQty,'Supplier receipt: '+o.supplier);
+      toast('✅ Order updated! +'+recQty+' added to stock for '+p.name);
+    }
+  }
+  autoSave();
+  closeModal('update-order-modal');
+  renderSupplierOrders();
+  updateReorderStats();
+  renderInventory();
+}
+function deleteSupplierOrder(id){
+  if(!confirm('Delete this supplier order?')) return;
+  S.supplierOrders=S.supplierOrders.filter(x=>x.id!==id);
+  autoSave(); renderSupplierOrders(); updateReorderStats();
+  toast('🗑️ Order removed');
+}
+function logStockCorrection(name,qty,reason){
+  S.stockCorrections=S.stockCorrections||[];
+  S.stockCorrections.push({date:new Date().toISOString(),product:name,qty,reason});
+}
+function updateReorderStats(){
+  const now=new Date();
+  const pending=S.supplierOrders.filter(o=>!['Received','Cancelled'].includes(o.status));
+  const delayed=S.supplierOrders.filter(o=>o.status!=='Received'&&o.status!=='Cancelled'&&o.expDate&&new Date(o.expDate)<now);
+  const rpPend=S.supplierOrders.filter(o=>o.status==='Received'&&!o.repacked);
+  const days=+document.getElementById('so-period')?.value||30;
+  const critCnt=S.products.filter(p=>{const a=getProductAnalytics(p,days);return a.urgency==='critical';}).length;
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('so-cnt-now',critCnt); setEl('so-cnt-pending',pending.length);
+  setEl('so-cnt-delayed',delayed.length); setEl('so-cnt-repack',rpPend.length);
+}
+function renderRepackStatus(){
+  const tb=document.getElementById('so-repack-tbody');
+  if(!tb) return;
+  const received=S.supplierOrders.filter(o=>o.status==='Received'||o.status==='Partial');
+  if(!received.length){ tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">📦</div><p>No received orders awaiting repack</p></div></td></tr>'; return; }
+  tb.innerHTML=received.map(o=>{
+    const repackSess=S.repackLog.filter(r=>r.linkedOrderId===o.id);
+    const totalRepacked=repackSess.reduce((a,r)=>a+r.outputPacks,0);
+    return `<tr>
+      <td><strong>${o.productName}</strong></td>
+      <td>${o.receivedQty||o.qty} ${o.unit||''}</td>
+      <td style="color:var(--green)">${totalRepacked}</td>
+      <td>${repackSess[0]?.date||'—'}</td>
+      <td>${repackSess.reduce((a,r)=>a+r.stickersUsed,0)||'—'}</td>
+      <td>${repackSess.reduce((a,r)=>a+r.coversUsed,0)||'—'}</td>
+      <td style="color:var(--accent);font-weight:700">${totalRepacked}</td>
+      <td><span class="badge ${o.repacked?'bg':'by'}">${o.repacked?'✅ Done':'⏳ Pending'}</span></td>
+      <td><button class="btn btn-y" style="font-size:10px;padding:3px 8px" onclick="nav('repacktrack')">📦 Repack</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderSOReports(){
+  // Order planning summary
+  const planEl=document.getElementById('so-report-plan');
+  if(planEl){
+    const byStatus={};
+    S.supplierOrders.forEach(o=>{ byStatus[o.status]=(byStatus[o.status]||0)+1; });
+    planEl.innerHTML=Object.keys(byStatus).length
+      ? Object.entries(byStatus).map(([s,c])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${s}</span><strong>${c} orders</strong></div>`).join('')
+      : '<div class="empty"><div class="ei">📋</div><p>No orders yet</p></div>';
+  }
+  // Supplier performance
+  const supEl=document.getElementById('so-report-supplier');
+  if(supEl){
+    const bySup={};
+    S.supplierOrders.forEach(o=>{
+      if(!o.supplier) return;
+      if(!bySup[o.supplier]) bySup[o.supplier]={total:0,delayed:0,received:0};
+      bySup[o.supplier].total++;
+      if(o.status==='Received') bySup[o.supplier].received++;
+      if(o.expDate&&new Date(o.expDate)<new Date()&&o.status!=='Received') bySup[o.supplier].delayed++;
+    });
+    supEl.innerHTML=Object.keys(bySup).length
+      ? Object.entries(bySup).map(([s,d])=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><strong style="font-size:12.5px">${s}</strong><div style="display:flex;gap:10px;font-size:11px;color:var(--text3);margin-top:2px"><span>Total: ${d.total}</span><span style="color:var(--green)">✅ ${d.received}</span><span style="color:${d.delayed>0?'var(--red)':'var(--text3)'}">⚠️ ${d.delayed} delayed</span></div></div>`).join('')
+      : '<div class="empty"><div class="ei">🚛</div><p>No supplier data</p></div>';
+  }
+  // Stockout risk
+  const riskEl=document.getElementById('so-report-risk');
+  if(riskEl){
+    const days=+document.getElementById('so-period')?.value||30;
+    const risks=S.products.map(p=>getProductAnalytics(p,days))
+      .filter(a=>a.daysLeft!==Infinity&&a.daysLeft<14&&a.urgency!=='over')
+      .sort((a,b)=>a.daysLeft-b.daysLeft);
+    riskEl.innerHTML=risks.length
+      ? risks.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div><strong>${a.p.name}</strong><div style="font-size:10px;color:var(--text3)">Stock: ${a.bal} · Avg: ${a.wAvgDaily.toFixed(1)}/day${a.stockoutDate?` · Stockout: ${a.stockoutDate}`:''}</div></div>
+          <span class="badge ${a.daysLeft<=3?'br':'by'}">${a.daysLeft<=3?'Critical':''+a.daysLeft+'d left'}</span></div>`).join('')
+      : '<div class="empty"><div class="ei">✅</div><p>No stockout risk in next 14 days</p></div>';
+  }
+}
+
+// ─── Repack Session CRUD ────────────────────────────────────────
+function rpPopulateDatalists(){
+  const pdl=document.getElementById('rp-prod-dl');
+  if(pdl) pdl.innerHTML=S.products.map(p=>`<option value="${p.name}">`).join('');
+  const today=new Date().toISOString().slice(0,10);
+  const rd=document.getElementById('rp-date');if(rd&&!rd.value)rd.value=today;
+  // Fill linked orders
+  const lo=document.getElementById('rp-linked-order');
+  if(lo){
+    const received=S.supplierOrders.filter(o=>['Received','Partial'].includes(o.status)&&!o.repacked);
+    lo.innerHTML='<option value="">— None —</option>'+received.map(o=>`<option value="${o.id}">${o.productName} (${o.receivedQty||o.qty} ${o.unit||''} · ${o.receivedDate||o.orderDate})</option>`).join('');
+  }
+}
+function rpAutoFill(){
+  const name=document.getElementById('rp-prod')?.value.trim();
+  if(!name) return;
+  const p=S.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!p) return;
+  const ps=document.getElementById('rp-pack-size');
+  if(ps&&!ps.value&&p.packSize) ps.value=p.packSize;
+  const spp=document.getElementById('rp-sticker-per');
+  if(spp&&!spp.value&&p.stickerCost) spp.value=1;
+  const cpp=document.getElementById('rp-cover-per');
+  if(cpp&&!cpp.value&&p.coverCost) cpp.value=1;
+  rpCalc();
+}
+function rpCalc(){
+  const inputQty=+document.getElementById('rp-input-qty')?.value||0;
+  const packSize=+document.getElementById('rp-pack-size')?.value||1;
+  const wastage=+document.getElementById('rp-wastage')?.value||0;
+  const stickerPer=+document.getElementById('rp-sticker-per')?.value||1;
+  const coverPer=+document.getElementById('rp-cover-per')?.value||1;
+  const effectiveInput=inputQty*(1-wastage/100);
+  const outputPacks=Math.floor(effectiveInput/packSize);
+  const stickersNeeded=outputPacks*stickerPer;
+  const coversNeeded=outputPacks*coverPer;
+  const ouEl=document.getElementById('rp-output');if(ouEl)ouEl.value=outputPacks;
+  const sumEl=document.getElementById('rp-calc-summary');
+  if(outputPacks>0&&sumEl){
+    sumEl.style.display='block';
+    document.getElementById('rp-sum-stickers').textContent=stickersNeeded;
+    document.getElementById('rp-sum-covers').textContent=coversNeeded;
+    // Check packaging stock
+    const stickerMat=S.packMaterials.find(m=>m.type==='Sticker');
+    const coverMat=S.packMaterials.find(m=>m.type==='Cover/Bag');
+    const stkStock=stickerMat?.qty||0;
+    const cvrStock=coverMat?.qty||0;
+    const stkAfterEl=document.getElementById('rp-sum-stk-after');
+    const cvrAfterEl=document.getElementById('rp-sum-cvr-after');
+    const warnEl=document.getElementById('rp-pack-warning');
+    if(stkAfterEl){
+      const after=stkStock-stickersNeeded;
+      stkAfterEl.textContent=stickerMat?after:'No sticker stock';
+      stkAfterEl.style.color=after<0?'var(--red)':after<50?'var(--accent)':'var(--green)';
+    }
+    if(cvrAfterEl){
+      const after=cvrStock-coversNeeded;
+      cvrAfterEl.textContent=coverMat?after:'No cover stock';
+      cvrAfterEl.style.color=after<0?'var(--red)':after<50?'var(--accent)':'var(--green)';
+    }
+    let warnings=[];
+    if(stickerMat&&stkStock<stickersNeeded) warnings.push(`⚠️ Only ${stkStock} stickers available — need ${stickersNeeded}`);
+    if(coverMat&&cvrStock<coversNeeded) warnings.push(`⚠️ Only ${cvrStock} covers available — need ${coversNeeded}`);
+    if(!stickerMat&&stickersNeeded>0) warnings.push('ℹ️ No sticker stock tracked — add in Packaging Stock');
+    if(warnEl){ warnEl.innerHTML=warnings.join('<br>'); warnEl.style.display=warnings.length?'block':'none'; }
+  } else if(sumEl) sumEl.style.display='none';
+}
+function saveRepackSession(){
+  const prod=document.getElementById('rp-prod')?.value.trim();
+  if(!prod){ toast('⚠️ Select a product'); return; }
+  const inputQty=+document.getElementById('rp-input-qty')?.value||0;
+  if(!inputQty){ toast('⚠️ Enter input quantity'); return; }
+  const packSize=+document.getElementById('rp-pack-size')?.value||1;
+  const wastage=+document.getElementById('rp-wastage')?.value||0;
+  const stickerPer=+document.getElementById('rp-sticker-per')?.value||1;
+  const coverPer=+document.getElementById('rp-cover-per')?.value||1;
+  const effectiveInput=inputQty*(1-wastage/100);
+  const outputPacks=Math.floor(effectiveInput/packSize);
+  const stickersUsed=outputPacks*stickerPer;
+  const coversUsed=outputPacks*coverPer;
+  const repackDate=document.getElementById('rp-date')?.value||new Date().toISOString().slice(0,10);
+  const linkedOrderId=+document.getElementById('rp-linked-order')?.value||null;
+
+  // Validation: check packaging stock
+  const stickerMat=S.packMaterials.find(m=>m.type==='Sticker');
+  const coverMat=S.packMaterials.find(m=>m.type==='Cover/Bag');
+  if(stickerMat&&stickersUsed>stickerMat.qty){
+    if(!confirm(`⚠️ Not enough stickers (have ${stickerMat.qty}, need ${stickersUsed}). Proceed anyway?`)) return;
+  }
+  if(coverMat&&coversUsed>coverMat.qty){
+    if(!confirm(`⚠️ Not enough covers (have ${coverMat.qty}, need ${coversUsed}). Proceed anyway?`)) return;
+  }
+  const session={
+    id:Date.now(), date:repackDate, product:prod,
+    inputQty, packSize, wastage, outputPacks,
+    stickerPer, coverPer, stickersUsed, coversUsed,
+    linkedOrderId, notes:document.getElementById('rp-notes')?.value.trim()||'',
+    status:'Completed'
+  };
+  S.repackLog.push(session);
+  // Deduct packaging stock
+  if(stickerMat&&stickersUsed>0){
+    const before=stickerMat.qty;
+    stickerMat.qty=Math.max(stickerMat.qty-stickersUsed,0);
+    logPackUsage('Sticker',stickerMat.name,-stickersUsed,stickerMat.qty,`Repack: ${prod} ×${outputPacks} packs`);
+  }
+  if(coverMat&&coversUsed>0){
+    const before=coverMat.qty;
+    coverMat.qty=Math.max(coverMat.qty-coversUsed,0);
+    logPackUsage('Cover/Bag',coverMat.name,-coversUsed,coverMat.qty,`Repack: ${prod} ×${outputPacks} packs`);
+  }
+  // Add output packs to product stock
+  const p=S.products.find(x=>x.name.toLowerCase()===prod.toLowerCase());
+  if(p){ p.stock=(p.stock||0)+outputPacks; logStockCorrection(p.name,outputPacks,'Repack output'); }
+  // Mark linked order as repacked
+  if(linkedOrderId){
+    const o=S.supplierOrders.find(x=>x.id===linkedOrderId);
+    if(o){ o.repacked=true; o.repackDate=repackDate; }
+  }
+  autoSave();
+  renderRepackLog();
+  renderRepackStats();
+  renderPackStock();
+  renderInventory();
+  ['rp-prod','rp-input-qty','rp-pack-size','rp-output','rp-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('rp-wastage').value=0;
+  document.getElementById('rp-sticker-per').value=1;
+  document.getElementById('rp-cover-per').value=1;
+  const sum=document.getElementById('rp-calc-summary');if(sum)sum.style.display='none';
+  toast(`✅ Repack complete! ${outputPacks} packs of ${prod} added. Stickers used: ${stickersUsed}, Covers: ${coversUsed}`);
+  rpTab(document.querySelector('#p-repacktrack .tab-bar .tab'),'rp-log');
+}
+function logPackUsage(type,name,qtyChange,balAfter,reason){
+  S.packUsageHistory=S.packUsageHistory||[];
+  S.packUsageHistory.push({date:new Date().toISOString(),type,name,qtyChange,balAfter,reason});
+}
+function renderRepackLog(){
+  const tb=document.getElementById('rp-log-tbody');
+  if(!tb) return;
+  const list=[...S.repackLog].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="11"><div class="empty"><div class="ei">📦</div><p>No repack sessions yet</p></div></td></tr>'; return; }
+  tb.innerHTML=list.map(r=>`<tr>
+    <td>${r.date}</td><td><strong>${r.product}</strong></td>
+    <td>${r.inputQty}</td><td>${r.packSize}</td>
+    <td style="color:var(--green);font-weight:700">${r.outputPacks}</td>
+    <td>${r.stickersUsed}</td><td>${r.coversUsed}</td>
+    <td style="color:var(--red)">${r.wastage>0?r.wastage+'%':'—'}</td>
+    <td><span class="badge bg">✅ Done</span></td>
+    <td style="font-size:11px;color:var(--text3)">${r.notes||'—'}</td>
+    <td><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteRepack(${r.id})">🗑️</button></td>
+  </tr>`).join('');
+}
+function deleteRepack(id){
+  if(!confirm('Delete this repack record?')) return;
+  S.repackLog=S.repackLog.filter(r=>r.id!==id);
+  autoSave(); renderRepackLog(); renderRepackStats();
+  toast('🗑️ Repack record removed');
+}
+function renderRepackStats(){
+  const now=new Date();
+  const m=now.toISOString().slice(0,7);
+  const thisMonth=S.repackLog.filter(r=>r.date.startsWith(m));
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('rp-cnt-month',thisMonth.length);
+  setEl('rp-cnt-packs',thisMonth.reduce((a,r)=>a+r.outputPacks,0));
+  setEl('rp-stickers',thisMonth.reduce((a,r)=>a+r.stickersUsed,0));
+  setEl('rp-covers',thisMonth.reduce((a,r)=>a+r.coversUsed,0));
+}
+function renderPackUsageHistory(){
+  const tb=document.getElementById('rp-history-tbody');
+  if(!tb) return;
+  const list=[...(S.packUsageHistory||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">📜</div><p>No packaging history yet</p></div></td></tr>'; return; }
+  tb.innerHTML=list.map(h=>`<tr>
+    <td>${h.date.slice(0,10)}</td>
+    <td>${h.type}</td>
+    <td style="font-size:11px">${h.reason||'—'}</td>
+    <td style="color:${h.qtyChange<0?'var(--red)':'var(--green)'};font-weight:700">${h.qtyChange>0?'+':''}${h.qtyChange}</td>
+    <td style="font-weight:600">${h.balAfter}</td>
+    <td style="font-size:10px;color:var(--text3)">${h.name||'—'}</td>
+  </tr>`).join('');
+}
+
+// ─── Packaging Material CRUD ────────────────────────────────────
+function savePackMaterial(){
+  const name=document.getElementById('ps-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter material name'); return; }
+  const editId=+document.getElementById('ps-edit-id')?.value||0;
+  const mat={
+    id: editId||Date.now(),
+    name, type:document.getElementById('ps-type')?.value||'Sticker',
+    qty:+document.getElementById('ps-stock-qty')?.value||0,
+    unit:document.getElementById('ps-unit')?.value||'Nos',
+    perPack:+document.getElementById('ps-per-pack')?.value||1,
+    minStock:+document.getElementById('ps-min-stock')?.value||50,
+    safetyStock:+document.getElementById('ps-safety')?.value||100,
+    reorderQty:+document.getElementById('ps-reorder-qty')?.value||500,
+    supplier:document.getElementById('ps-sup-name')?.value.trim()||'',
+    leadTime:+document.getElementById('ps-lead')?.value||3,
+    price:+document.getElementById('ps-price')?.value||0,
+    linked:document.getElementById('ps-linked')?.value.trim()||'',
+    notes:document.getElementById('ps-notes')?.value.trim()||''
+  };
+  if(editId){
+    const idx=S.packMaterials.findIndex(m=>m.id===editId);
+    if(idx>=0){ S.packMaterials[idx]=mat; toast('✅ Material updated!'); }
+  } else {
+    S.packMaterials.push(mat);
+    logPackUsage(mat.type,mat.name,mat.qty,mat.qty,'Initial stock entry');
+    toast('✅ Packaging material added!');
+  }
+  autoSave(); clearPackForm(); renderPackStock();
+  psTab(document.querySelector('#p-packstock .tab-bar .tab'),'ps-stock');
+}
+function clearPackForm(){
+  ['ps-name','ps-stock-qty','ps-per-pack','ps-min-stock','ps-safety','ps-reorder-qty','ps-sup-name','ps-price','ps-linked','ps-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('ps-edit-id').value='';
+  document.getElementById('ps-lead').value=3;
+  document.getElementById('ps-form-title').textContent='➕ Add Packaging Material';
+  document.getElementById('ps-calc-hint').textContent='';
+}
+function editPackMaterial(id){
+  const m=S.packMaterials.find(x=>x.id===id); if(!m) return;
+  document.getElementById('ps-edit-id').value=id;
+  document.getElementById('ps-name').value=m.name;
+  document.getElementById('ps-type').value=m.type;
+  document.getElementById('ps-stock-qty').value=m.qty;
+  document.getElementById('ps-unit').value=m.unit||'Nos';
+  document.getElementById('ps-per-pack').value=m.perPack||1;
+  document.getElementById('ps-min-stock').value=m.minStock||50;
+  document.getElementById('ps-safety').value=m.safetyStock||100;
+  document.getElementById('ps-reorder-qty').value=m.reorderQty||500;
+  document.getElementById('ps-sup-name').value=m.supplier||'';
+  document.getElementById('ps-lead').value=m.leadTime||3;
+  document.getElementById('ps-price').value=m.price||0;
+  document.getElementById('ps-linked').value=m.linked||'';
+  document.getElementById('ps-notes').value=m.notes||'';
+  document.getElementById('ps-form-title').textContent='✏️ Edit Material: '+m.name;
+  psTab(document.querySelector('#p-packstock .tab-bar .tab:nth-child(2)'),'ps-add');
+}
+function deletePackMaterial(id){
+  if(!confirm('Delete this packaging material?')) return;
+  S.packMaterials=S.packMaterials.filter(m=>m.id!==id);
+  autoSave(); renderPackStock();
+  toast('🗑️ Material removed');
+}
+function psCalc(){
+  const qty=+document.getElementById('ps-stock-qty')?.value||0;
+  const perPack=+document.getElementById('ps-per-pack')?.value||1;
+  const hint=document.getElementById('ps-calc-hint');
+  if(hint&&qty>0&&perPack>0) hint.textContent=`📦 ${qty} units ÷ ${perPack} per pack = can make ${Math.floor(qty/perPack)} packs`;
+  else if(hint) hint.textContent='';
+}
+function addPackStock(id){
+  const m=S.packMaterials.find(x=>x.id===id); if(!m) return;
+  const qty=+prompt(`Add stock for "${m.name}"\nCurrent: ${m.qty} ${m.unit}\nEnter quantity to add:`)||0;
+  if(!qty||qty<=0) return;
+  m.qty+=qty;
+  logPackUsage(m.type,m.name,qty,m.qty,'Manual stock addition');
+  autoSave(); renderPackStock();
+  toast(`✅ +${qty} added to ${m.name}`);
+}
+function renderPackStock(){
+  const tb=document.getElementById('ps-tbody');
+  if(!tb) return;
+  if(!S.packMaterials.length){ tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">🎁</div><p>No packaging materials yet. Add in ➕ tab.</p></div></td></tr>'; }
+  else {
+    const now=new Date();
+    tb.innerHTML=S.packMaterials.map(m=>{
+      const packsPossible=m.perPack>0?Math.floor(m.qty/m.perPack):0;
+      // Days left based on repack history
+      const monthLog=S.repackLog.filter(r=>new Date(r.date)>new Date(now-30*86400000));
+      const monthUsed=m.type==='Sticker'?monthLog.reduce((a,r)=>a+r.stickersUsed,0):m.type==='Cover/Bag'?monthLog.reduce((a,r)=>a+r.coversUsed,0):0;
+      const dailyUse=monthUsed/30;
+      const daysLeft=dailyUse>0?Math.floor(m.qty/dailyUse):Infinity;
+      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000).toISOString().slice(0,10):null;
+      let status='bg',statusTxt='✅ OK';
+      if(m.qty<=0){ status='br'; statusTxt='🚨 Out'; }
+      else if(m.qty<=m.minStock){ status='br'; statusTxt='🚨 Reorder Now'; }
+      else if(m.qty<=m.safetyStock){ status='by'; statusTxt='⚠️ Low'; }
+      return `<tr>
+        <td><strong>${m.name}</strong><div style="font-size:9px;color:var(--text3)">${m.linked||'—'}</div></td>
+        <td><span class="badge bp">${m.type}</span></td>
+        <td style="color:${m.qty<=m.minStock?'var(--red)':'var(--accent)'};font-weight:700">${m.qty} ${m.unit}</td>
+        <td style="color:var(--text3)">${m.minStock}</td>
+        <td style="color:var(--blue)">${packsPossible}</td>
+        <td style="color:${daysLeft<7?'var(--red)':daysLeft<14?'var(--accent)':'var(--text)'}">${daysLeft===Infinity?'∞':daysLeft+'d'}</td>
+        <td>${m.reorderQty}</td>
+        <td style="color:${orderByDate?'var(--red)':'var(--text3)'}">${orderByDate||'—'}</td>
+        <td><span class="badge ${status}" style="font-size:9px">${statusTxt}</span></td>
+        <td style="display:flex;gap:3px;flex-wrap:wrap">
+          <button class="btn btn-g" style="font-size:9px;padding:2px 5px" onclick="addPackStock(${m.id})">+Add</button>
+          <button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="editPackMaterial(${m.id})">✏️</button>
+          <button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deletePackMaterial(${m.id})">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  // Update stat cards
+  const stickerMat=S.packMaterials.find(m=>m.type==='Sticker');
+  const coverMat=S.packMaterials.find(m=>m.type==='Cover/Bag');
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('ps-sticker-stock',stickerMat?stickerMat.qty:'—');
+  setEl('ps-cover-stock',coverMat?coverMat.qty:'—');
+  const minPoss=Math.min(
+    stickerMat&&stickerMat.perPack>0?Math.floor(stickerMat.qty/stickerMat.perPack):Infinity,
+    coverMat&&coverMat.perPack>0?Math.floor(coverMat.qty/coverMat.perPack):Infinity
+  );
+  setEl('ps-packs-possible',minPoss===Infinity?'∞':minPoss);
+  // Days of supply
+  const monthLog=S.repackLog.filter(r=>new Date(r.date)>new Date(new Date()-30*86400000));
+  const avgPacks=monthLog.reduce((a,r)=>a+r.outputPacks,0)/30;
+  setEl('ps-days-supply',avgPacks>0&&minPoss!==Infinity?Math.floor(minPoss/avgPacks)+'d':'—');
+}
+function renderPackAlerts(){
+  const el=document.getElementById('ps-alerts-content');
+  const bottEl=document.getElementById('ps-bottleneck');
+  if(!el) return;
+  const now=new Date();
+  const alerts=[];
+  const bottlenecks=[];
+  S.packMaterials.forEach(m=>{
+    const packsPossible=m.perPack>0?Math.floor(m.qty/m.perPack):0;
+    if(m.qty<=0) alerts.push({level:'critical',text:`🚨 <strong>${m.name}</strong> is out of stock! Cannot pack any products.`});
+    else if(m.qty<=m.minStock) alerts.push({level:'critical',text:`🚨 <strong>${m.name}</strong>: Only ${m.qty} ${m.unit} left (min: ${m.minStock}). Reorder ${m.reorderQty} now.`});
+    else if(m.qty<=m.safetyStock) alerts.push({level:'soon',text:`⚠️ <strong>${m.name}</strong>: ${m.qty} ${m.unit} in stock. Getting low — order soon.`});
+    if(packsPossible<20) bottlenecks.push(`⚠️ <strong>${m.name}</strong>: Only ${packsPossible} packs possible with current stock`);
+  });
+  // Cross-check: can we pack all pending supplier orders?
+  const pendingRepack=S.supplierOrders.filter(o=>['Received','Partial'].includes(o.status)&&!o.repacked);
+  const stickerMat=S.packMaterials.find(m=>m.type==='Sticker');
+  const coverMat=S.packMaterials.find(m=>m.type==='Cover/Bag');
+  if(pendingRepack.length&&(stickerMat||coverMat)){
+    pendingRepack.forEach(o=>{
+      const p=S.products.find(x=>x.id===o.productId||x.name===o.productName);
+      const packSize=p?.packSize||1;
+      const estimatedPacks=Math.floor((o.receivedQty||o.qty)/packSize);
+      if(stickerMat&&stickerMat.qty<estimatedPacks)
+        bottlenecks.push(`🏷️ Not enough stickers for <strong>${o.productName}</strong> (need ~${estimatedPacks}, have ${stickerMat.qty})`);
+      if(coverMat&&coverMat.qty<estimatedPacks)
+        bottlenecks.push(`🛍️ Not enough covers for <strong>${o.productName}</strong> (need ~${estimatedPacks}, have ${coverMat.qty})`);
+    });
+  }
+  el.innerHTML=alerts.length
+    ? alerts.map(a=>`<div style="background:${a.level==='critical'?'rgba(248,81,73,.06)':'rgba(249,200,70,.05)'};border:1px solid ${a.level==='critical'?'rgba(248,81,73,.2)':'rgba(249,200,70,.2)'};border-radius:6px;padding:10px 12px;margin-bottom:8px;font-size:12px">${a.text}</div>`).join('')
+    : '<div class="empty"><div class="ei">✅</div><p>All packaging materials are healthy!</p></div>';
+  if(bottEl) bottEl.innerHTML=bottlenecks.length
+    ? bottlenecks.map(b=>`<div style="border-left:3px solid var(--accent);padding:8px 12px;margin-bottom:6px;font-size:12px;background:var(--surface2);border-radius:0 6px 6px 0">${b}</div>`).join('')
+    : '<div class="empty"><div class="ei">🔗</div><p>No packaging bottlenecks detected</p></div>';
+}
+function renderPackAnalysis(){
+  // Consumption rate
+  const consEl=document.getElementById('ps-consumption');
+  if(consEl){
+    const byType={};
+    (S.packUsageHistory||[]).filter(h=>h.qtyChange<0).forEach(h=>{
+      byType[h.type]=(byType[h.type]||0)+Math.abs(h.qtyChange);
+    });
+    consEl.innerHTML=Object.keys(byType).length
+      ? Object.entries(byType).map(([t,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>${t}</span><strong>${v} units used total</strong></div>`).join('')
+      : '<div class="empty"><div class="ei">📊</div><p>Record repacks to see consumption</p></div>';
+  }
+  // Dependency map
+  const depEl=document.getElementById('ps-dependency');
+  if(depEl){
+    depEl.innerHTML=S.packMaterials.length
+      ? S.packMaterials.map(m=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><strong style="font-size:12.5px">${m.name}</strong><div style="font-size:11px;color:var(--text3);margin-top:2px">Used for: ${m.linked||'All products'} · ${m.perPack} per pack · Stock: ${m.qty} ${m.unit}</div></div>`).join('')
+      : '<div class="empty"><div class="ei">📋</div><p>Add materials to see dependency map</p></div>';
+  }
 }
 
 // ===== FUNCTION ALIASES (for backwards compatibility) =====
