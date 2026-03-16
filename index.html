@@ -419,6 +419,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 /* SETTINGS */
 .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .settings-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+/* Template variable chips */
+.tmpl-var{display:inline-block;background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25);border-radius:4px;padding:1px 6px;font-size:10px;font-family:monospace;margin:0 2px;cursor:pointer}
 /* Bulk WA customer list */
 .bw-list{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto}
 .bw-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:background .1s}
@@ -1022,34 +1024,142 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="tab" onclick="waTab(this,'wa-tmpl')"><span class="t-ico">✏️</span>Message Templates</div>
         <div class="tab" onclick="waTab(this,'wa-custom')"><span class="t-ico">💬</span>Custom Message</div>
       </div>
+
+      <!-- ── Pending Reminders ── -->
       <div id="wa-remind">
         <div class="card">
-          <div class="card-h"><h3>✖️ Pending Payment Reminders</h3><button class="btn btn-g">📨 Remind All</button></div>
+          <div class="card-h">
+            <h3>⏳ Pending Payment Reminders</h3>
+            <button class="btn btn-g" onclick="waRemindAll()">📨 Remind All</button>
+          </div>
           <div class="card-b">
             <div class="tbl-wrap"><table>
-              <thead><tr><th>Customer</th><th>Phone</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Pending ₹</th><th>Days</th><th>Actions</th></tr></thead>
               <tbody id="wa-tbody"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--accent)">⚡ No pending payments! All clear.</td></tr></tbody>
             </table></div>
           </div>
         </div>
       </div>
+
+      <!-- ── Message Templates ── -->
       <div id="wa-tmpl" style="display:none">
-        <div class="card">
-          <div class="card-h"><h3>✏️ Message Templates</h3></div>
+        <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--text2)">
+          💡 <strong>Variables you can use:</strong>
+          <span class="tmpl-var">{name}</span> Customer name &nbsp;
+          <span class="tmpl-var">{amount}</span> Amount &nbsp;
+          <span class="tmpl-var">{product}</span> Product/Order &nbsp;
+          <span class="tmpl-var">{biz}</span> Business name &nbsp;
+          <span class="tmpl-var">{phone}</span> Business phone &nbsp;
+          <span class="tmpl-var">{date}</span> Today's date
+        </div>
+
+        <!-- Pending Payment -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(248,81,73,.04);border-bottom:1px solid rgba(248,81,73,.15)">
+            <h3>⏳ Pending Payment Reminder</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-pending')">👁 Preview</button>
+          </div>
           <div class="card-b">
-            <div class="fg"><label class="fl">Payment Reminder Template</label><textarea class="fi" rows="4" style="resize:vertical">Dear {name}, you have a pending payment of ₹{amount} at Meenatchi Traders. Please clear it at your earliest convenience. Thank you!</textarea></div>
-            <div class="fg"><label class="fl">Order Ready Template</label><textarea class="fi" rows="4" style="resize:vertical">Hi {name}, your order of {product} is ready for pickup/delivery! Please contact us at Meenatchi Traders. Thank you!</textarea></div>
-            <button class="btn btn-y">💾 Save Templates</button>
+            <textarea class="fi" id="tmpl-pending" rows="4" style="resize:vertical;font-size:12px"></textarea>
           </div>
         </div>
+
+        <!-- Order Status Templates -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h"><h3>📦 Order Status Messages</h3><span style="font-size:10px;color:var(--text3)">Auto-sent when order status changes</span></div>
+          <div class="card-b">
+            <div class="fg">
+              <label class="fl" style="display:flex;align-items:center;gap:6px">
+                <span class="badge bb" style="font-size:9px">Pending</span> Order Pending Message
+                <button class="btn btn-o" style="font-size:9px;padding:2px 7px;margin-left:auto" onclick="waPreview('tmpl-order-pending')">👁</button>
+              </label>
+              <textarea class="fi" id="tmpl-order-pending" rows="3" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+            <div class="fg">
+              <label class="fl" style="display:flex;align-items:center;gap:6px">
+                <span class="badge by" style="font-size:9px">Processing</span> Order Processing Message
+                <button class="btn btn-o" style="font-size:9px;padding:2px 7px;margin-left:auto" onclick="waPreview('tmpl-order-processing')">👁</button>
+              </label>
+              <textarea class="fi" id="tmpl-order-processing" rows="3" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+            <div class="fg">
+              <label class="fl" style="display:flex;align-items:center;gap:6px">
+                <span class="badge bp" style="font-size:9px">Ready</span> Order Ready Message
+                <button class="btn btn-o" style="font-size:9px;padding:2px 7px;margin-left:auto" onclick="waPreview('tmpl-order-ready')">👁</button>
+              </label>
+              <textarea class="fi" id="tmpl-order-ready" rows="3" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+            <div class="fg">
+              <label class="fl" style="display:flex;align-items:center;gap:6px">
+                <span class="badge bg" style="font-size:9px">Delivered</span> Order Delivered Message
+                <button class="btn btn-o" style="font-size:9px;padding:2px 7px;margin-left:auto" onclick="waPreview('tmpl-order-delivered')">👁</button>
+              </label>
+              <textarea class="fi" id="tmpl-order-delivered" rows="3" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+            <div class="fg">
+              <label class="fl" style="display:flex;align-items:center;gap:6px">
+                <span class="badge br" style="font-size:9px">Cancelled</span> Order Cancelled Message
+                <button class="btn btn-o" style="font-size:9px;padding:2px 7px;margin-left:auto" onclick="waPreview('tmpl-order-cancelled')">👁</button>
+              </label>
+              <textarea class="fi" id="tmpl-order-cancelled" rows="3" style="resize:vertical;font-size:12px"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reminder Template -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h"><h3>🔔 Reorder Reminder Template</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reminder')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-reminder" rows="4" style="resize:vertical;font-size:12px"></textarea>
+          </div>
+        </div>
+
+        <!-- Sale Receipt Template -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h"><h3>🧾 Sale Receipt (auto-sent after sale)</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-receipt')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-receipt" rows="5" style="resize:vertical;font-size:12px"></textarea>
+          </div>
+        </div>
+
+        <!-- Save button -->
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn btn-y" style="padding:10px 24px" onclick="saveWATemplates()">💾 Save All Templates</button>
+          <button class="btn btn-o" onclick="resetWATemplates()">↺ Reset to Defaults</button>
+          <span id="tmpl-save-status" style="font-size:11px;color:var(--green)"></span>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="tmpl-preview-box" style="display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px">📱 Preview</span>
+            <button class="xbtn" onclick="document.getElementById('tmpl-preview-box').style.display='none'">✕</button>
+          </div>
+          <div id="tmpl-preview-text" style="background:#e9fbe9;border-radius:10px 10px 0 10px;padding:12px 16px;font-size:13px;color:#111;white-space:pre-wrap;line-height:1.5;max-width:320px;word-break:break-word"></div>
+        </div>
       </div>
+
+      <!-- ── Custom Message ── -->
       <div id="wa-custom" style="display:none">
         <div class="card">
           <div class="card-h"><h3>💬 Send Custom Message</h3></div>
           <div class="card-b">
-            <div class="fg"><label class="fl">Target</label><select class="fs"><option>All Customers</option><option>Pending Payments</option><option>Regular Customers</option><option>Students</option></select></div>
-            <div class="fg"><label class="fl">Message</label><textarea class="fi" rows="5" style="resize:vertical" placeholder="Type your message..."></textarea></div>
-            <button class="btn btn-g" onclick="toast('📢 Messages sent via WhatsApp!')">📢 Send Message</button>
+            <div class="fg"><label class="fl">Target</label>
+              <select class="fs" id="wa-custom-target" onchange="renderWaCustomList()">
+                <option value="pending">Pending Payment Customers</option>
+                <option value="all">All Customers with Phone</option>
+                <option value="custom">Pick Individually</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Message <span style="font-size:9px;color:var(--text3)">— {name} {amount} {biz} {date} available</span></label>
+              <textarea class="fi" id="wa-custom-msg" rows="5" style="resize:vertical" placeholder="Type your message..."></textarea>
+            </div>
+            <div id="wa-custom-list" style="margin:10px 0"></div>
+            <button class="btn btn-g" onclick="sendWaCustom()">📢 Send to All / Selected</button>
           </div>
         </div>
       </div>
@@ -2220,7 +2330,7 @@ const S = {
   products:[],
   customers:[], orders:[], students:[], staff:[], teaEntries:[], suppliers:[],
   orderCounter:1, editProdId:null,
-  settings:{bizName:'Meenatchi Traders',owner:'',logo:''},
+  settings:{bizName:'Meenatchi Traders',owner:'',logo:'',waTmpl:{}},
   gs:{scriptUrl:'',sheetUrl:'',tabs:'DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report',connected:false,lastSync:''},
   categories:['Tea','Nattu Sakkarai','Scrubber','MCS Items','Grocery','Spices','Snacks','Oils','Dry Fruits','Other'],
   target:{sales:0,profit:0,orders:0,set:false}
@@ -2409,7 +2519,212 @@ function cTab(el,id){
   document.getElementById(id).style.display='block';
   if(id==='ct-pend') renderPendingCust();
 }
-function waTab(el,id){tabSwitch(el,id,['wa-remind','wa-tmpl','wa-custom']);}
+function waTab(el,id){
+  tabSwitch(el,id,['wa-remind','wa-tmpl','wa-custom']);
+  if(id==='wa-tmpl')   { loadWATemplates(); }
+  if(id==='wa-custom') { renderWaCustomList(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WA TEMPLATE DEFAULT VALUES
+// ═══════════════════════════════════════════════════════════
+const WA_TMPL_DEFAULTS = {
+  pending:
+    `Dear {name}, you have a pending payment of ₹{amount} at {biz}. Please clear at your earliest convenience. Thank you! 🙏`,
+
+  'order-pending':
+    `🏪 *{biz}*\nHi {name}, your order has been received and is now *Pending* confirmation.\n\n📦 Order: {product}\n📅 Date: {date}\n\nWe'll update you soon! Thank you 🙏`,
+
+  'order-processing':
+    `🏪 *{biz}*\nHi {name}, great news! Your order is now being *Processed*. 🔄\n\n📦 Order: {product}\n📅 Date: {date}\n\nWe'll notify you when it's ready!`,
+
+  'order-ready':
+    `🏪 *{biz}*\nHi {name}, your order is *Ready* for pickup/delivery! ✅📦\n\n📦 Order: {product}\n\nPlease contact us to arrange delivery.\n📞 {phone}`,
+
+  'order-delivered':
+    `🏪 *{biz}*\nHi {name}, your order has been *Delivered* successfully! 🎉\n\n📦 Order: {product}\n\nThank you for shopping with us! 🙏\nWe hope to see you again soon.`,
+
+  'order-cancelled':
+    `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
+
+  reminder:
+    `Hi {name}! 🔔 It's time to reorder *{product}*.\n\nYou usually order every few weeks — don't run out!\n\nContact {biz} to place your order 😊\n📞 {phone}`,
+
+  receipt:
+    `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`
+};
+
+// ═══════════════════════════════════════════════════════════
+//  LOAD / SAVE TEMPLATES
+// ═══════════════════════════════════════════════════════════
+function loadWATemplates(){
+  const tmpl = S.settings.waTmpl || {};
+  Object.keys(WA_TMPL_DEFAULTS).forEach(key=>{
+    const el = document.getElementById('tmpl-'+key);
+    if(el) el.value = tmpl[key] || WA_TMPL_DEFAULTS[key];
+  });
+  document.getElementById('tmpl-preview-box').style.display='none';
+}
+
+function saveWATemplates(){
+  if(!S.settings.waTmpl) S.settings.waTmpl = {};
+  const biz = S.settings.bizName||'Meenatchi Traders';
+  Object.keys(WA_TMPL_DEFAULTS).forEach(key=>{
+    const el = document.getElementById('tmpl-'+key);
+    if(el) S.settings.waTmpl[key] = el.value || WA_TMPL_DEFAULTS[key];
+  });
+  autoSave();
+  const st = document.getElementById('tmpl-save-status');
+  if(st){
+    st.textContent = '✅ Saved at '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    setTimeout(()=>{ st.textContent=''; }, 3000);
+  }
+  toast('✅ All WA templates saved!');
+}
+
+function resetWATemplates(){
+  if(!confirm('Reset all templates to defaults?')) return;
+  S.settings.waTmpl = {};
+  loadWATemplates();
+  autoSave();
+  toast('↺ Templates reset to defaults');
+}
+
+// Get a template with variables replaced
+function getWATmpl(key, vars){
+  const tmpl = (S.settings.waTmpl && S.settings.waTmpl[key])
+               || WA_TMPL_DEFAULTS[key] || '';
+  const biz   = S.settings.bizName  || 'Meenatchi Traders';
+  const phone = S.settings.phone    || '';
+  const date  = new Date().toLocaleDateString('en-IN');
+  return tmpl
+    .replace(/\{biz\}/g,     biz)
+    .replace(/\{phone\}/g,   phone)
+    .replace(/\{date\}/g,    date)
+    .replace(/\{name\}/g,    vars.name    || '')
+    .replace(/\{amount\}/g,  vars.amount  || '')
+    .replace(/\{product\}/g, vars.product || '')
+    .replace(/\{mode\}/g,    vars.mode    || '');
+}
+
+function waPreview(tmplId){
+  const el = document.getElementById(tmplId);
+  if(!el) return;
+  const biz   = S.settings.bizName  || 'Meenatchi Traders';
+  const phone = S.settings.phone    || '+91 XXXXX XXXXX';
+  const date  = new Date().toLocaleDateString('en-IN');
+  const preview = el.value
+    .replace(/\{biz\}/g,     biz)
+    .replace(/\{phone\}/g,   phone)
+    .replace(/\{date\}/g,    date)
+    .replace(/\{name\}/g,    'Ravi Kumar')
+    .replace(/\{amount\}/g,  '₹450')
+    .replace(/\{product\}/g, 'Tea n31 – 100g x2')
+    .replace(/\{mode\}/g,    'UPI');
+  const box = document.getElementById('tmpl-preview-box');
+  const txt = document.getElementById('tmpl-preview-text');
+  if(box) box.style.display='block';
+  if(txt) txt.textContent = preview;
+  box?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ═══════════════════════════════════════════════════════════
+//  REMIND ALL (pending payments)
+// ═══════════════════════════════════════════════════════════
+function waRemindAll(){
+  const list = S.customers.filter(c=>c.pending>0 && c.phone);
+  if(!list.length){ toast('No customers with pending payments and phone numbers'); return; }
+  let i=0;
+  function next(){
+    if(i>=list.length){ toast('✅ Opened WA for '+list.length+' customers'); return; }
+    const c=list[i++];
+    const msg = getWATmpl('pending',{name:c.name, amount:'₹'+c.pending.toFixed(0)});
+    openWA(c.phone, msg);
+    setTimeout(next, 1500);
+  }
+  if(list.length>1 && !confirm('Send reminder to '+list.length+' customers one by one?')) return;
+  next();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ORDER STATUS → auto WA notification
+// ═══════════════════════════════════════════════════════════
+function sendOrderStatusWA(order, status){
+  if(!order || !order.phone) return;
+  const key = 'order-'+status.toLowerCase();
+  const msg = getWATmpl(key, {
+    name:    order.customer,
+    product: order.product,
+    amount:  '₹'+order.amount.toFixed(0)
+  });
+  openWA(order.phone, msg);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WA CUSTOM SEND
+// ═══════════════════════════════════════════════════════════
+function renderWaCustomList(){
+  const target = document.getElementById('wa-custom-target')?.value||'all';
+  let list = [];
+  if(target==='pending') list = S.customers.filter(c=>c.pending>0 && c.phone);
+  else if(target==='all') list = S.customers.filter(c=>c.phone);
+  else list = S.customers.filter(c=>c.phone); // custom — show all for selection
+
+  const el = document.getElementById('wa-custom-list');
+  if(!el) return;
+  if(target==='pending' || target==='all'){
+    el.innerHTML = `<div style="font-size:11px;color:var(--text3);padding:4px 0">Will send to <strong style="color:var(--accent)">${list.length} customers</strong> with phone numbers</div>`;
+  } else {
+    // Show checkboxes
+    el.innerHTML = '<div class="bw-list">'+list.map((c,i)=>`
+      <div class="bw-item">
+        <input type="checkbox" id="wa-cust-${i}" checked class="wa-cust-checks"
+          data-name="${esc(c.name)}" data-phone="${esc(c.phone||'')}" data-amount="${c.pending.toFixed(0)}">
+        <div class="bw-item-info">
+          <div class="bw-item-name">${c.name}</div>
+          <div class="bw-item-sub">${c.phone}</div>
+        </div>
+      </div>`).join('')+'</div>';
+  }
+}
+
+function sendWaCustom(){
+  const target = document.getElementById('wa-custom-target')?.value||'all';
+  const msgTmpl = document.getElementById('wa-custom-msg')?.value||'';
+  if(!msgTmpl.trim()){ toast('⚠️ Type a message first'); return; }
+  const biz  = S.settings.bizName||'Meenatchi Traders';
+  const date = new Date().toLocaleDateString('en-IN');
+
+  let items = [];
+  if(target==='pending'){
+    items = S.customers.filter(c=>c.pending>0&&c.phone).map(c=>({
+      phone:c.phone,
+      msg:msgTmpl.replace('{name}',c.name).replace('{amount}','₹'+c.pending.toFixed(0)).replace('{biz}',biz).replace('{date}',date)
+    }));
+  } else if(target==='all'){
+    items = S.customers.filter(c=>c.phone).map(c=>({
+      phone:c.phone,
+      msg:msgTmpl.replace('{name}',c.name).replace('{amount}','₹'+(c.pending||0).toFixed(0)).replace('{biz}',biz).replace('{date}',date)
+    }));
+  } else {
+    document.querySelectorAll('.wa-cust-checks:checked').forEach(cb=>{
+      if(!cb.dataset.phone) return;
+      items.push({
+        phone:cb.dataset.phone,
+        msg:msgTmpl.replace('{name}',cb.dataset.name).replace('{amount}','₹'+cb.dataset.amount).replace('{biz}',biz).replace('{date}',date)
+      });
+    });
+  }
+  if(!items.length){ toast('⚠️ No customers to send to'); return; }
+  if(items.length>1 && !confirm('Send to '+items.length+' customers?')) return;
+  let i=0;
+  function next(){
+    if(i>=items.length){ toast('✅ Messages sent to '+items.length+' customers'); return; }
+    openWA(items[i].phone, items[i].msg); i++;
+    setTimeout(next, 1500);
+  }
+  next();
+}
 function tuiTab(el,id){
   el.closest('.sub-tabs').querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
@@ -3789,7 +4104,20 @@ function renderOrders(){
 }
 
 function updateOrderStatus(id,status){
-  const o=S.orders.find(x=>x.id===id);if(o){o.status=status;renderOrders();autoSave();toast('📦 Order updated: '+status);}
+  const o=S.orders.find(x=>x.id===id);
+  if(!o) return;
+  o.status=status;
+  renderOrders();
+  autoSave();
+  toast('📦 Order updated: '+status);
+  // Send WA notification using template if customer has phone
+  if(o.phone){
+    showWAPrompt(o.phone, getWATmpl('order-'+status.toLowerCase(),{
+      name:    o.customer,
+      product: o.product,
+      amount:  '₹'+(o.amount||0).toFixed(0)
+    }), o.customer+' — '+status);
+  }
 }
 function deleteOrder(id){S.orders=S.orders.filter(o=>o.id!==id);renderOrders();autoSave();toast('🗑️ Order removed');}
 
@@ -3894,15 +4222,15 @@ function sendPendingWA(){
   if(_pendingWA){ openWA(_pendingWA.phone, _pendingWA.msg); _pendingWA=null; }
 }
 
-// Updated: no blocking confirm — shows non-blocking prompt bar instead
 function sendProductUpdateWA(sale){
   if(!sale.phone) return;
   const products = sale.products?.map(p=>p.name+' x'+p.qty).join(', ')||'';
-  const pending  = sale.pending>0 ? `\n⚠️ Pending: ₹${sale.pending.toFixed(0)}` : '';
-  const c   = S.customers.find(x=>x.name===sale.customer);
-  const pts = c?.points||0;
-  const msg = `🏪 *Meenatchi Traders*\nHi ${sale.customer}! ✅ Your order is recorded.\n\n📦 Products: ${products}\n💰 Total: ₹${sale.total.toFixed(0)}\n💳 Mode: ${sale.mode}${pending}\n⭐ Points: ${pts}\n\nThank you for shopping! 🙏`;
-  // Show non-blocking prompt — doesn't block the app
+  const msg = getWATmpl('receipt',{
+    name:    sale.customer,
+    product: products,
+    amount:  '₹'+sale.total.toFixed(0),
+    mode:    sale.mode||'Cash'
+  });
   setTimeout(()=>{ showWAPrompt(sale.phone, msg, sale.customer); }, 400);
 }
 function renderWA(){
@@ -3912,7 +4240,7 @@ function renderWA(){
   tb.innerHTML=list.map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.phone||'—'}</td><td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td><td>—</td><td><button class="btn btn-g" style="font-size:10px;padding:3px 8px" onclick="sendWA('${c.name}',${c.pending},'${c.phone}')">📱 Send</button></td></tr>`).join('');
 }
 function sendWA(name,amount,phone){
-  const msg=`Dear ${name}, you have a pending payment of ₹${amount} at Meenatchi Traders. Please clear at your earliest convenience. Thank you!`;
+  const msg = getWATmpl('pending',{name, amount:'₹'+amount});
   openWA(phone, msg);
 }
 
@@ -5053,11 +5381,11 @@ function sendReminderWA(id){
   const r = S.reminders.find(x=>x.id===id);
   if(!r){ toast('Reminder not found'); return; }
   if(!r.phone){ toast('⚠️ No phone number for '+r.custName+'. Edit reminder to add phone.'); return; }
+  // Use the reminder's own custom message if set, otherwise use the global template
   const biz = S.settings.bizName||'Meenatchi Traders';
-  const msg = (r.msg||`Hi ${r.custName}, it's time to reorder ${r.product}! Contact ${biz}. 😊`)
-    .replace('{name}',r.custName)
-    .replace('{product}',r.product)
-    .replace('{biz}',biz);
+  const msg = (r.msg && r.msg.trim() && !r.msg.includes('{'))
+    ? r.msg
+    : getWATmpl('reminder',{name:r.custName, product:r.product});
   openWA(r.phone, msg);
   markReminderSent(id);
 }
