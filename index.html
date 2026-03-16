@@ -2145,16 +2145,69 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
 <!-- MODALS -->
 <div class="mo" id="edit-product-modal">
-  <div class="mo-box">
+  <div class="mo-box" style="max-width:540px">
     <div class="mo-h"><h2>✏️ Edit Product</h2><button class="xbtn" onclick="closeModal('edit-product-modal')">✕</button></div>
     <div class="mo-b">
-      <div class="fg"><label class="fl">Product Name</label><input class="fi" id="ep-name"></div>
+      <!-- Product name & category -->
       <div class="fr2">
-        <div class="fg"><label class="fl">Stock (add more)</label><input class="fi" id="ep-stock" type="number"></div>
-        <div class="fg"><label class="fl">Sell Price (₹)</label><input class="fi" id="ep-sprice" type="number"></div>
+        <div class="fg"><label class="fl">Product Name</label><input class="fi" id="ep-name"></div>
+        <div class="fg"><label class="fl">Category</label><input class="fi" id="ep-cat" list="ep-cat-dl"><datalist id="ep-cat-dl"></datalist></div>
       </div>
+
+      <!-- Stock management -->
+      <div style="background:rgba(63,185,80,.05);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📦 Stock Update</div>
+        <div class="fr3">
+          <div class="fg">
+            <label class="fl">Current Stock</label>
+            <input class="fi" id="ep-stock" type="number" min="0" style="font-weight:700;color:var(--accent)" oninput="epCalcBalance()">
+          </div>
+          <div class="fg">
+            <label class="fl">Add More Stock</label>
+            <input class="fi" id="ep-add-stock" type="number" min="0" placeholder="0" oninput="epCalcBalance()">
+          </div>
+          <div class="fg">
+            <label class="fl">New Total (Auto)</label>
+            <input class="fi" id="ep-new-stock" type="number" readonly style="background:var(--surface3);color:var(--green);font-weight:700">
+          </div>
+        </div>
+        <div class="fr2" style="margin-top:6px">
+          <div class="fg">
+            <label class="fl">Units Sold (Auto-tracked)</label>
+            <input class="fi" id="ep-sold" type="number" min="0" style="background:var(--surface3);color:var(--text3)" readonly>
+          </div>
+          <div class="fg">
+            <label class="fl">Balance (Stock − Sold)</label>
+            <input class="fi" id="ep-balance" type="number" readonly style="background:var(--surface3);color:var(--blue);font-weight:700">
+          </div>
+        </div>
+        <div class="fg" style="margin-top:6px">
+          <label class="fl">Low Stock Alert Level</label>
+          <input class="fi" id="ep-alert" type="number" min="0" placeholder="5">
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div style="background:rgba(249,200,70,.05);border:1px solid rgba(249,200,70,.15);border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💰 Pricing</div>
+        <div class="fr3">
+          <div class="fg"><label class="fl">Buy Price (₹)</label><input class="fi" id="ep-bprice" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+          <div class="fg"><label class="fl">Sell Price (₹)</label><input class="fi" id="ep-sprice" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+          <div class="fg"><label class="fl">Profit/Unit (₹)</label><input class="fi" id="ep-profit" type="number" readonly style="background:var(--surface3);font-weight:700" oninput=""></div>
+        </div>
+        <div class="fr2" style="margin-top:6px">
+          <div class="fg"><label class="fl">Sticker Cost (₹)</label><input class="fi" id="ep-sticker" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+          <div class="fg"><label class="fl">Cover/Bag Cost (₹)</label><input class="fi" id="ep-cover" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+        </div>
+      </div>
+
+      <!-- Stock history note -->
+      <div id="ep-history-note" style="font-size:11px;color:var(--text3);padding:4px 0"></div>
     </div>
-    <div class="mo-f"><button class="btn btn-o" onclick="closeModal('edit-product-modal')">Cancel</button><button class="btn btn-y" onclick="saveEditProduct()">💾 Save</button></div>
+    <div class="mo-f" style="display:flex;gap:8px">
+      <button class="btn btn-o" onclick="closeModal('edit-product-modal')">Cancel</button>
+      <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveEditProduct()">💾 Save Changes</button>
+    </div>
   </div>
 </div>
 
@@ -3287,22 +3340,108 @@ function deleteProduct(id){
 }
 
 function openEditProduct(id){
-  const p=S.products.find(x=>x.id===id);if(!p)return;
-  S.editProdId=id;
-  document.getElementById('ep-name').value=p.name;
-  document.getElementById('ep-stock').value=p.stock;
-  document.getElementById('ep-sprice').value=p.sprice;
+  const p = S.products.find(x=>x.id===id);
+  if(!p){ toast('Product not found'); return; }
+  S.editProdId = id;
+
+  // Populate category datalist
+  const dl = document.getElementById('ep-cat-dl');
+  if(dl) dl.innerHTML = S.categories.map(c=>`<option value="${c}">`).join('');
+
+  // Fill all fields
+  const v = (id,val) => { const e=document.getElementById(id); if(e) e.value=val!==undefined&&val!==null?val:''; };
+  v('ep-name',    p.name);
+  v('ep-cat',     p.cat||'');
+  v('ep-stock',   p.stock||0);
+  v('ep-add-stock', 0);
+  v('ep-sold',    p.sold||0);
+  v('ep-alert',   p.alert||5);
+  v('ep-bprice',  p.bprice||0);
+  v('ep-sprice',  p.sprice||0);
+  v('ep-sticker', p.stickerCost||0);
+  v('ep-cover',   p.coverCost||0);
+
+  // Compute derived fields
+  epCalcBalance();
+  epCalcProfit();
+
+  // Show stock history note
+  const sold = S.sales.reduce((a,s)=>{
+    const pp = s.products?.find(x=>x.name===p.name);
+    return a + (pp?pp.qty:0);
+  }, 0);
+  const note = document.getElementById('ep-history-note');
+  if(note) note.textContent = sold
+    ? `📊 ${sold} units sold across all recorded sales · Stock edits save immediately`
+    : '📊 No sales recorded for this product yet';
+
   openModal('edit-product-modal');
 }
 
+function epCalcBalance(){
+  const stock   = +document.getElementById('ep-stock')?.value||0;
+  const addMore = +document.getElementById('ep-add-stock')?.value||0;
+  const sold    = +document.getElementById('ep-sold')?.value||0;
+  const newTotal = stock + addMore;
+  const balance  = newTotal - sold;
+  const ns = document.getElementById('ep-new-stock');
+  const bl = document.getElementById('ep-balance');
+  if(ns) ns.value = newTotal;
+  if(bl){
+    bl.value = balance;
+    bl.style.color = balance <= 0 ? 'var(--red)' : balance <= 5 ? 'var(--accent)' : 'var(--green)';
+  }
+}
+
+function epCalcProfit(){
+  const bprice  = +document.getElementById('ep-bprice')?.value||0;
+  const sprice  = +document.getElementById('ep-sprice')?.value||0;
+  const sticker = +document.getElementById('ep-sticker')?.value||0;
+  const cover   = +document.getElementById('ep-cover')?.value||0;
+  const profit  = sprice - bprice - sticker - cover;
+  const el = document.getElementById('ep-profit');
+  if(el){
+    el.value = profit.toFixed(2);
+    el.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+}
+
 function saveEditProduct(){
-  const p=S.products.find(x=>x.id===S.editProdId);if(!p)return;
-  p.name=document.getElementById('ep-name').value;
-  p.stock=+document.getElementById('ep-stock').value;
-  p.sprice=+document.getElementById('ep-sprice').value;
+  const p = S.products.find(x=>x.id===S.editProdId);
+  if(!p){ toast('Product not found'); return; }
+
+  const addStock = +document.getElementById('ep-add-stock')?.value||0;
+  const newStock = +document.getElementById('ep-new-stock')?.value||0;
+
+  // Save all fields
+  p.name        = document.getElementById('ep-name')?.value.trim() || p.name;
+  p.cat         = document.getElementById('ep-cat')?.value || p.cat;
+  p.stock       = newStock; // use the computed new total
+  p.alert       = +document.getElementById('ep-alert')?.value||5;
+  p.bprice      = +document.getElementById('ep-bprice')?.value||0;
+  p.sprice      = +document.getElementById('ep-sprice')?.value||0;
+  p.stickerCost = +document.getElementById('ep-sticker')?.value||0;
+  p.coverCost   = +document.getElementById('ep-cover')?.value||0;
+
+  // Log stock addition if any
+  if(addStock > 0){
+    p._stockHistory = p._stockHistory||[];
+    p._stockHistory.push({
+      date: new Date().toISOString().slice(0,10),
+      added: addStock,
+      newTotal: newStock,
+      note: 'Manual stock update'
+    });
+  }
+
   closeModal('edit-product-modal');
-  renderProducts();renderInventory();renderSmartProfit();renderSalesForecast();
-  toast('✅ Product updated!');
+  renderProducts();
+  renderInventory();
+  renderSmartProfit();
+  renderSalesForecast();
+  updateDashStats();
+  autoSave(); // ← THIS IS THE KEY FIX
+  toast('✅ Product updated!'+(addStock>0?' (+'+addStock+' stock added)':''));
 }
 
 function renderStockStatus(){
@@ -3693,31 +3832,15 @@ function openWA(phone, msg){
   const encoded = encodeURIComponent(msg);
   const isAndroid = /android/i.test(navigator.userAgent);
   const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isMobile  = isAndroid || isIOS;
 
-  if(isAndroid){
-    // ── Android (WebIntoApp / WebView) ──────────────────────────
-    // intent:// forces Android OS to open WhatsApp externally.
-    const intent = 'intent://send?phone=' + clean
-      + '&text=' + encoded
-      + '#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=https%3A%2F%2Fwww.whatsapp.com%2F;end';
-    // Use anchor click — safer than window.location.href in WebView
-    const a = document.createElement('a');
-    a.href = intent;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} }, 300);
-
-  } else if(isIOS){
-    // ── iOS ──────────────────────────────────────────────────────
-    // Use a hidden <a> click — doesn't navigate the webview away.
-    // If WhatsApp isn't installed, silently does nothing.
-    const a = document.createElement('a');
-    a.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ document.body.removeChild(a); }, 500);
+  if(isMobile){
+    // ── Mobile (Android WebIntoApp + iOS) ───────────────────────
+    // whatsapp:// deep link is the ONLY reliable method in WebView.
+    // intent:// goes to Play Store. window.open() stays in WebView.
+    // whatsapp://send navigates to WhatsApp app directly.
+    // The WebView app (WebIntoApp) stays alive — user presses Back to return.
+    window.location.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
 
   } else {
     // ── Desktop ──────────────────────────────────────────────────
