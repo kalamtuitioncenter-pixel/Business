@@ -540,6 +540,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <div class="sb-sec-label">Businesses</div>
     <div class="ni" id="ni-teashop" onclick="nav('teashop')"><span class="ico">☕</span>Tea & Coffee Shop</div>
     <div class="ni" id="ni-tuition" onclick="nav('tuition')"><span class="ico">🎓</span>Tuition Management</div>
+    <div class="ni" id="ni-coursemanagement" onclick="nav('coursemanagement')"><span class="ico">📚</span>Course Management</div>
+    <div class="ni" id="ni-advertisement" onclick="nav('advertisement')"><span class="ico">📢</span>Advertisement</div>
   </div>
   <div class="sb-section">
     <div class="sb-sec-label">Intelligence</div>
@@ -633,6 +635,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="sc p nav-card" onclick="nav('reports')"><div class="sc-ico">📅</div><div class="sc-label">Monthly Sales</div><div class="sc-val" id="d-monthly">₹0.00</div><div class="sc-sub">This month · tap for report ›</div></div>
           <div class="sc y nav-card" onclick="nav('teashop')"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop Income</div><div class="sc-val" id="d-tea">₹0.00</div><div class="sc-sub">This month · tap to enter ›</div></div>
           <div class="sc p nav-card" onclick="nav('loyalty')"><div class="sc-ico">⭐</div><div class="sc-label">Loyalty Discounts</div><div class="sc-val" id="d-loyalty-disc">₹0</div><div class="sc-sub">Given this month · tap to view ›</div></div>
+          <div class="sc r nav-card" onclick="cTab(document.querySelectorAll('#p-customers .tab-bar .tab')[3],'ct-npa');nav('customers')"><div class="sc-ico">🚫</div><div class="sc-label">NPA / Bad Debt</div><div class="sc-val" id="d-npa-loss">₹0</div><div class="sc-sub">Written off as loss · tap to view ›</div></div>
         </div>
 
         <!-- Quick Actions -->
@@ -870,6 +873,11 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
               <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-invoice" style="accent-color:var(--accent)"> Generate Invoice</label>
+              <div class="fg" style="margin:0;flex:1">
+                <select class="fs" id="s-ad-source" style="font-size:11px;height:32px">
+                  <option value="">📢 Ad Source (optional)</option>
+                </select>
+              </div>
               <button class="btn btn-y" style="margin-left:auto" onclick="saveSale()">💾 Save Sale</button>
               <button class="btn btn-o" onclick="clearSale()">Clear</button>
             </div>
@@ -1084,7 +1092,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="tab-bar">
         <div class="tab active" onclick="cTab(this,'ct-all')">✅ All Customers</div>
         <div class="tab" onclick="cTab(this,'ct-add')">➕ Add Customer</div>
-        <div class="tab" onclick="cTab(this,'ct-pend')">⚠️ Pending Payments</div>
+        <div class="tab" onclick="cTab(this,'ct-pend');renderPendingCust()">⚠️ Pending Payments</div>
+        <div class="tab" onclick="cTab(this,'ct-npa');renderNPALog()">🚫 NPA / Write-offs</div>
       </div>
       <div id="ct-all">
         <div class="search-wrap"><span class="search-ico">🔍</span><input class="fi" placeholder="Search by name, phone..." oninput="searchCustomers(this.value)"></div>
@@ -1123,10 +1132,38 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
       <div id="ct-pend" style="display:none">
         <div class="card">
+          <div class="card-h">
+            <h3>⚠️ Pending Payments</h3>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-g" style="font-size:10px" onclick="bulkRemindPending()">📢 Remind All</button>
+            </div>
+          </div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Phone</th><th>Pending (₹)</th><th>Days</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Phone</th><th>Pending (₹)</th><th>Age</th><th>Actions</th></tr></thead>
             <tbody id="pending-cust-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr></tbody>
           </table></div>
+        </div>
+      </div>
+
+      <!-- NPA / Write-offs Tab -->
+      <div id="ct-npa" style="display:none">
+        <!-- NPA summary stats -->
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc r"><div class="sc-ico">🚫</div><div class="sc-label">Total Written Off</div><div class="sc-val" id="npa-total">₹0</div><div class="sc-sub">Bad debt losses</div></div>
+          <div class="sc y"><div class="sc-ico">📋</div><div class="sc-label">Write-off Count</div><div class="sc-val" id="npa-count">0</div><div class="sc-sub">Total NPA records</div></div>
+          <div class="sc b"><div class="sc-ico">👥</div><div class="sc-label">Customers Affected</div><div class="sc-val" id="npa-cust-count">0</div></div>
+          <div class="sc o"><div class="sc-ico">📅</div><div class="sc-label">This Month</div><div class="sc-val" id="npa-month">₹0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🚫 NPA Write-off Log</h3>
+            <span style="font-size:10.5px;color:var(--text3)">All bad debts written off as losses</span>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Date</th><th>Customer</th><th>Amount Written Off</th><th>Reason</th><th>Notes</th><th>Written Off By</th></tr></thead>
+              <tbody id="npa-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">🚫</div><p>No NPA write-offs yet. Use the 🚫 NPA button on any pending payment to write it off as a loss.</p></div></td></tr></tbody>
+            </table></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1250,9 +1287,23 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
 
-        <!-- ⭐ Loyalty Points Template — unified here -->
+        <!-- 📦 Supplier Reorder Template -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
+          <div class="card-h" style="background:rgba(88,166,255,.04);border-bottom:1px solid rgba(88,166,255,.15)">
+            <h3>📦 Supplier Reorder Message</h3>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--text3)">Sent when ordering from supplier</span>
+              <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reorder')">👁 Preview</button>
+            </div>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-reorder" rows="4" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> Product · <span class="tmpl-var">{amount}</span> Qty · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{date}</span></div>
+          </div>
+        </div>
+
+        <!-- ⭐ Loyalty Points Template — unified here -->
+        <div class="card" style="margin-bottom:12px">          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
             <h3>⭐ Loyalty Points Update</h3>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:10px;color:var(--text3)">Sent from Loyalty & WA Loyalty tabs</span>
@@ -1440,34 +1491,86 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
       <div class="sub-tabs">
         <div class="sub-tab active" onclick="tuiTab(this,'tt-stu')">🎓 Students</div>
-        <div class="sub-tab" onclick="tuiTab(this,'tt-add-stu')">➕ Add Student</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-add-stu');populateCourseDropdown()">➕ Add Student</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-due')">⏳ Due Fees</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-batch');renderBatchGroups()">📅 Batch-wise</div>
         <div class="sub-tab" onclick="tuiTab(this,'tt-staff')">👨‍🏫 Staff</div>
         <div class="sub-tab" onclick="tuiTab(this,'tt-add-staff')">➕ Add Staff</div>
-        <div class="sub-tab" onclick="tuiTab(this,'tt-class')">📋 Class Summary</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-class')">📋 Summary</div>
       </div>
       <div id="tt-stu">
         <div class="search-wrap"><span class="search-ico">🔍</span><input class="fi" placeholder="Search students..."></div>
         <div class="card">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Class</th><th>Phone</th><th>Monthly Fee</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Course</th><th>Timing</th><th>Phone</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="students-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">🎓</div><p>No students yet. Add a student to begin.</p></div></td></tr></tbody>
           </table></div>
         </div>
       </div>
       <div id="tt-add-stu" style="display:none">
-        <div class="card" style="max-width:460px">
+        <div class="card" style="max-width:520px">
           <div class="card-h"><h3>➕ Add Student</h3></div>
           <div class="card-b">
-            <div class="fg"><label class="fl">Student Name</label><input class="fi" id="stu-name" placeholder="Student name"></div>
+            <div class="fg"><label class="fl">Student Name <span style="color:var(--red)">*</span></label><input class="fi" id="stu-name" placeholder="Student name"></div>
             <div class="fr2">
-              <div class="fg"><label class="fl">Class/Grade</label><input class="fi" id="stu-class" placeholder="e.g. 10th Std"></div>
               <div class="fg"><label class="fl">Phone</label><input class="fi" id="stu-phone" placeholder="+91 XXXXX XXXXX"></div>
+              <div class="fg"><label class="fl">Class/Grade</label><input class="fi" id="stu-class" placeholder="e.g. 10th Std"></div>
             </div>
-            <div class="fg"><label class="fl">Monthly Fee (₹)</label><input class="fi" id="stu-fee" type="number" placeholder="0"></div>
-            <button class="btn btn-y" onclick="addStudent()" style="width:100%;justify-content:center">➕ Add Student</button>
+            <!-- Course selection -->
+            <div class="fg">
+              <label class="fl">Select Course <span style="font-size:10px;color:var(--text3)">(auto-fills fees)</span></label>
+              <select class="fs" id="stu-course-sel" onchange="onStudentCourseSelect()">
+                <option value="">— No course / Custom —</option>
+              </select>
+            </div>
+            <!-- Auto-filled fields -->
+            <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📚 Course Details (auto-filled)</div>
+              <div class="fr3">
+                <div class="fg"><label class="fl" style="font-size:10px">Timing</label><input class="fi" id="stu-timing" placeholder="e.g. 5PM-6PM" style="font-size:12px"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Course Fees (₹)</label><input class="fi" id="stu-course-fees" type="number" placeholder="0" oninput="calcStudentTotal()" style="font-size:12px"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Book Fees (₹)</label><input class="fi" id="stu-book-fees" type="number" placeholder="0" oninput="calcStudentTotal()" style="font-size:12px"></div>
+              </div>
+              <!-- Fee selection checkboxes -->
+              <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--text2)">
+                  <input type="checkbox" id="stu-chk-course" checked style="accent-color:var(--accent);width:14px;height:14px" onchange="calcStudentTotal()">
+                  Include Course Fees
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--text2)">
+                  <input type="checkbox" id="stu-chk-book" checked style="accent-color:var(--accent);width:14px;height:14px" onchange="calcStudentTotal()">
+                  Include Book Fees
+                </label>
+              </div>
+            </div>
+            <!-- Total -->
+            <div class="fr2">
+              <div class="fg"><label class="fl">Total Fees (₹)</label><div class="fi-ico"><input class="fi" id="stu-fee" type="number" placeholder="0" readonly style="background:var(--surface3);color:var(--accent);font-weight:700"><span class="fi-ico-btn">₹</span></div></div>
+              <div class="fg"><label class="fl">Parent Name</label><input class="fi" id="stu-parent" placeholder="Parent / Guardian"></div>
+            </div>
+            <input type="hidden" id="stu-course-id" value="">
+            <button class="btn btn-y" onclick="addStudent()" style="width:100%;justify-content:center;margin-top:4px">➕ Add Student</button>
           </div>
         </div>
       </div>
+      <!-- Due Fees Tab -->
+      <div id="tt-due" style="display:none">
+        <div class="card">
+          <div class="card-h"><h3>⏳ Students with Due Fees</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Name</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Action</th></tr></thead>
+              <tbody id="due-students-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">✅</div><p>No pending fees</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch-wise Tab -->
+      <div id="tt-batch" style="display:none">
+        <div id="batch-groups-container"><div class="empty"><div class="ei">📅</div><p>No students added yet</p></div></div>
+      </div>
+
       <div id="tt-staff" style="display:none">
         <div class="card">
           <div class="tbl-wrap"><table>
@@ -1584,6 +1687,14 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-h"><h3>⭐ Loyalty Impact on Sales</h3></div>
           <div class="card-b" id="sp-loyalty-impact"><div class="empty"><div class="ei">⭐</div><p>Loyalty data will appear here as redemptions happen</p></div></div>
         </div>
+      </div>
+      <!-- Advertisement Impact on Profit -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-h" style="flex-wrap:wrap;gap:8px">
+          <h3>📢 Advertisement Impact on Profit</h3>
+          <span style="font-size:10px;color:var(--text3)">Profit − Ad Spend = True Profit</span>
+        </div>
+        <div class="card-b" id="sp-ad-impact"><div class="empty"><div class="ei">📢</div><p>Add ad campaigns and link them to sales to see impact</p></div></div>
       </div>
       <div class="card">
         <div class="card-h" style="flex-wrap:wrap;gap:8px">
@@ -2684,6 +2795,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="tab-bar">
         <div class="tab active" onclick="rpTab(this,'rp-log')">📋 Repack Log</div>
         <div class="tab" onclick="rpTab(this,'rp-new')">➕ New Repack Session</div>
+        <div class="tab" onclick="rpTab(this,'rp-split');renderSplitPresets()">✂️ Split Engine</div>
         <div class="tab" onclick="rpTab(this,'rp-history')">📜 History</div>
       </div>
 
@@ -2737,6 +2849,135 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             </div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="rp-notes" rows="2" placeholder="e.g. Batch B, slight colour variation..."></textarea></div>
             <button class="btn btn-y" style="width:100%;justify-content:center;margin-top:4px" onclick="saveRepackSession()">✅ Record Repack Session</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✂️ Smart Repack Split Engine -->
+      <div id="rp-split" style="display:none">
+
+        <!-- Stat cards -->
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc b"><div class="sc-ico">✂️</div><div class="sc-label">Total Splits</div><div class="sc-val" id="sp-total-splits">0</div></div>
+          <div class="sc g"><div class="sc-ico">📦</div><div class="sc-label">Packs Created</div><div class="sc-val" id="sp-total-packs">0</div></div>
+          <div class="sc r"><div class="sc-ico">♻️</div><div class="sc-label">Leftover Carried</div><div class="sc-val" id="sp-total-leftover">0g</div></div>
+          <div class="sc y"><div class="sc-ico">📋</div><div class="sc-label">Saved Presets</div><div class="sc-val" id="sp-preset-count">0</div></div>
+        </div>
+
+        <div class="two-col">
+          <!-- Left: Split input form -->
+          <div class="card">
+            <div class="card-h"><h3>✂️ New Split Session</h3>
+              <button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="autoSuggestSplit()">🤖 Auto-Suggest</button>
+            </div>
+            <div class="card-b">
+              <!-- Product + input qty -->
+              <div class="fr2">
+                <div class="fg">
+                  <label class="fl">Product <span style="color:var(--red)">*</span></label>
+                  <input class="fi" id="sp-prod" list="sp-prod-dl" placeholder="Select product..." oninput="spAutoFill()">
+                  <datalist id="sp-prod-dl"></datalist>
+                </div>
+                <div class="fg">
+                  <label class="fl">Date</label>
+                  <input class="fi" id="sp-date" type="date">
+                </div>
+              </div>
+              <div class="fr2">
+                <div class="fg">
+                  <label class="fl">Input Quantity (g/units) <span style="color:var(--red)">*</span></label>
+                  <div class="fi-ico"><input class="fi" id="sp-input-qty" type="number" placeholder="e.g. 250" min="1" oninput="spCalc()"><span class="fi-ico-btn">g</span></div>
+                </div>
+                <div class="fg">
+                  <label class="fl">Input Unit Label</label>
+                  <select class="fs" id="sp-unit">
+                    <option value="g">grams (g)</option>
+                    <option value="kg">kilograms (kg)</option>
+                    <option value="ml">millilitres (ml)</option>
+                    <option value="pcs">pieces (pcs)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Child pack sizes — dynamic rows -->
+              <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px">📦 Child Pack Sizes</span>
+                  <button class="btn btn-b" style="font-size:10px;padding:2px 8px" onclick="addChildRow()">+ Add Size</button>
+                </div>
+                <div id="sp-child-rows">
+                  <!-- Rows added dynamically -->
+                </div>
+                <div style="font-size:10px;color:var(--text3);margin-top:6px">
+                  💡 Example: 250g input → 2×100g + 1×50g = 250g total
+                </div>
+              </div>
+
+              <!-- Packaging per pack -->
+              <div class="fr2">
+                <div class="fg"><label class="fl">Stickers Per Pack</label><input class="fi" id="sp-sticker" type="number" placeholder="1" value="1" min="0" oninput="spCalc()"></div>
+                <div class="fg"><label class="fl">Covers Per Pack</label><input class="fi" id="sp-cover" type="number" placeholder="1" value="1" min="0" oninput="spCalc()"></div>
+              </div>
+
+              <!-- Leftover handling -->
+              <div class="fg">
+                <label class="fl">Leftover Handling</label>
+                <select class="fs" id="sp-leftover-mode" onchange="spCalc()">
+                  <option value="carryforward">Carry Forward (add to next batch)</option>
+                  <option value="waste">Treat as Waste</option>
+                  <option value="smallpack">Create Smallest Pack if Possible</option>
+                </select>
+              </div>
+
+              <div class="fg"><label class="fl">Notes</label><input class="fi" id="sp-notes" placeholder="Batch label, notes..."></div>
+
+              <!-- Preset buttons -->
+              <div id="sp-preset-btns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveSplitSession()">✅ Record Split</button>
+                <button class="btn btn-o" onclick="saveAsPreset()">📋 Save as Preset</button>
+                <button class="btn btn-b" onclick="clearSplitForm()">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Preview + validation -->
+          <div>
+            <!-- Output preview -->
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-h"><h3>👁 Output Preview</h3></div>
+              <div class="card-b" id="sp-preview">
+                <div class="empty"><div class="ei">✂️</div><p>Add child pack sizes to see preview</p></div>
+              </div>
+            </div>
+
+            <!-- Packaging usage -->
+            <div class="card">
+              <div class="card-h"><h3>🏷️ Packaging Usage</h3></div>
+              <div class="card-b" id="sp-pkg-summary">
+                <div class="empty"><div class="ei">🏷️</div><p>Packaging calc will show here</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Presets -->
+        <div class="card" style="margin-top:14px">
+          <div class="card-h"><h3>📋 Saved Split Presets</h3></div>
+          <div class="card-b" id="sp-presets-list">
+            <div class="empty"><div class="ei">📋</div><p>No presets saved yet. After entering a split pattern, tap "Save as Preset".</p></div>
+          </div>
+        </div>
+
+        <!-- Split History -->
+        <div class="card" style="margin-top:14px">
+          <div class="card-h"><h3>📜 Split History</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Date</th><th>Product</th><th>Input</th><th>Split Pattern</th><th>Total Packs</th><th>Stickers</th><th>Covers</th><th>Leftover</th><th>Notes</th></tr></thead>
+              <tbody id="sp-history-tbody"><tr><td colspan="9"><div class="empty"><div class="ei">📜</div><p>No split sessions yet</p></div></td></tr></tbody>
+            </table></div>
           </div>
         </div>
       </div>
@@ -2857,7 +3098,131 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
     </div>
 
-  </div><!-- /content -->
+  
+    <!-- ===== COURSE MANAGEMENT ===== -->
+    <div class="page" id="p-coursemanagement">
+      <div class="ph"><h1>📚 Course Management</h1><p>Manage tuition courses, fees and batch timings</p></div>
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc b"><div class="sc-ico">📚</div><div class="sc-label">Total Courses</div><div class="sc-val" id="cm-total">0</div></div>
+        <div class="sc g"><div class="sc-ico">👥</div><div class="sc-label">Enrolled Students</div><div class="sc-val" id="cm-enrolled">0</div></div>
+        <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Course Income</div><div class="sc-val" id="cm-income">₹0</div></div>
+        <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Pending</div><div class="sc-val" id="cm-pending">₹0</div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active" onclick="cmTab(this,'cm-list')">📚 All Courses</div>
+        <div class="tab" onclick="cmTab(this,'cm-add')">➕ Add Course</div>
+        <div class="tab" onclick="cmTab(this,'cm-report');renderCourseReports()">📊 Reports</div>
+      </div>
+      <div id="cm-list">
+        <div id="courses-list-container"><div class="empty"><div class="ei">📚</div><p>No courses yet. Add your first course!</p></div></div>
+      </div>
+      <div id="cm-add" style="display:none">
+        <div class="card" style="max-width:540px">
+          <div class="card-h"><h3 id="cm-form-title">➕ Add New Course</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Course Name <span style="color:var(--red)">*</span></label><input class="fi" id="cm-name" placeholder="e.g. 10th Standard"></div>
+              <div class="fg"><label class="fl">Subject</label><input class="fi" id="cm-subject" placeholder="e.g. Maths, All Subjects"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Timing <span style="color:var(--red)">*</span></label><input class="fi" id="cm-timing" placeholder="e.g. 5PM - 6PM"></div>
+              <div class="fg"><label class="fl">Duration</label><input class="fi" id="cm-duration" placeholder="e.g. 6 months, 1 year"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Course Fees (₹)</label><div class="fi-ico"><input class="fi" id="cm-cfees" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+              <div class="fg"><label class="fl">Book Fees (₹)</label><div class="fi-ico"><input class="fi" id="cm-bfees" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><input class="fi" id="cm-notes" placeholder="Any notes about this course..."></div>
+            <input type="hidden" id="cm-edit-id" value="">
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-y" onclick="saveCourse()" style="flex:1;justify-content:center">💾 Save Course</button>
+              <button class="btn btn-o" onclick="clearCourseForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cm-report" style="display:none">
+        <div id="course-reports-container"><div class="empty"><div class="ei">📊</div><p>Add courses and students to see reports</p></div></div>
+      </div>
+    </div>
+    <!-- ===== ADVERTISEMENT MANAGEMENT ===== -->
+    <div class="page" id="p-advertisement">
+      <div class="ph"><h1>📢 Advertisement Management</h1><p>Track campaigns, spend, ROI and what drives your sales</p></div>
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc b"><div class="sc-ico">📢</div><div class="sc-label">Active Campaigns</div><div class="sc-val" id="ad-active">0</div></div>
+        <div class="sc r"><div class="sc-ico">💸</div><div class="sc-label">Total Spend</div><div class="sc-val" id="ad-spend">₹0</div></div>
+        <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Sales from Ads</div><div class="sc-val" id="ad-sales-stat">₹0</div></div>
+        <div class="sc y"><div class="sc-ico">🏆</div><div class="sc-label">Best Performer</div><div class="sc-val" id="ad-best" style="font-size:12px">—</div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active" onclick="adTab(this,'ad-list')">📢 Campaigns</div>
+        <div class="tab" onclick="adTab(this,'ad-add')">➕ Add Campaign</div>
+        <div class="tab" onclick="adTab(this,'ad-analytics');renderAdCharts()">📊 Analytics</div>
+      </div>
+      <div id="ad-list">
+        <div id="ads-list-container"><div class="empty"><div class="ei">📢</div><p>No campaigns yet. Add your first ad campaign!</p></div></div>
+      </div>
+      <div id="ad-add" style="display:none">
+        <div class="card" style="max-width:540px">
+          <div class="card-h"><h3 id="ad-form-title">➕ New Campaign</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Campaign Name <span style="color:var(--red)">*</span></label><input class="fi" id="ad-name" placeholder="e.g. Diwali Offer"></div>
+              <div class="fg"><label class="fl">Platform</label>
+                <select class="fs" id="ad-platform">
+                  <option>WhatsApp</option><option>Facebook</option><option>Instagram</option>
+                  <option>Google</option><option>Banner/Poster</option><option>Word of Mouth</option><option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Ad Type</label>
+                <select class="fs" id="ad-type">
+                  <option>Offer/Discount</option><option>Product Launch</option><option>Brand Awareness</option>
+                  <option>Seasonal</option><option>Referral</option><option>Other</option>
+                </select>
+              </div>
+              <div class="fg"><label class="fl">Budget (₹)</label><div class="fi-ico"><input class="fi" id="ad-budget" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Start Date</label><input class="fi" id="ad-start" type="date"></div>
+              <div class="fg"><label class="fl">End Date</label><input class="fi" id="ad-end" type="date"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Actual Spend (₹)</label><div class="fi-ico"><input class="fi" id="ad-spend-actual" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+              <div class="fg"><label class="fl">Description</label><input class="fi" id="ad-desc" placeholder="What is this ad about?"></div>
+            </div>
+            <input type="hidden" id="ad-edit-id" value="">
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-y" onclick="saveAd()" style="flex:1;justify-content:center">💾 Save Campaign</button>
+              <button class="btn btn-o" onclick="clearAdForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="ad-analytics" style="display:none">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>📊 Spend vs Sales</h3></div>
+            <div class="card-b" id="ad-bar-chart" style="min-height:180px"><div class="empty"><div class="ei">📊</div><p>No ad data yet</p></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>🥧 Platform Spend</h3></div>
+            <div class="card-b" id="ad-pie-chart" style="min-height:180px"><div class="empty"><div class="ei">🥧</div><p>No ad data yet</p></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>🏆 ROI Performance Ranking</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Campaign</th><th>Platform</th><th>Spend ₹</th><th>Sales ₹</th><th>Orders</th><th>ROI ₹</th><th>ROAS</th><th>Rating</th></tr></thead>
+              <tbody id="ad-perf-tbody"><tr><td colspan="8"><div class="empty"><div class="ei">📊</div><p>No campaigns yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div><!-- /content -->
 </div><!-- /main -->
 
 <!-- BOTTOM NAV (mobile) -->
@@ -2919,9 +3284,85 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="bn-more-item" onclick="navMore('settings')"><div class="bmi-ico">⚙️</div><div class="bmi-txt">Settings</div></div>
     </div>
   </div>
-</div>
-
 <!-- MODALS -->
+<div class="mo" id="npa-modal">
+  <div class="mo-box" style="max-width:460px">
+    <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
+      <h2>🚫 Mark as NPA — Write Off</h2>
+      <button class="xbtn" onclick="closeModal('npa-modal')">✕</button>
+    </div>
+    <div class="mo-b">
+      <input type="hidden" id="npa-cust-id">
+      <div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);border-radius:8px;padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px">⚠️ Bad Debt Write-Off</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          Writing off <strong id="npa-amount-show" style="color:var(--red)">₹0</strong> owed by
+          <strong id="npa-cust-show"></strong> as an unrecoverable loss.
+          <br>Amount removed from pending and added to <strong>Loss Records</strong>.
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Write-off Date</label><input class="fi" id="npa-date" type="date"></div>
+      <div class="fg"><label class="fl">Reason <span style="color:var(--red)">*</span></label>
+        <select class="fs" id="npa-reason">
+          <option value="customer_absconded">Customer Absconded / Unreachable</option>
+          <option value="dispute">Payment Dispute / Refused to Pay</option>
+          <option value="bankruptcy">Customer Bankrupt / Business Closed</option>
+          <option value="deceased">Customer Deceased</option>
+          <option value="too_old">Too Old to Recover (6+ months)</option>
+          <option value="small_amount">Small Amount — Not Worth Pursuing</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Notes</label>
+        <textarea class="fi" id="npa-notes" rows="2" placeholder="Any additional details..."></textarea>
+      </div>
+      <!-- Partial write-off -->
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;margin-bottom:8px">
+          <input type="checkbox" id="npa-partial-chk" style="accent-color:var(--accent);width:14px;height:14px" onchange="toggleNpaPartial()">
+          <span>Partial write-off only</span>
+        </label>
+        <div id="npa-partial-wrap" style="display:none">
+          <label class="fl" style="font-size:10px">Amount to Write Off (₹)</label>
+          <div class="fi-ico"><input class="fi" id="npa-partial-amt" type="number" placeholder="0" style="font-size:12px"><span class="fi-ico-btn">₹</span></div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px">Remaining stays as pending</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-r" style="flex:1;justify-content:center;font-weight:700" onclick="confirmNPA()">🚫 Write Off as Loss</button>
+        <button class="btn btn-o" onclick="closeModal('npa-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="mo-box" style="max-width:480px">
+    <div class="mo-h"><h2>✏️ Edit Customer</h2><button class="xbtn" onclick="closeModal('edit-customer-modal')">✕</button></div>
+    <div class="mo-b">
+      <input type="hidden" id="ec-id">
+      <div class="fg"><label class="fl">Full Name <span style="color:var(--red)">*</span></label><input class="fi" id="ec-name" placeholder="Customer name"></div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Phone</label><input class="fi" id="ec-phone" type="tel" placeholder="+91 XXXXX XXXXX"></div>
+        <div class="fg"><label class="fl">Address</label><input class="fi" id="ec-addr" placeholder="Street, area, city..."></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Birthday 🎂</label><input class="fi" id="ec-bday" type="date"></div>
+        <div class="fg"><label class="fl">Payment Mode</label>
+          <select class="fs" id="ec-mode">
+            <option>Cash</option><option>UPI</option><option>Credit (Pending)</option><option>Cheque</option><option>Bank Transfer</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Total Paid (₹)</label><div class="fi-ico"><input class="fi" id="ec-paid" type="number" placeholder="0" readonly style="background:var(--surface3)"><span class="fi-ico-btn">₹</span></div></div>
+        <div class="fg"><label class="fl">Pending Balance (₹)</label><div class="fi-ico"><input class="fi" id="ec-pending" type="number" placeholder="0" readonly style="background:var(--surface3)"><span class="fi-ico-btn">₹</span></div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveEditCustomer()">💾 Save Changes</button>
+        <button class="btn btn-o" onclick="closeModal('edit-customer-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="mo" id="edit-product-modal">
   <div class="mo-box" style="max-width:540px">
     <div class="mo-h"><h2>✏️ Edit Product</h2><button class="xbtn" onclick="closeModal('edit-product-modal')">✕</button></div>
@@ -3002,13 +3443,16 @@ const S = {
   gs:{scriptUrl:'',sheetUrl:'',tabs:'DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report',connected:false,lastSync:''},
   categories:['Tea','Nattu Sakkarai','Scrubber','MCS Items','Grocery','Spices','Snacks','Oils','Dry Fruits','Other'],
   target:{sales:0,profit:0,orders:0,set:false},
-  // ── NEW: Smart Reorder & Packaging module ──
-  supplierOrders:[],    // supplier purchase orders
-  repackLog:[],         // repacking sessions
-  packMaterials:[],     // sticker/cover/other packaging stock
-  packUsageHistory:[],  // packaging consumption log
-  reorderSettings:{},  // per-product reorder config overrides
-  stockCorrections:[]   // manual stock adjustment log
+  // ── Smart Reorder & Packaging ──
+  supplierOrders:[], repackLog:[], packMaterials:[],
+  packUsageHistory:[], reorderSettings:{}, stockCorrections:[],
+  // ── Course & Advertisement Management ──
+  courses:[],        // tuition courses
+  advertisements:[], // ad campaigns
+  // ── Smart Repack Split Engine ──
+  splitLog:[],       // split repack history
+  splitPresets:[],   // saved split patterns
+  npaLog:[]          // NPA bad-debt write-offs
 };
 
 // ===== LOCALSTORAGE PERSISTENCE =====
@@ -3064,7 +3508,8 @@ function loadPersistedState(){
                   'teaEntries','suppliers','orderCounter','settings','gs',
                   'categories','target','reminders','productRules','bdayGifts','referrals',
                   'supplierOrders','repackLog','packMaterials','packUsageHistory',
-                  'reorderSettings','stockCorrections'];
+                  'reorderSettings','stockCorrections','courses','advertisements',
+                  'splitLog','splitPresets','npaLog'];
     keys.forEach(k => {
       if(saved[k] !== undefined) S[k] = saved[k];
     });
@@ -3089,8 +3534,8 @@ function autoSave(){
 }
 
 // ===== NAVIGATION =====
-const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
-const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
+const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',coursemanagement:'📚',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
+const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
 
 function nav(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -3102,7 +3547,7 @@ function nav(page){
   document.getElementById('tb-title').textContent = TITLES[page]||page;
   // Re-render each page fresh when navigated to
   if(page==='dashboard'){ updateDashStats(); renderWeeklyChart(); renderStockOverview(); checkUndeliveredOrders(); }
-  if(page==='sales'){ renderSalesTable(); }
+  if(page==='sales'){ renderSalesTable(); populateAdSourceDropdown(); }
   if(page==='products'){ renderProducts(); }
   if(page==='orders'){ renderOrders(); }
   if(page==='teashop'){
@@ -3111,13 +3556,13 @@ function nav(page){
   }
   if(page==='customers'){ renderCustomers(); renderPendingCust(); }
   if(page==='whatsapp'){ renderWA(); }
-  if(page==='tuition'){ renderStudents(); renderStaffTable(); }
+  if(page==='tuition'){ renderStudents(); renderStaffTable(); populateCourseDropdown(); }
   if(page==='inventory'){ renderInventory(); }
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
   if(page==='bizanalytics'){ renderBaMonthly(); }
   if(page==='reorder'){     renderReorderEngine(); soPopulateDatalists(); }
-  if(page==='repacktrack'){ renderRepackLog(); renderRepackStats(); rpPopulateDatalists(); }
+  if(page==='repacktrack'){ renderRepackLog(); renderRepackStats(); rpPopulateDatalists(); renderSplitStats(); }
   if(page==='packstock'){   renderPackStock(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
@@ -3132,6 +3577,8 @@ function nav(page){
     renderTarget();
   }
   if(page==='loyalty'){ renderLoyalty(); loadPtsSettings(); }
+  if(page==='coursemanagement'){ renderCourses(); renderCourseReports(); }
+  if(page==='advertisement'){ renderAds(); renderAdCharts(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='bulkwa'){ renderBwStats(); renderBwPending(); }
   if(page==='supplier'){ renderSuppliers(); }
@@ -3239,9 +3686,10 @@ function pTab(el,id){
 function cTab(el,id){
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['ct-all','ct-add','ct-pend'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  ['ct-all','ct-add','ct-pend','ct-npa'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
   document.getElementById(id).style.display='block';
   if(id==='ct-pend') renderPendingCust();
+  if(id==='ct-npa')  renderNPALog();
 }
 function waTab(el,id){
   tabSwitch(el,id,['wa-remind','wa-tmpl','wa-custom','wa-loyalty']);
@@ -3279,7 +3727,10 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`,
 
   loyalty:
-    `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`
+    `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
+
+  reorder:
+    `📦 *Reorder Request — {biz}*\n\nHi,\nProduct: *{name}*\nQuantity: *{amount}*\nDate: {date}\n\nPlease confirm availability and price.\nThank you! 🙏`
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -4186,15 +4637,1007 @@ function renderReferrals(){
 // sendProductUpdateWA — defined below in WA section with non-blocking prompt
 
 function sendLoyaltyWA(name){
+  // Always use the saved loyalty template (editable in WA & Reminders → ✏️ Templates)
   const c=S.customers.find(x=>x.name===name);
   if(!c||!c.phone){toast('⚠️ No phone number for '+name);return;}
-  const redeemVal=+document.getElementById('pts-redeem-val')?.value||10;
-  const discount=((( c.points||0)/100)*redeemVal).toFixed(0);
-  const msg=`⭐ *Meenatchi Traders — Loyalty Update*\nHi ${name}!\n\nYour current points: *${c.points||0} pts*\nRedeemable for: *₹${discount} discount*\n\nShop more to earn more points! 🛍️`;
-  openWA(c.phone, msg);
+  openWA(c.phone, buildPointsMsg(name));
 }
 
 // sendPointsWA is defined above in the points section
+
+// ═══════════════════════════════════════════════════════════════
+//  ADVERTISEMENT IMPACT ON PROFIT (Smart Profit Dashboard)
+// ═══════════════════════════════════════════════════════════════
+function renderAdImpact(){
+  const el = document.getElementById('sp-ad-impact'); if(!el) return;
+  const ads = S.advertisements||[];
+  if(!ads.length){
+    el.innerHTML='<div class="empty"><div class="ei">📢</div><p>Add ad campaigns and link to sales to see profit impact</p></div>';
+    return;
+  }
+  const totalSales   = S.sales.reduce((a,s)=>a+s.total,0);
+  const totalProfit  = S.sales.reduce((a,s)=>a+s.profit,0);
+  const totalAdSpend = ads.reduce((a,x)=>a+(x.spend||0),0);
+  const adLinkedSales= ads.reduce((a,x)=>a+(x.sales||0),0);
+  const totalNPA     = (S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
+  const trueProfit   = totalProfit - totalAdSpend - totalNPA;
+  const adROI        = totalAdSpend>0 ? ((adLinkedSales-totalAdSpend)/totalAdSpend*100).toFixed(0) : null;
+
+  // Per-campaign breakdown
+  const rows = [...ads].sort((a,b)=>(b.sales||0)-(a.sales||0)).map(ad=>{
+    const roi  = (ad.sales||0)-(ad.spend||0);
+    const roas = ad.spend>0?((ad.sales||0)/ad.spend).toFixed(2):'—';
+    const profitAfter = (ad.sales||0) - (ad.spend||0);
+    const color = roi>=0?'var(--green)':'var(--red)';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(48,54,61,.3);font-size:12px;flex-wrap:wrap;gap:6px">
+      <div>
+        <strong>${ad.name}</strong>
+        <span style="font-size:10px;color:var(--text3);margin-left:6px">${ad.platform}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:11px">
+        <span>Spend: <strong style="color:var(--red)">₹${(ad.spend||0).toFixed(0)}</strong></span>
+        <span>Sales: <strong style="color:var(--blue)">₹${(ad.sales||0).toFixed(0)}</strong></span>
+        <span>Net: <strong style="color:${color}">${roi>=0?'+':''}₹${roi.toFixed(0)}</strong></span>
+        <span>ROAS: <strong>${roas}×</strong></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <!-- Summary bar -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px">Gross Profit</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:var(--green)">₹${totalProfit.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">Before ad spend</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px">Total Ad Spend</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:var(--red)">−₹${totalAdSpend.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">${ads.length} campaign${ads.length!==1?'s':''}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;border:1px solid rgba(63,185,80,.3)">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px">True Profit</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:${trueProfit>=0?'var(--green)':'var(--red)'}">₹${trueProfit.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">Profit − Ad − NPA</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:9px;color:var(--text3);margin-bottom:3px">NPA Loss</div>
+        <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:16px;color:${totalNPA>0?'var(--red)':'var(--text3)'}">−₹${totalNPA.toFixed(0)}</div>
+        <div style="font-size:9px;color:var(--text3)">Bad debts written off</div>
+      </div>
+    </div>
+    <!-- Formula -->
+    <div style="background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)">
+      💡 <strong>Formula:</strong> True Profit = Gross Profit (₹${totalProfit.toFixed(0)}) − Ad Spend (₹${totalAdSpend.toFixed(0)}) − NPA Loss (₹${totalNPA.toFixed(0)}) = <strong style="color:${trueProfit>=0?'var(--green)':'var(--red)'}">₹${trueProfit.toFixed(0)}</strong>
+    </div>
+    <!-- Per campaign rows -->
+    <div>${rows||'<div style="font-size:12px;color:var(--text3)">No campaigns with spend recorded</div>'}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SMART REPACK SPLIT ENGINE
+// ═══════════════════════════════════════════════════════════════
+
+let _childRowCount = 0;
+
+function spPopulateDatalists(){
+  const dl=document.getElementById('sp-prod-dl'); if(!dl) return;
+  dl.innerHTML=S.products.map(p=>`<option value="${p.name}">`).join('');
+  // Set today's date
+  const dEl=document.getElementById('sp-date');
+  if(dEl&&!dEl.value) dEl.value=new Date().toISOString().slice(0,10);
+  // Add default child rows if empty
+  if(!document.querySelectorAll('#sp-child-rows .sp-child-row').length){
+    addChildRow(); addChildRow();
+  }
+  // Render preset buttons
+  renderPresetButtons();
+}
+
+function addChildRow(){
+  _childRowCount++;
+  const id = _childRowCount;
+  const row = document.createElement('div');
+  row.className='sp-child-row';
+  row.id='sp-row-'+id;
+  row.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  row.innerHTML=`
+    <div style="flex:1">
+      <input class="fi" type="number" id="sp-child-size-${id}" placeholder="Pack size (g)" min="1"
+        oninput="spCalc()" style="font-size:12px">
+    </div>
+    <div style="flex:1">
+      <input class="fi" type="number" id="sp-child-qty-${id}" placeholder="Qty packs" min="1" value="1"
+        oninput="spCalc()" style="font-size:12px">
+    </div>
+    <div style="width:60px;text-align:center;font-size:11px;color:var(--text3)" id="sp-child-total-${id}">—</div>
+    <button onclick="removeChildRow(${id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px">✕</button>`;
+  document.getElementById('sp-child-rows').appendChild(row);
+  // Add column headers if first row
+  if(_childRowCount===1){
+    row.insertAdjacentHTML('beforebegin','<div style="display:grid;grid-template-columns:1fr 1fr 60px 28px;gap:8px;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px"><span>Pack Size (g)</span><span>Quantity</span><span>Total (g)</span><span></span></div>');
+  }
+}
+
+function removeChildRow(id){
+  const el=document.getElementById('sp-row-'+id);
+  if(el) el.remove();
+  spCalc();
+}
+
+function spAutoFill(){
+  // Called when product typed — nothing specific to auto-fill for split
+  spCalc();
+}
+
+function spCalc(){
+  const inputQty = +document.getElementById('sp-input-qty')?.value||0;
+  const unit     = document.getElementById('sp-unit')?.value||'g';
+  const sticker  = +document.getElementById('sp-sticker')?.value||1;
+  const cover    = +document.getElementById('sp-cover')?.value||1;
+  const leftoverMode = document.getElementById('sp-leftover-mode')?.value||'carryforward';
+
+  // Collect child rows
+  const rows=document.querySelectorAll('.sp-child-row');
+  let totalUsed=0, totalPacks=0;
+  const breakdown=[];
+
+  rows.forEach(row=>{
+    const idPart=row.id.replace('sp-row-','');
+    const size=+document.getElementById('sp-child-size-'+idPart)?.value||0;
+    const qty =+document.getElementById('sp-child-qty-'+idPart)?.value||0;
+    const rowTotal=size*qty;
+    const totEl=document.getElementById('sp-child-total-'+idPart);
+    if(totEl) totEl.textContent=rowTotal>0?rowTotal+'g':'—';
+    if(size>0&&qty>0){ totalUsed+=rowTotal; totalPacks+=qty; breakdown.push({size,qty,total:rowTotal}); }
+  });
+
+  const leftover=inputQty-totalUsed;
+  const valid=inputQty>0&&breakdown.length>0;
+
+  // Render output preview
+  const prev=document.getElementById('sp-preview');
+  if(prev&&valid){
+    const leftoverColor=Math.abs(leftover)<0.01?'var(--green)':leftover>0?'var(--accent)':'var(--red)';
+    const leftoverLabel=Math.abs(leftover)<0.01?'✅ Perfect match':leftover>0?`⚠️ ${leftover}${unit} leftover`:
+      `❌ Over by ${Math.abs(leftover)}${unit} — reduce quantities`;
+    prev.innerHTML=`
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">📦 Output Packs:</div>
+        ${breakdown.map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.3);font-size:12px">
+          <span>${b.size}${unit} pack</span>
+          <span style="color:var(--accent);font-weight:700">× ${b.qty}</span>
+          <span style="color:var(--text3)">${b.total}${unit}</span>
+        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12px;font-weight:700">
+          <span>Total Packs</span><span style="color:var(--green)">${totalPacks}</span>
+          <span>${totalUsed}${unit} used</span>
+        </div>
+        <div style="padding:6px 10px;border-radius:6px;background:rgba(0,0,0,.2);font-size:11.5px;font-weight:600;color:${leftoverColor}">
+          ${leftoverLabel}
+          ${leftover>0&&leftoverMode==='carryforward'?'<br><span style="font-size:10px;color:var(--text3)">Will be carried forward to next batch</span>':''}
+          ${leftover>0&&leftoverMode==='waste'?'<br><span style="font-size:10px;color:var(--red)">Will be recorded as waste</span>':''}
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2)">📊 Summary</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px">
+        <span>Input: <strong>${inputQty}${unit}</strong></span>
+        <span>Used: <strong style="color:var(--accent)">${totalUsed}${unit}</strong></span>
+        <span>Leftover: <strong style="color:${leftoverColor}">${leftover}${unit}</strong></span>
+      </div>`;
+  } else if(prev){
+    prev.innerHTML='<div class="empty"><div class="ei">✂️</div><p>Enter input qty and child pack sizes to see preview</p></div>';
+  }
+
+  // Packaging summary
+  const pkg=document.getElementById('sp-pkg-summary');
+  if(pkg&&valid&&totalPacks>0){
+    const totalStickers=totalPacks*sticker;
+    const totalCovers  =totalPacks*cover;
+    // Get current stock
+    const stickerMat=S.packMaterials.find(m=>m.type==='sticker');
+    const coverMat  =S.packMaterials.find(m=>m.type==='cover');
+    const stkStock  =stickerMat?stickerMat.qty:0;
+    const cvrStock  =coverMat  ?coverMat.qty  :0;
+    const stkAfter  =stkStock-totalStickers;
+    const cvrAfter  =cvrStock -totalCovers;
+    pkg.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:var(--text3)">Stickers Needed</div>
+          <div style="font-weight:700;font-size:17px;color:var(--accent)">${totalStickers}</div>
+          <div style="font-size:10px;color:${stkAfter<0?'var(--red)':'var(--green)'}">Stock after: ${stkAfter}</div>
+          ${stkAfter<0?'<div style="font-size:10px;color:var(--red)">⚠️ Shortage!</div>':''}
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:var(--text3)">Covers Needed</div>
+          <div style="font-weight:700;font-size:17px;color:var(--blue)">${totalCovers}</div>
+          <div style="font-size:10px;color:${cvrAfter<0?'var(--red)':'var(--green)'}">Stock after: ${cvrAfter}</div>
+          ${cvrAfter<0?'<div style="font-size:10px;color:var(--red)">⚠️ Shortage!</div>':''}
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:8px;text-align:center">
+        ${sticker} sticker${sticker!==1?'s':''} + ${cover} cover${cover!==1?'s':''} per pack × ${totalPacks} packs
+      </div>`;
+  } else if(pkg){
+    pkg.innerHTML='<div class="empty"><div class="ei">🏷️</div><p>Packaging calc will show here</p></div>';
+  }
+}
+
+function autoSuggestSplit(){
+  // Suggest split based on top-selling sizes from sales history
+  const prod=document.getElementById('sp-prod')?.value;
+  const inputQty=+document.getElementById('sp-input-qty')?.value||250;
+  if(!prod){ toast('⚠️ Select a product first'); return; }
+  // Simple suggestion: 50% in largest common size, 50% in smaller
+  const suggestions=[
+    {size:Math.floor(inputQty/2), qty:2, label:'50/50 split'},
+    {size:Math.floor(inputQty/4), qty:4, label:'Quarter packs'},
+    {size:100, qty:Math.floor(inputQty/100), label:'100g packs'},
+    {size:50,  qty:Math.floor(inputQty/50),  label:'50g packs'},
+  ].filter(s=>s.size>0&&s.qty>0);
+  const best=suggestions[0];
+  if(!best){ toast('Cannot suggest — set input quantity first'); return; }
+  // Clear existing rows and add suggestion
+  document.getElementById('sp-child-rows').innerHTML='';
+  _childRowCount=0;
+  addChildRow();
+  setTimeout(()=>{
+    const sizeEl=document.getElementById('sp-child-size-1');
+    const qtyEl =document.getElementById('sp-child-qty-1');
+    if(sizeEl) sizeEl.value=best.size;
+    if(qtyEl)  qtyEl.value=best.qty;
+    spCalc();
+    toast(`💡 Suggested: ${best.qty}×${best.size}g (${best.label})`);
+  },50);
+}
+
+function getChildRows(){
+  const rows=document.querySelectorAll('.sp-child-row');
+  const result=[];
+  rows.forEach(row=>{
+    const id=row.id.replace('sp-row-','');
+    const size=+document.getElementById('sp-child-size-'+id)?.value||0;
+    const qty =+document.getElementById('sp-child-qty-'+id)?.value||0;
+    if(size>0&&qty>0) result.push({size,qty,total:size*qty});
+  });
+  return result;
+}
+
+function saveSplitSession(){
+  const prod    =document.getElementById('sp-prod')?.value.trim();
+  const inputQty=+document.getElementById('sp-input-qty')?.value||0;
+  const unit    =document.getElementById('sp-unit')?.value||'g';
+  const sticker =+document.getElementById('sp-sticker')?.value||1;
+  const cover   =+document.getElementById('sp-cover')?.value||1;
+  const lMode   =document.getElementById('sp-leftover-mode')?.value||'carryforward';
+  const date    =document.getElementById('sp-date')?.value||new Date().toISOString().slice(0,10);
+  const notes   =document.getElementById('sp-notes')?.value||'';
+
+  if(!prod){toast('⚠️ Select a product');return;}
+  if(!inputQty){toast('⚠️ Enter input quantity');return;}
+
+  const children=getChildRows();
+  if(!children.length){toast('⚠️ Add at least one child pack size');return;}
+
+  const totalUsed=children.reduce((a,c)=>a+c.total,0);
+  const leftover =inputQty-totalUsed;
+  const totalPacks=children.reduce((a,c)=>a+c.qty,0);
+
+  // Validate
+  if(leftover<0){
+    toast('❌ Child packs exceed input quantity! Reduce quantities.');return;
+  }
+
+  // Warn on leftover
+  if(leftover>0){
+    const proceed=confirm(`⚠️ ${leftover}${unit} leftover.\n${lMode==='carryforward'?'Will be carried forward to next batch.':lMode==='waste'?'Will be recorded as waste.':'Will try to create a small pack.'}\n\nProceed?`);
+    if(!proceed) return;
+  }
+
+  const session={
+    id:Date.now(), date, product:prod, inputQty, unit,
+    children, totalUsed, leftover, leftoverMode:lMode,
+    totalPacks, sticker, cover,
+    totalStickers:totalPacks*sticker, totalCovers:totalPacks*cover,
+    notes, createdAt:new Date().toISOString()
+  };
+  S.splitLog=S.splitLog||[];
+  S.splitLog.push(session);
+
+  // Deduct packaging stock
+  const stickerMat=S.packMaterials.find(m=>m.type==='sticker');
+  const coverMat  =S.packMaterials.find(m=>m.type==='cover');
+  if(stickerMat) stickerMat.qty=Math.max(0,stickerMat.qty-session.totalStickers);
+  if(coverMat  ) coverMat.qty  =Math.max(0,coverMat.qty  -session.totalCovers);
+
+  autoSave();
+  clearSplitForm();
+  renderSplitHistory();
+  renderSplitStats();
+  toast(`✅ Split recorded! ${totalPacks} packs from ${inputQty}${unit}${leftover>0?' · '+leftover+unit+' leftover':''}`);
+}
+
+function clearSplitForm(){
+  const ids=['sp-prod','sp-input-qty','sp-notes'];
+  ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('sp-child-rows').innerHTML='';
+  _childRowCount=0;
+  addChildRow(); addChildRow();
+  spCalc();
+}
+
+function saveAsPreset(){
+  const prod=document.getElementById('sp-prod')?.value.trim()||'Custom';
+  const children=getChildRows();
+  const unit=document.getElementById('sp-unit')?.value||'g';
+  if(!children.length){toast('⚠️ Add child pack sizes first');return;}
+  const name=prompt(`Preset name:`,prod+' split ('+children.map(c=>c.qty+'×'+c.size+unit).join('+')+')')
+  if(!name) return;
+  S.splitPresets=S.splitPresets||[];
+  S.splitPresets.push({id:Date.now(),name,product:prod,unit,children,
+    sticker:+document.getElementById('sp-sticker')?.value||1,
+    cover:+document.getElementById('sp-cover')?.value||1
+  });
+  autoSave(); renderSplitPresets(); renderPresetButtons();
+  toast('✅ Preset saved: '+name);
+}
+
+function loadPreset(id){
+  const p=S.splitPresets.find(x=>x.id===id); if(!p) return;
+  document.getElementById('sp-prod').value=p.product;
+  document.getElementById('sp-unit').value=p.unit||'g';
+  document.getElementById('sp-sticker').value=p.sticker||1;
+  document.getElementById('sp-cover').value=p.cover||1;
+  document.getElementById('sp-child-rows').innerHTML='';
+  _childRowCount=0;
+  p.children.forEach(ch=>{
+    addChildRow();
+    setTimeout(()=>{
+      const sEl=document.getElementById('sp-child-size-'+_childRowCount);
+      const qEl=document.getElementById('sp-child-qty-'+_childRowCount);
+      if(sEl) sEl.value=ch.size;
+      if(qEl) qEl.value=ch.qty;
+    },20);
+  });
+  setTimeout(()=>spCalc(),50);
+  toast('📋 Preset loaded: '+p.name);
+}
+
+function deletePreset(id){
+  S.splitPresets=S.splitPresets.filter(x=>x.id!==id);
+  autoSave(); renderSplitPresets(); renderPresetButtons();
+  toast('🗑️ Preset deleted');
+}
+
+function renderPresetButtons(){
+  const el=document.getElementById('sp-preset-btns'); if(!el) return;
+  const presets=S.splitPresets||[];
+  if(!presets.length){el.innerHTML='';return;}
+  el.innerHTML='<span style="font-size:10px;color:var(--text3);align-self:center">Presets:</span>'+
+    presets.map(p=>`<button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="loadPreset(${p.id})">${p.name}</button>`).join('');
+}
+
+function renderSplitPresets(){
+  const el=document.getElementById('sp-presets-list'); if(!el) return;
+  const presets=S.splitPresets||[];
+  if(!presets.length){
+    el.innerHTML='<div class="empty"><div class="ei">📋</div><p>No presets saved yet.</p></div>';
+    return;
+  }
+  el.innerHTML=presets.map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-weight:600;font-size:13px">${p.name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">
+          ${p.product} · ${p.children.map(c=>c.qty+'×'+c.size+(p.unit||'g')).join(' + ')}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-y" style="font-size:10px;padding:3px 8px" onclick="loadPreset(${p.id})">📋 Load</button>
+        <button class="btn btn-r" style="font-size:10px;padding:3px 8px" onclick="deletePreset(${p.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderSplitHistory(){
+  const tb=document.getElementById('sp-history-tbody'); if(!tb) return;
+  const log=S.splitLog||[];
+  if(!log.length){
+    tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">📜</div><p>No split sessions yet</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=[...log].reverse().map(s=>`<tr>
+    <td>${s.date}</td>
+    <td><strong>${s.product}</strong></td>
+    <td>${s.inputQty}${s.unit}</td>
+    <td style="font-size:11px">${s.children.map(c=>c.qty+'×'+c.size+s.unit).join(' + ')}</td>
+    <td style="color:var(--green);font-weight:700">${s.totalPacks}</td>
+    <td>${s.totalStickers}</td>
+    <td>${s.totalCovers}</td>
+    <td style="color:${s.leftover>0?'var(--accent)':'var(--text3)'}">${s.leftover>0?s.leftover+s.unit:s.leftoverMode==='waste'?'Waste':'—'}</td>
+    <td style="font-size:11px">${s.notes||'—'}</td>
+  </tr>`).join('');
+}
+
+function renderSplitStats(){
+  const log=S.splitLog||[];
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('sp-total-splits', log.length);
+  setEl('sp-total-packs',  log.reduce((a,s)=>a+(s.totalPacks||0),0));
+  const totalLeft=log.reduce((a,s)=>a+(s.leftoverMode==='carryforward'?s.leftover:0),0);
+  setEl('sp-total-leftover', totalLeft>0?totalLeft+'g':'0g');
+  setEl('sp-preset-count', (S.splitPresets||[]).length);
+}
+
+function cmTab(el, id){
+  tabSwitch(el, id, ['cm-list','cm-add','cm-report']);
+  if(id==='cm-list')   renderCourses();
+  if(id==='cm-report') renderCourseReports();
+}
+
+function saveCourse(){
+  const name   = document.getElementById('cm-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter course name'); return; }
+  const editId = +document.getElementById('cm-edit-id')?.value||0;
+  const course = {
+    id:       editId || Date.now(),
+    name,
+    subject:  document.getElementById('cm-subject')?.value.trim()||'',
+    timing:   document.getElementById('cm-timing')?.value.trim()||'',
+    duration: document.getElementById('cm-duration')?.value.trim()||'',
+    courseFees: +document.getElementById('cm-cfees')?.value||0,
+    bookFees:   +document.getElementById('cm-bfees')?.value||0,
+    notes:    document.getElementById('cm-notes')?.value.trim()||'',
+  };
+  if(editId){
+    const idx = S.courses.findIndex(c=>c.id===editId);
+    if(idx>=0) S.courses[idx]=course;
+    toast('✅ Course updated!');
+  } else {
+    S.courses.push(course);
+    toast('✅ Course added!');
+  }
+  clearCourseForm();
+  renderCourses();
+  renderCourseStats();
+  autoSave();
+  // Go back to list
+  cmTab(document.querySelector('#p-coursemanagement .tab-bar .tab'),'cm-list');
+}
+
+function clearCourseForm(){
+  ['cm-name','cm-subject','cm-timing','cm-duration','cm-cfees','cm-bfees','cm-notes'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+  const editId=document.getElementById('cm-edit-id'); if(editId) editId.value='';
+  const title=document.getElementById('cm-form-title'); if(title) title.textContent='➕ Add New Course';
+}
+
+function editCourse(id){
+  const course=S.courses.find(c=>c.id===id); if(!course) return;
+  document.getElementById('cm-name').value    = course.name;
+  document.getElementById('cm-subject').value = course.subject||'';
+  document.getElementById('cm-timing').value  = course.timing||'';
+  document.getElementById('cm-duration').value= course.duration||'';
+  document.getElementById('cm-cfees').value   = course.courseFees||0;
+  document.getElementById('cm-bfees').value   = course.bookFees||0;
+  document.getElementById('cm-notes').value   = course.notes||'';
+  document.getElementById('cm-edit-id').value = id;
+  const title=document.getElementById('cm-form-title'); if(title) title.textContent='✏️ Edit Course';
+  cmTab(document.querySelectorAll('#p-coursemanagement .tab-bar .tab')[1],'cm-add');
+}
+
+function deleteCourse(id){
+  if(!confirm('Delete this course? Students enrolled will keep their data.')) return;
+  S.courses=S.courses.filter(c=>c.id!==id);
+  renderCourses(); renderCourseStats(); autoSave(); toast('🗑️ Course deleted');
+}
+
+function renderCourses(){
+  const el=document.getElementById('courses-list-container'); if(!el) return;
+  renderCourseStats();
+  if(!S.courses.length){
+    el.innerHTML='<div class="empty"><div class="ei">📚</div><p>No courses yet. Add your first course!</p></div>';
+    return;
+  }
+  el.innerHTML=S.courses.map(course=>{
+    const enrolled=S.students.filter(s=>s.courseId===course.id).length;
+    const income  =S.students.filter(s=>s.courseId===course.id).reduce((a,s)=>a+(s.paid||0),0);
+    const pending =S.students.filter(s=>s.courseId===course.id).reduce((a,s)=>a+(s.balance||0),0);
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-h" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 style="margin-bottom:2px">📚 ${course.name}${course.subject?' <span style="font-size:11px;color:var(--text3)">— '+course.subject+'</span>':''}</h3>
+          <div style="font-size:11px;color:var(--text3)">⏰ ${course.timing||'—'} ${course.duration?'· '+course.duration:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button class="btn btn-y" style="font-size:10px;padding:3px 8px" onclick="editCourse(${course.id})">✏️ Edit</button>
+          <button class="btn btn-r" style="font-size:10px;padding:3px 8px" onclick="deleteCourse(${course.id})">🗑️</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Course Fees</div>
+            <div style="font-weight:700;color:var(--accent)">₹${course.courseFees||0}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Book Fees</div>
+            <div style="font-weight:700;color:var(--blue)">₹${course.bookFees||0}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Students</div>
+            <div style="font-weight:700;color:var(--green)">${enrolled}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Collected</div>
+            <div style="font-weight:700;color:var(--green)">₹${income.toFixed(0)}</div>
+          </div>
+        </div>
+        ${course.notes?`<div style="font-size:11px;color:var(--text3);font-style:italic">📝 ${course.notes}</div>`:''}
+        ${pending>0?`<div style="font-size:11px;color:var(--red);margin-top:4px">⏳ ₹${pending.toFixed(0)} pending from ${enrolled} student${enrolled!==1?'s':''}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCourseStats(){
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('cm-total',   S.courses.length);
+  setEl('cm-enrolled', S.students.filter(s=>s.courseId).length);
+  setEl('cm-income',  '₹'+S.students.reduce((a,s)=>a+(s.paid||0),0).toFixed(0));
+  setEl('cm-pending', '₹'+S.students.reduce((a,s)=>a+(s.balance||0),0).toFixed(0));
+}
+
+function renderCourseReports(){
+  const el=document.getElementById('course-reports-container'); if(!el) return;
+  if(!S.courses.length){
+    el.innerHTML='<div class="empty"><div class="ei">📊</div><p>Add courses to see reports</p></div>';
+    return;
+  }
+  el.innerHTML=S.courses.map(course=>{
+    const studs=S.students.filter(s=>s.courseId===course.id);
+    const totalFees=studs.reduce((a,s)=>a+(s.totalFees||0),0);
+    const collected=studs.reduce((a,s)=>a+(s.paid||0),0);
+    const pending  =studs.reduce((a,s)=>a+(s.balance||0),0);
+    const pct=totalFees>0?Math.min((collected/totalFees)*100,100):0;
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-h"><h3>📚 ${course.name} — ${course.timing||'—'}</h3><span style="font-size:11px;color:var(--text3)">${studs.length} students</span></div>
+      <div class="card-b">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+          <span>Total Billed: <strong style="color:var(--accent)">₹${totalFees.toFixed(0)}</strong></span>
+          <span>Collected: <strong style="color:var(--green)">₹${collected.toFixed(0)}</strong></span>
+          <span>Pending: <strong style="color:var(--red)">₹${pending.toFixed(0)}</strong></span>
+        </div>
+        <div style="background:var(--surface3);border-radius:4px;height:8px;overflow:hidden;margin-bottom:8px">
+          <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px"></div>
+        </div>
+        ${studs.length?`<div style="font-size:11px;color:var(--text3)">${studs.map(s=>`<span style="margin-right:8px">👤 ${s.name} — ${s.balance>0?'<span style="color:var(--red)">₹'+s.balance.toFixed(0)+' due</span>':'<span style="color:var(--green)">Paid</span>'}</span>`).join('')}</div>`:'<div style="font-size:11px;color:var(--text3)">No students enrolled yet</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Populate course dropdown in Add Student form
+function populateCourseDropdown(){
+  const sel=document.getElementById('stu-course-sel'); if(!sel) return;
+  sel.innerHTML='<option value="">— No course / Custom —</option>'+
+    S.courses.map(c=>`<option value="${c.id}">${c.name}${c.subject?' ('+c.subject+')':''} — ${c.timing}</option>`).join('');
+}
+
+// Auto-fill student fees when course selected
+function onStudentCourseSelect(){
+  const sel   =document.getElementById('stu-course-sel');
+  const courseId=+sel?.value||0;
+  const course =S.courses.find(c=>c.id===courseId);
+  const idEl  =document.getElementById('stu-course-id');
+  if(idEl) idEl.value=courseId||'';
+  if(course){
+    const cf=document.getElementById('stu-course-fees');
+    const bf=document.getElementById('stu-book-fees');
+    const tm=document.getElementById('stu-timing');
+    if(cf) cf.value=course.courseFees||0;
+    if(bf) bf.value=course.bookFees||0;
+    if(tm) tm.value=course.timing||'';
+    // Auto-check both boxes
+    const cc=document.getElementById('stu-chk-course');
+    const bc=document.getElementById('stu-chk-book');
+    if(cc) cc.checked=true;
+    if(bc) bc.checked=(course.bookFees>0);
+    calcStudentTotal();
+  } else {
+    calcStudentTotal();
+  }
+}
+
+// Calculate total based on checked fee boxes
+function calcStudentTotal(){
+  const cf = +document.getElementById('stu-course-fees')?.value||0;
+  const bf = +document.getElementById('stu-book-fees')?.value||0;
+  const cc = document.getElementById('stu-chk-course')?.checked;
+  const bc = document.getElementById('stu-chk-book')?.checked;
+  const total=(cc?cf:0)+(bc?bf:0);
+  const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value=total;
+}
+
+// Updated addStudent with course support
+function addStudent(){
+  const name=document.getElementById('stu-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter student name'); return; }
+  const courseId=+document.getElementById('stu-course-id')?.value||0;
+  const course  =S.courses.find(c=>c.id===courseId);
+  const cf=+document.getElementById('stu-course-fees')?.value||0;
+  const bf=+document.getElementById('stu-book-fees')?.value||0;
+  const cc=document.getElementById('stu-chk-course')?.checked;
+  const bc=document.getElementById('stu-chk-book')?.checked;
+  const totalFees=+document.getElementById('stu-fee')?.value||0;
+  const student={
+    id:Date.now(), name,
+    cls:document.getElementById('stu-class')?.value||'',
+    phone:document.getElementById('stu-phone')?.value||'',
+    parent:document.getElementById('stu-parent')?.value||'',
+    courseId:courseId||null,
+    courseName:course?course.name:'',
+    timing:document.getElementById('stu-timing')?.value||'',
+    courseFees:cf, bookFees:bf,
+    selectedFees:{course:!!cc, book:!!bc},
+    fee:totalFees, totalFees,
+    paid:0, pending:totalFees, balance:totalFees
+  };
+  S.students.push(student);
+  ['stu-name','stu-class','stu-phone','stu-parent','stu-timing','stu-course-fees','stu-book-fees'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+  const sel=document.getElementById('stu-course-sel'); if(sel) sel.value='';
+  const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value='';
+  const cidEl=document.getElementById('stu-course-id'); if(cidEl) cidEl.value='';
+  const cc2=document.getElementById('stu-chk-course'); if(cc2) cc2.checked=true;
+  const bc2=document.getElementById('stu-chk-book'); if(bc2) bc2.checked=true;
+  renderStudents(); renderCourseStats(); autoSave();
+  toast('✅ Student added!'+(course?' ('+course.name+')':''));
+}
+
+function renderStudents(){
+  document.getElementById('t-total').textContent=S.students.length;
+  const fees=S.students.reduce((a,s)=>a+(s.paid||0),0);
+  const pend=S.students.reduce((a,s)=>a+(s.balance||0),0);
+  document.getElementById('t-fees').textContent='₹'+fees.toFixed(2);
+  document.getElementById('t-pend').textContent='₹'+pend.toFixed(2);
+  document.getElementById('d-stu').textContent=S.students.length;
+  // Staff dashboard stats
+  const staffDom=document.getElementById('t-staff');if(staffDom)staffDom.textContent=S.staff.length;
+  const salDue2=S.staff.reduce((a,s)=>a+(s.sal-s.paid),0);
+  const salDueEl=document.getElementById('t-saldue');if(salDueEl)salDueEl.textContent='₹'+Math.max(salDue2,0).toFixed(2);
+  const dStaff=document.getElementById('d-staff');if(dStaff)dStaff.textContent=S.staff.length;
+  const dSal=document.getElementById('d-sal');if(dSal)dSal.textContent='₹'+Math.max(salDue2,0).toFixed(2);
+  const dtf=document.getElementById('d-tfees');if(dtf)dtf.textContent='₹'+(S.students.reduce((a,s)=>a+(s.paid||0),0)).toFixed(2);
+  const dtp=document.getElementById('d-tpend');if(dtp)dtp.textContent='₹'+(S.students.reduce((a,s)=>a+(s.balance||s.pending||0),0)).toFixed(2);
+  const tb=document.getElementById('students-tbody');
+  if(!S.students.length){
+    tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">🎓</div><p>No students yet.</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=S.students.map(s=>{
+    const bal=s.balance||s.pending||0;
+    const paid=s.paid||0;
+    const total=s.totalFees||s.fee||0;
+    const badge=bal>0
+      ?'<span class="badge br" style="font-size:9px">⏳ Due</span>'
+      :'<span class="badge bg" style="font-size:9px">✅ Paid</span>';
+    return `<tr>
+      <td><strong>${s.name}</strong>${s.parent?'<div style="font-size:10px;color:var(--text3)">'+s.parent+'</div>':''}</td>
+      <td>${s.courseName||s.cls||'—'}</td>
+      <td style="font-size:11px">${s.timing||'—'}</td>
+      <td>${s.phone||'—'}</td>
+      <td style="color:var(--accent);font-weight:700">₹${total.toFixed(0)}</td>
+      <td style="color:var(--green)">₹${paid.toFixed(0)}</td>
+      <td style="color:${bal>0?'var(--red)':'var(--text3)'}">₹${bal.toFixed(0)}</td>
+      <td>${badge}</td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="markFeePaid(${s.id})">✅ Pay</button>
+        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delStudent(${s.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+  renderDueFees();
+}
+
+function renderDueFees(){
+  const tb=document.getElementById('due-students-tbody'); if(!tb) return;
+  const due=S.students.filter(s=>(s.balance||s.pending||0)>0);
+  if(!due.length){
+    tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">✅</div><p>No pending fees! All students paid.</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=due.map(s=>`<tr>
+    <td><strong>${s.name}</strong></td>
+    <td>${s.courseName||s.cls||'—'}</td>
+    <td style="color:var(--accent)">₹${(s.totalFees||s.fee||0).toFixed(0)}</td>
+    <td style="color:var(--green)">₹${(s.paid||0).toFixed(0)}</td>
+    <td style="color:var(--red);font-weight:700">₹${(s.balance||s.pending||0).toFixed(0)}</td>
+    <td><button class="btn btn-g" style="font-size:10px;padding:2px 8px" onclick="markFeePaid(${s.id})">✅ Mark Paid</button></td>
+  </tr>`).join('');
+}
+
+function renderBatchGroups(){
+  const el=document.getElementById('batch-groups-container'); if(!el) return;
+  if(!S.students.length){
+    el.innerHTML='<div class="empty"><div class="ei">📅</div><p>No students added yet</p></div>';
+    return;
+  }
+  // Group by timing
+  const groups={};
+  S.students.forEach(s=>{
+    const key=s.timing||'No Timing';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(s);
+  });
+  el.innerHTML=Object.entries(groups).map(([timing,studs])=>`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-h"><h3>⏰ ${timing}</h3><span style="font-size:11px;color:var(--text3)">${studs.length} students</span></div>
+      <div class="card-b" style="padding:0">
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Name</th><th>Course</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+          <tbody>${studs.map(s=>{
+            const bal=s.balance||s.pending||0;
+            return `<tr>
+              <td><strong>${s.name}</strong></td>
+              <td>${s.courseName||s.cls||'—'}</td>
+              <td>₹${(s.totalFees||s.fee||0).toFixed(0)}</td>
+              <td style="color:var(--green)">₹${(s.paid||0).toFixed(0)}</td>
+              <td style="color:${bal>0?'var(--red)':'var(--text3)'}">₹${bal.toFixed(0)}</td>
+              <td>${bal>0?'<span class="badge br" style="font-size:9px">Due</span>':'<span class="badge bg" style="font-size:9px">Paid</span>'}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>`).join('');
+}
+
+function markFeePaid(id){
+  const s=S.students.find(x=>x.id===id);
+  if(!s) return;
+  const bal=s.balance||s.pending||0;
+  if(bal<=0){ toast('Already paid!'); return; }
+  s.paid=(s.paid||0)+bal;
+  s.balance=0; s.pending=0;
+  renderStudents(); autoSave(); toast('✅ Fee marked as paid for '+s.name+'!');
+}
+function delStudent(id){S.students=S.students.filter(s=>s.id!==id);renderStudents();renderCourseStats();autoSave();toast('🗑️ Student removed');}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADVERTISEMENT MANAGEMENT SYSTEM
+// ═══════════════════════════════════════════════════════════════
+
+function adTab(el,id){
+  tabSwitch(el,id,['ad-list','ad-add','ad-analytics']);
+  if(id==='ad-list')      renderAds();
+  if(id==='ad-analytics') renderAdCharts();
+}
+
+function saveAd(){
+  const name=document.getElementById('ad-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter campaign name'); return; }
+  const editId=+document.getElementById('ad-edit-id')?.value||0;
+  const ad={
+    id:       editId||Date.now(),
+    name,
+    platform: document.getElementById('ad-platform')?.value||'Other',
+    type:     document.getElementById('ad-type')?.value||'Other',
+    budget:   +document.getElementById('ad-budget')?.value||0,
+    spend:    +document.getElementById('ad-spend-actual')?.value||0,
+    startDate:document.getElementById('ad-start')?.value||'',
+    endDate:  document.getElementById('ad-end')?.value||'',
+    desc:     document.getElementById('ad-desc')?.value.trim()||'',
+    sales:    editId?(S.advertisements.find(a=>a.id===editId)?.sales||0):0,
+    orders:   editId?(S.advertisements.find(a=>a.id===editId)?.orders||0):0,
+  };
+  if(editId){
+    const idx=S.advertisements.findIndex(a=>a.id===editId);
+    if(idx>=0) S.advertisements[idx]=ad;
+    toast('✅ Campaign updated!');
+  } else {
+    S.advertisements.push(ad);
+    toast('✅ Campaign added!');
+  }
+  clearAdForm();
+  renderAds(); renderAdStats(); populateAdSourceDropdown(); autoSave();
+  adTab(document.querySelector('#p-advertisement .tab-bar .tab'),'ad-list');
+}
+
+function clearAdForm(){
+  ['ad-name','ad-budget','ad-spend-actual','ad-start','ad-end','ad-desc'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+  const editId=document.getElementById('ad-edit-id'); if(editId) editId.value='';
+  const title=document.getElementById('ad-form-title'); if(title) title.textContent='➕ New Campaign';
+}
+
+function editAd(id){
+  const ad=S.advertisements.find(a=>a.id===id); if(!ad) return;
+  document.getElementById('ad-name').value        = ad.name;
+  document.getElementById('ad-platform').value    = ad.platform;
+  document.getElementById('ad-type').value        = ad.type;
+  document.getElementById('ad-budget').value      = ad.budget;
+  document.getElementById('ad-spend-actual').value= ad.spend;
+  document.getElementById('ad-start').value       = ad.startDate;
+  document.getElementById('ad-end').value         = ad.endDate;
+  document.getElementById('ad-desc').value        = ad.desc||'';
+  document.getElementById('ad-edit-id').value     = id;
+  const title=document.getElementById('ad-form-title'); if(title) title.textContent='✏️ Edit Campaign';
+  adTab(document.querySelectorAll('#p-advertisement .tab-bar .tab')[1],'ad-add');
+}
+
+function deleteAd(id){
+  if(!confirm('Delete this campaign?')) return;
+  S.advertisements=S.advertisements.filter(a=>a.id!==id);
+  renderAds(); renderAdStats(); populateAdSourceDropdown(); autoSave(); toast('🗑️ Campaign deleted');
+}
+
+function renderAdStats(){
+  const now=new Date().toISOString().slice(0,10);
+  const active=S.advertisements.filter(a=>!a.endDate||a.endDate>=now).length;
+  const totalSpend=S.advertisements.reduce((a,x)=>a+(x.spend||0),0);
+  const totalSales=S.advertisements.reduce((a,x)=>a+(x.sales||0),0);
+  // Best ROI
+  const best=[...S.advertisements].filter(a=>a.spend>0).sort((a,b)=>{
+    const roiA=(a.sales||0)-(a.spend||0), roiB=(b.sales||0)-(b.spend||0);
+    return roiB-roiA;
+  })[0];
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('ad-active',     active);
+  setEl('ad-spend',      '₹'+totalSpend.toFixed(0));
+  setEl('ad-sales-stat', '₹'+totalSales.toFixed(0));
+  setEl('ad-best',       best?best.name.substring(0,14)+'…':'—');
+}
+
+function renderAds(){
+  const el=document.getElementById('ads-list-container'); if(!el) return;
+  renderAdStats();
+  if(!S.advertisements.length){
+    el.innerHTML='<div class="empty"><div class="ei">📢</div><p>No campaigns yet. Add your first ad campaign!</p></div>';
+    return;
+  }
+  const now=new Date().toISOString().slice(0,10);
+  // Find best performer for badge
+  const bestId=[...S.advertisements].filter(a=>a.spend>0).sort((a,b)=>((b.sales||0)-(b.spend||0))-((a.sales||0)-(a.spend||0)))[0]?.id;
+  el.innerHTML=S.advertisements.map(ad=>{
+    const roi   =(ad.sales||0)-(ad.spend||0);
+    const roas  =ad.spend>0?((ad.sales||0)/ad.spend).toFixed(2):'—';
+    const active=!ad.endDate||ad.endDate>=now;
+    const roiColor=roi>=0?'var(--green)':'var(--red)';
+    const isBest=ad.id===bestId;
+    const platformIcons={WhatsApp:'💬',Facebook:'👍',Instagram:'📸',Google:'🔍','Banner/Poster':'🏷️','Word of Mouth':'🗣️',Other:'📢'};
+    const icon=platformIcons[ad.platform]||'📢';
+    return `<div class="card" style="margin-bottom:12px${isBest?';border:1px solid rgba(249,200,70,.4)':''}">
+      <div class="card-h" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 style="margin-bottom:2px">${icon} ${ad.name}${isBest?' <span style="font-size:10px;background:rgba(249,200,70,.2);color:var(--accent);padding:2px 8px;border-radius:10px;margin-left:6px">🏆 Best ROI</span>':''}</h3>
+          <div style="font-size:11px;color:var(--text3)">${ad.platform} · ${ad.type} · ${active?'<span style="color:var(--green)">Active</span>':'<span style="color:var(--text3)">Ended</span>'}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button class="btn btn-y" style="font-size:10px;padding:3px 8px" onclick="editAd(${ad.id})">✏️</button>
+          <button class="btn btn-r" style="font-size:10px;padding:3px 8px" onclick="deleteAd(${ad.id})">🗑️</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center">
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Budget</div>
+            <div style="font-weight:700;font-size:13px;color:var(--text)">₹${ad.budget||0}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Spent</div>
+            <div style="font-weight:700;font-size:13px;color:var(--red)">₹${ad.spend||0}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Sales</div>
+            <div style="font-weight:700;font-size:13px;color:var(--blue)">₹${(ad.sales||0).toFixed(0)}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">ROI</div>
+            <div style="font-weight:700;font-size:13px;color:${roiColor}">${roi>=0?'+':''}₹${roi.toFixed(0)}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">ROAS</div>
+            <div style="font-weight:700;font-size:13px;color:${roas!=='—'&&+roas>=1?'var(--green)':'var(--red)'}">${roas}×</div>
+          </div>
+        </div>
+        ${ad.startDate?`<div style="font-size:10px;color:var(--text3);margin-top:8px">📅 ${ad.startDate}${ad.endDate?' → '+ad.endDate:''} · 📦 ${ad.orders||0} orders from this ad</div>`:''}
+        ${ad.desc?`<div style="font-size:11px;color:var(--text2);margin-top:4px;font-style:italic">${ad.desc}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAdCharts(){
+  renderAdStats();
+  // Bar chart: Spend vs Sales per ad
+  const barEl=document.getElementById('ad-bar-chart'); if(!barEl) return;
+  if(!S.advertisements.length){
+    barEl.innerHTML='<div class="empty"><div class="ei">📊</div><p>No ad data yet</p></div>';
+    document.getElementById('ad-perf-tbody').innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📊</div><p>No campaigns yet</p></div></td></tr>';
+    return;
+  }
+  const maxVal=Math.max(...S.advertisements.map(a=>Math.max(a.spend||0,a.sales||0)),1);
+  barEl.innerHTML=`<div style="display:flex;gap:8px;align-items:flex-end;height:160px;padding:8px 0;overflow-x:auto">
+    ${S.advertisements.map(ad=>`
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px;flex:1">
+        <div style="display:flex;gap:2px;align-items:flex-end;height:120px">
+          <div style="width:18px;background:var(--red);border-radius:3px 3px 0 0;height:${Math.max(((ad.spend||0)/maxVal)*100,2)}%" title="Spend: ₹${ad.spend||0}"></div>
+          <div style="width:18px;background:var(--green);border-radius:3px 3px 0 0;height:${Math.max(((ad.sales||0)/maxVal)*100,2)}%" title="Sales: ₹${ad.sales||0}"></div>
+        </div>
+        <div style="font-size:9px;color:var(--text3);text-align:center;word-break:break-word;max-width:60px">${ad.name.substring(0,8)}</div>
+      </div>`).join('')}
+  </div>
+  <div style="display:flex;gap:16px;margin-top:4px;font-size:10px;color:var(--text3)">
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:8px;background:var(--red);border-radius:2px;display:inline-block"></span> Spend</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:8px;background:var(--green);border-radius:2px;display:inline-block"></span> Sales</span>
+  </div>`;
+
+  // Pie chart: platform spend
+  const pieEl=document.getElementById('ad-pie-chart');
+  if(pieEl){
+    const platforms={};
+    S.advertisements.forEach(a=>{ if(a.spend>0) platforms[a.platform]=(platforms[a.platform]||0)+a.spend; });
+    const total=Object.values(platforms).reduce((a,b)=>a+b,0)||1;
+    const colors=['var(--accent)','var(--blue)','var(--green)','var(--red)','var(--orange)','var(--text2)'];
+    const entries=Object.entries(platforms);
+    pieEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px">
+      ${entries.map(([plat,spend],i)=>{
+        const pct=(spend/total*100).toFixed(0);
+        return `<div style="display:flex;align-items:center;gap:8px">
+          <div style="width:12px;height:12px;background:${colors[i%colors.length]};border-radius:2px;flex-shrink:0"></div>
+          <div style="flex:1;font-size:11px;color:var(--text2)">${plat}</div>
+          <div style="background:var(--surface2);border-radius:3px;height:8px;flex:2;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${colors[i%colors.length]}"></div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);min-width:40px;text-align:right">₹${spend.toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);min-width:28px">${pct}%</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Performance table
+  const tb=document.getElementById('ad-perf-tbody');
+  if(tb){
+    const sorted=[...S.advertisements].sort((a,b)=>((b.sales||0)-(b.spend||0))-((a.sales||0)-(a.spend||0)));
+    const bestId=sorted[0]?.id;
+    tb.innerHTML=sorted.map(ad=>{
+      const roi=(ad.sales||0)-(ad.spend||0);
+      const roas=ad.spend>0?((ad.sales||0)/ad.spend).toFixed(2):'—';
+      const rating=roi>5000?'🏆 Excellent':roi>0?'✅ Profitable':roi===0?'➖ Break-even':'❌ Loss';
+      return `<tr>
+        <td><strong>${ad.name}</strong>${ad.id===bestId?' ⭐':''}</td>
+        <td>${ad.platform}</td>
+        <td style="color:var(--red)">₹${(ad.spend||0).toFixed(0)}</td>
+        <td style="color:var(--green)">₹${(ad.sales||0).toFixed(0)}</td>
+        <td>${ad.orders||0}</td>
+        <td style="color:${roi>=0?'var(--green)':'var(--red)'};font-weight:700">${roi>=0?'+':''}₹${roi.toFixed(0)}</td>
+        <td style="font-weight:700">${roas}×</td>
+        <td>${rating}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// Populate Ad Source dropdown in Sales Entry
+function populateAdSourceDropdown(){
+  const sel=document.getElementById('s-ad-source'); if(!sel) return;
+  sel.innerHTML='<option value="">📢 Ad Source (optional)</option>'+
+    S.advertisements.map(a=>`<option value="${a.id}">${a.name} (${a.platform})</option>`).join('');
+}
+
+// Called from saveSale to link sale to an ad campaign
+function linkSaleToAd(adId, saleTotal){
+  if(!adId) return;
+  const ad=S.advertisements.find(a=>a.id===+adId); if(!ad) return;
+  ad.sales=(ad.sales||0)+saleTotal;
+  ad.orders=(ad.orders||0)+1;
+}
 function baTab(el,id){
   tabSwitch(el,id,['ba-trends','ba-best','ba-peak','ba-seasonal','ba-break']);
   if(id==='ba-trends') renderBaMonthly();
@@ -5301,6 +6744,10 @@ function saveSale(){
   renderSalesTable();renderWeeklyChart();updateDashStats();renderOrders();renderCustomers();renderWA();renderProducts();renderInventory();renderSmartProfit();renderSalesForecast();renderDemand();
   autoCreateReminderFromSale(sale);
   sendProductUpdateWA(sale);
+  // Link sale to ad campaign if selected
+  const adSrc=document.getElementById('s-ad-source')?.value;
+  if(adSrc) linkSaleToAd(adSrc, finalTotal);
+  document.getElementById('s-ad-source').value='';
   gsMaybeSync('addSale', sale);
   autoSave();
   refreshCustDatalist();
@@ -5341,7 +6788,6 @@ function deleteSale(id){
 // ===== CUSTOMERS =====
 function renderCustomers(list){
   list=list||S.customers;
-  // Update ref datalist
   const rcdl=document.getElementById('ref-cust-dl');
   if(rcdl) rcdl.innerHTML=S.customers.map(c=>`<option value="${c.name}">`).join('');
   const tb=document.getElementById('customers-tbody');
@@ -5349,12 +6795,50 @@ function renderCustomers(list){
   tb.innerHTML=list.map(c=>`<tr>
     <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}</td>
     <td>${c.phone||'—'}</td><td>${c.addr||'—'}</td>
-    <td>${c.lastProd||'—'}</td><td><span class="badge ${c.mode==='Credit (Pending)'?'br':'bg'}">${c.mode||'Cash'}</span></td>
+    <td>${c.lastProd||'—'}</td>
+    <td><span class="badge ${c.mode==='Credit (Pending)'?'br':'bg'}">${c.mode||'Cash'}</span></td>
     <td><span class="badge ${c.pending>0?'br':'bg'}">${c.pending>0?'Pending':'Clear'}</span></td>
     <td style="color:var(--green)">₹${(c.paid||0).toFixed(2)}</td>
     <td style="color:${c.pending>0?'var(--red)':'var(--text3)'}">₹${(c.pending||0).toFixed(2)}</td>
-    <td><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="deleteCust(${c.id})">🗑️</button></td>
+    <td style="display:flex;gap:3px">
+      <button class="btn btn-y" style="font-size:10px;padding:2px 6px" onclick="openEditCustomer(${c.id})">✏️</button>
+      <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="deleteCust(${c.id})">🗑️</button>
+    </td>
   </tr>`).join('');
+}
+
+function openEditCustomer(id){
+  const c=S.customers.find(x=>x.id===id); if(!c) return;
+  document.getElementById('ec-id').value     = id;
+  document.getElementById('ec-name').value   = c.name||'';
+  document.getElementById('ec-phone').value  = c.phone||'';
+  document.getElementById('ec-addr').value   = c.addr||'';
+  document.getElementById('ec-bday').value   = c.bday||'';
+  document.getElementById('ec-mode').value   = c.mode||'Cash';
+  document.getElementById('ec-paid').value   = (c.paid||0).toFixed(2);
+  document.getElementById('ec-pending').value= (c.pending||0).toFixed(2);
+  openModal('edit-customer-modal');
+}
+
+function saveEditCustomer(){
+  const id = +document.getElementById('ec-id').value;
+  const c  = S.customers.find(x=>x.id===id); if(!c) return;
+  const name = document.getElementById('ec-name').value.trim();
+  if(!name){ toast('⚠️ Name is required'); return; }
+  // Update all sale/order references if name changed
+  if(c.name !== name){
+    S.sales.forEach(s=>{ if(s.customer===c.name) s.customer=name; });
+    S.orders.forEach(o=>{ if(o.customer===c.name) o.customer=name; });
+    S.reminders.forEach(r=>{ if(r.custName===c.name) r.custName=name; });
+  }
+  c.name    = name;
+  c.phone   = document.getElementById('ec-phone').value.trim();
+  c.addr    = document.getElementById('ec-addr').value.trim();
+  c.bday    = document.getElementById('ec-bday').value;
+  c.mode    = document.getElementById('ec-mode').value;
+  closeModal('edit-customer-modal');
+  renderCustomers(); refreshCustDatalist(); autoSave();
+  toast('✅ Customer updated!');
 }
 
 function searchCustomers(q){renderCustomers(S.customers.filter(c=>(c.name+c.phone).toLowerCase().includes(q.toLowerCase())));}
@@ -5383,8 +6867,27 @@ function deleteCust(id){S.customers=S.customers.filter(c=>c.id!==id);renderCusto
 function renderPendingCust(){
   const list=S.customers.filter(c=>c.pending>0);
   const tb=document.getElementById('pending-cust-tbody');
-  if(!list.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr>';return;}
-  tb.innerHTML=list.map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.phone||'—'}</td><td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td><td>—</td><td><button class="btn btn-g" style="font-size:10px;padding:3px 8px" onclick="sendWA('${c.name}',${c.pending},'${c.phone}')">📱 Remind</button></td></tr>`).join('');
+  if(!tb) return;
+  if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr>';return;}
+  const today=new Date();
+  tb.innerHTML=list.map(c=>{
+    // Find oldest pending sale date
+    const pendSales=S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0);
+    const oldest=pendSales.length?pendSales.reduce((a,s)=>s.date<a?s.date:a,pendSales[0].date):null;
+    const days=oldest?Math.floor((today-new Date(oldest+'T00:00:00'))/86400000):0;
+    const ageColor=days>90?'var(--red)':days>30?'var(--accent)':'var(--text3)';
+    const npaReady=days>90;
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.phone||'—'}</td>
+      <td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td>
+      <td style="color:${ageColor};font-weight:${days>30?'700':'400'}">${days>0?days+'d':'-'}${npaReady?' ⚠️':''}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendWA('${c.name.replace(/'/g,"\\'")}',${c.pending},'${c.phone||''}')">📱 Remind</button>
+        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="openNPAModal(${c.id})" title="Mark as unrecoverable bad debt">🚫 NPA</button>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 // ===== ORDERS =====
@@ -5553,8 +7056,25 @@ function sendProductUpdateWA(sale){
 function renderWA(){
   const list=S.customers.filter(c=>c.pending>0);
   const tb=document.getElementById('wa-tbody');
-  if(!list.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--accent)">⚡ No pending payments! All clear.</td></tr>';return;}
-  tb.innerHTML=list.map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.phone||'—'}</td><td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td><td>—</td><td><button class="btn btn-g" style="font-size:10px;padding:3px 8px" onclick="sendWA('${c.name}',${c.pending},'${c.phone}')">📱 Send</button></td></tr>`).join('');
+  if(!tb) return;
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--accent)">⚡ No pending payments! All clear.</td></tr>';return;}
+  const today=new Date();
+  tb.innerHTML=list.map(c=>{
+    const pendSales=S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0);
+    const oldest=pendSales.length?pendSales.reduce((a,s)=>s.date<a?s.date:a,pendSales[0].date):null;
+    const days=oldest?Math.floor((today-new Date(oldest+'T00:00:00'))/86400000):0;
+    const ageColor=days>90?'var(--red)':days>30?'var(--accent)':'var(--text3)';
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.phone||'—'}</td>
+      <td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td>
+      <td style="color:${ageColor}">${days>0?days+'d':'-'}${days>90?' ⚠️':''}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendWA('${c.name.replace(/'/g,"\\'")}',${c.pending},'${c.phone||''}')">📱 Send</button>
+        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="openNPAModal(${c.id})" title="Write off as bad debt">🚫 NPA</button>
+      </td>
+    </tr>`;
+  }).join('');
 }
 function sendWA(name,amount,phone){
   const msg = getWATmpl('pending',{name, amount:'₹'+amount});
@@ -5678,36 +7198,6 @@ function clearTeaForm(){
 }
 
 // ===== TUITION =====
-function addStudent(){
-  const name=document.getElementById('stu-name').value.trim();
-  if(!name){toast('⚠️ Enter name');return;}
-  S.students.push({id:Date.now(),name,cls:document.getElementById('stu-class').value,phone:document.getElementById('stu-phone').value,fee:+document.getElementById('stu-fee').value||0,paid:0,pending:+document.getElementById('stu-fee').value||0});
-  ['stu-name','stu-class','stu-phone','stu-fee'].forEach(id=>document.getElementById(id).value='');
-  renderStudents();autoSave();toast('✅ Student added!');
-}
-
-function renderStudents(){
-  document.getElementById('t-total').textContent=S.students.length;
-  const fees=S.students.reduce((a,s)=>a+s.paid,0);
-  const pend=S.students.reduce((a,s)=>a+s.pending,0);
-  document.getElementById('t-fees').textContent='₹'+fees.toFixed(2);
-  document.getElementById('t-pend').textContent='₹'+pend.toFixed(2);
-  document.getElementById('t-staff').textContent=S.staff.length;
-  const salDue=S.staff.reduce((a,s)=>a+(s.sal-s.paid),0);
-  document.getElementById('t-saldue').textContent='₹'+Math.max(salDue,0).toFixed(2);
-  document.getElementById('d-stu').textContent=S.students.length;
-  document.getElementById('d-tfees').textContent='₹'+fees.toFixed(2);
-  document.getElementById('d-tpend').textContent='₹'+pend.toFixed(2);
-  document.getElementById('d-staff').textContent=S.staff.length;
-  document.getElementById('d-sal').textContent='₹'+Math.max(salDue,0).toFixed(2);
-  const tb=document.getElementById('students-tbody');
-  if(!S.students.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🎓</div><p>No students yet. Add a student to begin.</p></div></td></tr>';return;}
-  tb.innerHTML=S.students.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.cls||'—'}</td><td>${s.phone||'—'}</td><td style="color:var(--accent);font-weight:700">₹${s.fee.toFixed(2)}</td><td style="color:var(--green)">₹${s.paid.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--text3)'}">₹${s.pending.toFixed(2)}</td><td><button class="btn ${s.pending>0?'btn-g':'btn-o'}" style="font-size:10px;padding:3px 8px" onclick="markFeePaid(${s.id})">${s.pending>0?'✅ Mark Paid':'Paid'}</button><button class="btn btn-r" style="font-size:10px;padding:3px 6px;margin-left:4px" onclick="delStudent(${s.id})">🗑️</button></td></tr>`).join('');
-}
-
-function markFeePaid(id){const s=S.students.find(x=>x.id===id);if(s&&s.pending>0){s.paid+=s.fee;s.pending=0;renderStudents();autoSave();toast('✅ Fee marked paid!');}}
-function delStudent(id){S.students=S.students.filter(s=>s.id!==id);renderStudents();autoSave();toast('🗑️ Student removed');}
-
 function addStaff(){
   const name=document.getElementById('stf-name').value.trim();
   if(!name){toast('⚠️ Enter name');return;}
@@ -5923,7 +7413,7 @@ function renderInventory(){
 
 function copyReorderMsg(name, qty, unit){
   const biz = S.settings.bizName||'Meenatchi Traders';
-  const msg = `📦 Reorder Request — ${biz}\n\nProduct: ${name}\nQuantity: ${qty} ${unit}\nDate: ${new Date().toLocaleDateString('en-IN')}\n\nPlease confirm availability and price. Thank you!`;
+  const msg = getWATmpl('reorder',{name, amount:qty+' '+unit, biz, date:new Date().toLocaleDateString('en-IN')});
   if(navigator.clipboard){
     navigator.clipboard.writeText(msg).then(()=>toast('📋 Order message copied to clipboard!'));
   } else {
@@ -5962,6 +7452,8 @@ function renderSmartProfit(){
   renderProductPerformance();
   // Loyalty impact
   renderLoyaltyImpact();
+  // Advertisement impact
+  renderAdImpact();
 }
 
 function renderProductPerformance(days){
@@ -6215,6 +7707,7 @@ function updateDashStats(){
   const mTotal=S.sales.reduce((a,s)=>a+s.total,0);
   const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
   const loyDisc=S.sales.reduce((a,s)=>a+(s.redeemDisc||0),0);
+  const npaTotal=(S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
   document.getElementById('d-profit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
@@ -6224,13 +7717,150 @@ function updateDashStats(){
   document.getElementById('d-cprofit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
   const ldEl=document.getElementById('d-loyalty-disc');
   if(ldEl) ldEl.textContent='₹'+loyDisc.toFixed(0);
+  // NPA loss on dashboard
+  const npaEl=document.getElementById('d-npa-loss');
+  if(npaEl) npaEl.textContent='₹'+npaTotal.toFixed(0);
   // Recent orders
   const otb=document.getElementById('dash-orders');
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
   otb.innerHTML=S.orders.length?S.orders.slice().reverse().slice(0,8).map(o=>{const sc2={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};return `<tr><td>${o.customer}</td><td>${o.product}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td><td><span class="badge ${sc2[o.status]||'bb'}">${o.status}</span></td></tr>`;}).join(''):'<tr><td colspan="4"><div class="empty"><div class="ei">📭</div><p>No orders yet</p></div></td></tr>';
-  // Also refresh pending tab data if visible
   renderDashPending();
   renderDashTarget();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NPA — Non-Performing Asset / Bad Debt Write-off System
+// ═══════════════════════════════════════════════════════════════
+
+function openNPAModal(custId){
+  const c=S.customers.find(x=>x.id===custId);
+  if(!c){toast('Customer not found');return;}
+  if(!(c.pending>0)){toast('⚠️ No pending amount for this customer');return;}
+  document.getElementById('npa-cust-id').value  = custId;
+  document.getElementById('npa-cust-show').textContent = c.name;
+  document.getElementById('npa-amount-show').textContent = '₹'+c.pending.toFixed(2);
+  document.getElementById('npa-date').value      = new Date().toISOString().slice(0,10);
+  document.getElementById('npa-reason').value    = 'customer_absconded';
+  document.getElementById('npa-notes').value     = '';
+  document.getElementById('npa-partial-chk').checked = false;
+  document.getElementById('npa-partial-wrap').style.display='none';
+  document.getElementById('npa-partial-amt').value='';
+  openModal('npa-modal');
+}
+
+function toggleNpaPartial(){
+  const chk=document.getElementById('npa-partial-chk').checked;
+  document.getElementById('npa-partial-wrap').style.display=chk?'block':'none';
+  if(chk){
+    // Pre-fill with full amount as hint
+    const custId=+document.getElementById('npa-cust-id').value;
+    const c=S.customers.find(x=>x.id===custId);
+    if(c) document.getElementById('npa-partial-amt').value=c.pending.toFixed(2);
+  }
+}
+
+function confirmNPA(){
+  const custId   = +document.getElementById('npa-cust-id').value;
+  const reason   = document.getElementById('npa-reason').value;
+  const notes    = document.getElementById('npa-notes').value.trim();
+  const date     = document.getElementById('npa-date').value || new Date().toISOString().slice(0,10);
+  const partial  = document.getElementById('npa-partial-chk').checked;
+  const c=S.customers.find(x=>x.id===custId);
+  if(!c){toast('Customer not found');return;}
+
+  // Determine write-off amount
+  let writeOffAmt;
+  if(partial){
+    writeOffAmt = +document.getElementById('npa-partial-amt').value||0;
+    if(!writeOffAmt||writeOffAmt<=0){toast('⚠️ Enter a valid write-off amount');return;}
+    if(writeOffAmt>c.pending){toast('⚠️ Write-off amount cannot exceed pending ₹'+c.pending.toFixed(2));return;}
+  } else {
+    writeOffAmt = c.pending;
+  }
+
+  const reasonLabels={
+    customer_absconded:'Customer Absconded / Unreachable',
+    dispute:'Payment Dispute / Refused to Pay',
+    bankruptcy:'Customer Bankrupt / Business Closed',
+    deceased:'Customer Deceased',
+    too_old:'Too Old to Recover (6+ months)',
+    small_amount:'Small Amount — Not Worth Pursuing',
+    other:'Other'
+  };
+
+  // Log the NPA write-off
+  S.npaLog = S.npaLog||[];
+  S.npaLog.push({
+    id:      Date.now(),
+    date,
+    custId,
+    custName:  c.name,
+    phone:     c.phone||'',
+    amount:    writeOffAmt,
+    reason,
+    reasonLabel: reasonLabels[reason]||reason,
+    notes,
+    partial,
+    createdAt: new Date().toISOString()
+  });
+
+  // Mark matching pending sales as NPA
+  let remaining = writeOffAmt;
+  S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .forEach(s=>{
+      if(remaining<=0) return;
+      const reduce=Math.min(s.pending,remaining);
+      s.npa=(s.npa||0)+reduce;
+      s.pending=Math.max(s.pending-reduce,0);
+      s.npaDate=date;
+      s.npaReason=reason;
+      if(s.pending===0) s.status='NPA';
+      remaining-=reduce;
+    });
+
+  // Reduce customer pending
+  c.pending=Math.max(c.pending-writeOffAmt,0);
+  // Add NPA as negative profit entry (loss)
+  c.npaLoss=(c.npaLoss||0)+writeOffAmt;
+
+  closeModal('npa-modal');
+  autoSave();
+  refreshAll();
+  renderNPALog();
+  toast(`🚫 ₹${writeOffAmt.toFixed(2)} written off for ${c.name}. Recorded as bad debt loss.`);
+}
+
+function renderNPALog(){
+  const log=S.npaLog||[];
+  const mn=new Date().toISOString().slice(0,7);
+
+  // Update stat cards
+  const total=log.reduce((a,n)=>a+(n.amount||0),0);
+  const count=log.length;
+  const custs=[...new Set(log.map(n=>n.custName))].length;
+  const thisMonth=log.filter(n=>n.date&&n.date.startsWith(mn)).reduce((a,n)=>a+(n.amount||0),0);
+
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('npa-total',      '₹'+total.toFixed(0));
+  setEl('npa-count',      count);
+  setEl('npa-cust-count', custs);
+  setEl('npa-month',      '₹'+thisMonth.toFixed(0));
+
+  const tb=document.getElementById('npa-tbody');
+  if(!tb) return;
+  if(!log.length){
+    tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🚫</div><p>No NPA write-offs yet.</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=[...log].reverse().map(n=>`<tr>
+    <td>${n.date}</td>
+    <td><strong>${n.custName}</strong><div style="font-size:10px;color:var(--text3)">${n.phone||''}</div></td>
+    <td style="color:var(--red);font-weight:700">₹${(n.amount||0).toFixed(2)}${n.partial?'<span style="font-size:9px;color:var(--text3);display:block">(partial)</span>':''}</td>
+    <td style="font-size:11px">${n.reasonLabel||n.reason}</td>
+    <td style="font-size:11px;color:var(--text3)">${n.notes||'—'}</td>
+    <td style="font-size:10px;color:var(--text3)">${n.date}</td>
+  </tr>`).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -6929,9 +8559,10 @@ function soTab(el,id){
   if(id==='so-new')       { soPopulateDatalists(); soSetDefaults(); }
 }
 function rpTab(el,id){
-  tabSwitch(el,id,['rp-log','rp-new','rp-history']);
+  tabSwitch(el,id,['rp-log','rp-new','rp-split','rp-history']);
   if(id==='rp-log')     renderRepackLog();
   if(id==='rp-new')     rpPopulateDatalists();
+  if(id==='rp-split')   { spPopulateDatalists(); renderSplitPresets(); renderSplitHistory(); renderSplitStats(); }
   if(id==='rp-history') renderPackUsageHistory();
 }
 function psTab(el,id){
@@ -8126,7 +9757,7 @@ function addReminder(){
     dueDate: due.toISOString().slice(0,10),
     priority: document.getElementById('rem-priority').value,
     notes: document.getElementById('rem-notes').value,
-    msg: document.getElementById('rem-msg-custom').value || `Hi ${cust}, it's time to reorder ${prod}! Contact Meenatchi Traders. 😊`,
+    msg: document.getElementById('rem-msg-custom').value || getWATmpl('reminder',{name:cust,product:prod}),
     sentCount: 0,
     snoozed: false,
     createdAt: new Date().toISOString()
@@ -8163,7 +9794,7 @@ function addProductRule(){
     product,
     days,
     priority: document.getElementById('rule-priority').value,
-    msg: document.getElementById('rule-msg').value || `Hi {name}, time to reorder ${product}! Contact Meenatchi Traders. 📞`,
+    msg: document.getElementById('rule-msg').value || getWATmpl('reminder',{name:'{name}',product:product}),
     autoCreate: true,
     timesUsed: 0
   });
@@ -9015,6 +10646,8 @@ window.addEventListener('DOMContentLoaded', function(){
   addProductRow();
   buildSellUnitOptions();
   buildCustDatalist();
+  populateAdSourceDropdown(); // populate ad dropdown on load
+  populateCourseDropdown();  // populate course dropdown on load
   renderCategoryChips();
   renderRemindersStats();
   loadLogoPreview();
