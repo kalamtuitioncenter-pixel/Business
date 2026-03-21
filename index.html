@@ -367,9 +367,10 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 .bc-l{font-size:9px;color:var(--text3)}
 
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;display:none;align-items:center;justify-content:center}
-.mo.open{display:flex}
-.mo-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:460px;max-width:95vw;max-height:88vh;overflow-y:auto}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .15s ease}
+.mo.open{display:flex;opacity:1}
+.mo-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:460px;max-width:95vw;max-height:88vh;overflow-y:auto;transform:translateY(10px);transition:transform .15s ease}
+.mo.open .mo-box{transform:translateY(0)}
 .mo-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .mo-h h2{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700}
 .mo-b{padding:18px}
@@ -3473,31 +3474,78 @@ function fmtDate(d){
 }
 
 // ── Master refresh — call this when ANY data changes ──────────
+// ── Debounced autoSave — prevents blocking UI on every keystroke ──
+let _saveTimer = null;
+function autoSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(persistState, 400); // batch saves, 400ms debounce
+}
+function autoSaveNow(){ persistState(); } // immediate save for critical ops
+
+// ── Smart refresh — only re-render the currently visible page ──
 function refreshAll(){
+  // Always update these lightweight counters
+  updateDashStats();
+  checkUndeliveredOrders();
+
+  // Only re-render what's visible — check active page
+  const activePage = document.querySelector('.page.active')?.id?.replace('p-','');
+
+  // Always update pending/WA since they're small and used everywhere
+  const waTbody = document.getElementById('wa-tbody');
+  if(waTbody) renderWA();
+  const pendTbody = document.getElementById('pending-cust-tbody');
+  if(pendTbody && pendTbody.closest('#ct-pend')?.style.display!=='none') renderPendingCust();
+
+  // Page-specific heavy renders — only if that page is active
+  if(activePage==='dashboard'){
+    renderWeeklyChart();
+    renderStockOverview();
+    renderDashPending();
+  }
+  if(activePage==='sales')      renderSalesTable();
+  if(activePage==='orders')     renderOrders();
+  if(activePage==='customers')  { renderCustomers(); renderPendingCust(); }
+  if(activePage==='whatsapp')   renderWA();
+  if(activePage==='reminders')  renderRemindersStats();
+  if(activePage==='bulkwa'){
+    if(document.getElementById('bw-pend-list')) renderBwPending();
+    if(document.getElementById('bw-stat-pend')) renderBwStats();
+  }
+
+  // Heavy analytics — only refresh if user is looking at them
+  if(activePage==='smartprofit') renderSmartProfit();
+  if(activePage==='inventory')   renderInventory();
+  if(activePage==='loyalty')     { renderLoyalty(); loadPtsSettings(); }
+}
+
+// ── Full refresh — use sparingly (e.g. after bulk import) ──
+function refreshAllFull(){
   updateDashStats();
   renderDashPending();
-  renderWeeklyChart();      // ← weekly chart always refreshes
+  renderWeeklyChart();
   renderStockOverview();
-  renderWA();               // ← WA pending list refreshes
-  renderPendingCust();      // ← pending customers tab refreshes
-  renderOrders();           // ← order tracking refreshes
-  renderCustomers();        // ← customer table refreshes
-  renderSalesTable();       // ← sales history refreshes (fixes double-order display)
+  renderWA();
+  renderPendingCust();
+  renderOrders();
+  renderCustomers();
+  renderSalesTable();
   renderRemindersStats();
   renderSmartProfit();
   renderInventory();
   if(document.getElementById('bw-pend-list')) renderBwPending();
   if(document.getElementById('bw-stat-pend')) renderBwStats();
-  checkUndeliveredOrders(); // clear banner if all orders delivered
+  checkUndeliveredOrders();
 }
 
 function persistState(){
   try {
-    // Don't save editProdId (runtime only)
-    const toSave = Object.assign({}, S, { editProdId: null });
+    const toSave = Object.assign({}, S, { editProdId: null, _editSupplierId: null });
     localStorage.setItem(LS_KEY, JSON.stringify(toSave));
   } catch(e) {
-    console.warn('Could not save state:', e.message);
+    // If storage full, try clearing old backups first
+    try { localStorage.removeItem(LS_KEY+'_bk'); localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+    catch(e2){ console.warn('Storage full:', e2.message); }
   }
 }
 
@@ -3532,10 +3580,6 @@ function loadPersistedState(){
 }
 
 // Auto-save after every important action (call this at end of save functions)
-function autoSave(){
-  persistState();
-}
-
 // ===== NAVIGATION =====
 const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',coursemanagement:'📚',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
 const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
@@ -6744,7 +6788,16 @@ function saveSale(){
   if(products.length){
     S.orders.push({id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
   }
-  renderSalesTable();renderWeeklyChart();updateDashStats();renderOrders();renderCustomers();renderWA();renderProducts();renderInventory();renderSmartProfit();renderSalesForecast();renderDemand();
+  // Targeted post-sale render — only update what changed
+  renderSalesTable();
+  updateDashStats();
+  renderOrders();
+  renderWeeklyChart();
+  renderCustomers();
+  renderWA();
+  renderProducts();
+  // Defer heavy analytics to next idle moment
+  setTimeout(()=>{ if(document.querySelector('.page.active')?.id==='p-smartprofit') renderSmartProfit(); if(document.querySelector('.page.active')?.id==='p-inventory') renderInventory(); },100);
   autoCreateReminderFromSale(sale);
   sendProductUpdateWA(sale);
   // Link sale to ad campaign if selected
@@ -6784,7 +6837,7 @@ function renderSalesTable(){
 
 function deleteSale(id){
   S.sales=S.sales.filter(s=>s.id!==id);
-  renderSalesTable();renderWeeklyChart();updateDashStats();renderSmartProfit();
+  renderSalesTable();updateDashStats();renderWeeklyChart();
   autoSave();toast('🗑️ Sale removed');
 }
 
@@ -6841,6 +6894,7 @@ function saveEditCustomer(){
   c.mode    = document.getElementById('ec-mode').value;
   closeModal('edit-customer-modal');
   renderCustomers(); refreshCustDatalist(); autoSave();
+  updateDashStats(); // update pending/paid stats
   toast('✅ Customer updated!');
 }
 
@@ -6931,7 +6985,12 @@ function updateOrderStatus(id,status){
     }
   }
   autoSave();
-  refreshAll();
+  // Targeted: only update order list + dashboard counters
+  renderOrders();
+  updateDashStats();
+  renderWA();
+  renderPendingCust();
+  checkUndeliveredOrders();
   toast('📦 Order updated: '+status);
   // WA notification using saved template
   if(o.phone){
@@ -7829,8 +7888,13 @@ function confirmNPA(){
 
   closeModal('npa-modal');
   autoSave();
-  refreshAll();
-  renderNPALog();
+  // Targeted renders — only update affected views
+  updateDashStats();          // NPA card + pending amount
+  renderPendingCust();        // remove from pending list
+  renderWA();                 // remove from WA pending list
+  renderCustomers();          // update customer row status
+  renderNPALog();             // show in NPA log
+  checkUndeliveredOrders();
   toast(`🚫 ₹${writeOffAmt.toFixed(2)} written off for ${c.name}. Recorded as bad debt loss.`);
 }
 
@@ -7969,8 +8033,12 @@ function recordPayment(){
   S.orders.filter(o=>o.customer===name && o.status!=='Delivered' && o.status!=='Cancelled')
     .forEach(o=>{ if(c.pending===0) o.status='Delivered'; });
   autoSave();
-  refreshAll();
+  // Targeted: update pending/sales views
+  updateDashStats();
+  renderPendingCust();
+  renderWA();
   renderSalesTable();
+  checkUndeliveredOrders();
   // Clear form
   ['dp-cust','dp-recv-amt','dp-notes'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
   const pendAmtEl=document.getElementById('dp-pending-amt');if(pendAmtEl)pendAmtEl.value='';
@@ -10476,8 +10544,15 @@ async function gsMaybeSync(action, data){
 }
 
 // ===== MODAL =====
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
+function openModal(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.style.display='flex'; // force display first
+  requestAnimationFrame(()=>el.classList.add('open'));
+}
+function closeModal(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.classList.remove('open');
+}
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 // ===== TOAST =====
