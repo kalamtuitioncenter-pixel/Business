@@ -3286,7 +3286,60 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 <!-- MODALS -->
-<div class="mo" id="npa-modal">
+<!-- Student Partial Fee Payment Modal -->
+<div class="mo" id="student-pay-modal">
+  <div class="mo-box" style="max-width:420px">
+    <div class="mo-h" style="background:rgba(63,185,80,.06);border-bottom:1px solid rgba(63,185,80,.2)">
+      <h2>💰 Record Fee Payment</h2>
+      <button class="xbtn" onclick="closeModal('student-pay-modal')">✕</button>
+    </div>
+    <div class="mo-b">
+      <input type="hidden" id="sp-stu-id">
+      <!-- Student info -->
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)" id="sp-stu-name">—</div>
+        <div style="display:flex;gap:20px;margin-top:6px;font-size:12px">
+          <span>Total: <strong id="sp-stu-total" style="color:var(--accent)">₹0</strong></span>
+          <span>Paid: <strong id="sp-stu-paid" style="color:var(--green)">₹0</strong></span>
+          <span>Balance: <strong id="sp-stu-balance" style="color:var(--red)">₹0</strong></span>
+        </div>
+      </div>
+      <!-- Amount -->
+      <div class="fg">
+        <label class="fl">Amount Received (₹) <span style="color:var(--red)">*</span></label>
+        <div class="fi-ico">
+          <input class="fi" id="sp-pay-amt" type="number" placeholder="0" min="1"
+            oninput="spPayCalc()" style="font-size:15px;font-weight:700">
+          <span class="fi-ico-btn">₹</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="spPayFull()">Pay Full Balance</button>
+          <button class="btn btn-o" style="font-size:10px;padding:3px 8px" onclick="spPayHalf()">Pay Half</button>
+        </div>
+      </div>
+      <!-- Payment mode -->
+      <div class="fg">
+        <label class="fl">Payment Mode</label>
+        <select class="fs" id="sp-pay-mode">
+          <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option>
+        </select>
+      </div>
+      <!-- Notes -->
+      <div class="fg">
+        <label class="fl">Notes <span style="font-size:10px;color:var(--text3)">(optional)</span></label>
+        <input class="fi" id="sp-pay-notes" placeholder="e.g. Month of March, partial payment...">
+      </div>
+      <!-- After payment preview -->
+      <div id="sp-pay-preview" style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:none">
+        <div style="font-size:11.5px;color:var(--text2)" id="sp-pay-preview-text"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center;font-weight:700" onclick="confirmStudentPayment()">✅ Record Payment</button>
+        <button class="btn btn-o" onclick="closeModal('student-pay-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="mo-box" style="max-width:460px">
     <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
       <h2>🚫 Mark as NPA — Write Off</h2>
@@ -5383,7 +5436,7 @@ function renderStudents(){
       <td style="color:${bal>0?'var(--red)':'var(--text3)'}">₹${bal.toFixed(0)}</td>
       <td>${badge}</td>
       <td style="display:flex;gap:3px;flex-wrap:wrap">
-        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="markFeePaid(${s.id})">✅ Pay</button>
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="openStudentPayModal(${s.id})">💰 Pay</button>
         <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delStudent(${s.id})">🗑️</button>
       </td>
     </tr>`;
@@ -5404,7 +5457,7 @@ function renderDueFees(){
     <td style="color:var(--accent)">₹${(s.totalFees||s.fee||0).toFixed(0)}</td>
     <td style="color:var(--green)">₹${(s.paid||0).toFixed(0)}</td>
     <td style="color:var(--red);font-weight:700">₹${(s.balance||s.pending||0).toFixed(0)}</td>
-    <td><button class="btn btn-g" style="font-size:10px;padding:2px 8px" onclick="markFeePaid(${s.id})">✅ Mark Paid</button></td>
+    <td><button class="btn btn-g" style="font-size:10px;padding:2px 8px" onclick="openStudentPayModal(${s.id})">💰 Pay</button></td>
   </tr>`).join('');
 }
 
@@ -5443,14 +5496,101 @@ function renderBatchGroups(){
     </div>`).join('');
 }
 
+// ── Student Fee Payment Modal ──────────────────────────────────
+function openStudentPayModal(id){
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const bal=s.balance||s.pending||0;
+  if(bal<=0){ toast('✅ '+s.name+' has no pending balance!'); return; }
+  document.getElementById('sp-stu-id').value = id;
+  document.getElementById('sp-stu-name').textContent = '👤 '+s.name+(s.courseName?' — '+s.courseName:'');
+  document.getElementById('sp-stu-total').textContent = '₹'+(s.totalFees||s.fee||0).toFixed(0);
+  document.getElementById('sp-stu-paid').textContent  = '₹'+(s.paid||0).toFixed(0);
+  document.getElementById('sp-stu-balance').textContent='₹'+bal.toFixed(0);
+  document.getElementById('sp-pay-amt').value = '';
+  document.getElementById('sp-pay-mode').value= 'Cash';
+  document.getElementById('sp-pay-notes').value='';
+  document.getElementById('sp-pay-preview').style.display='none';
+  openModal('student-pay-modal');
+  setTimeout(()=>document.getElementById('sp-pay-amt').focus(), 150);
+}
+
+function spPayFull(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  document.getElementById('sp-pay-amt').value=(s.balance||s.pending||0).toFixed(0);
+  spPayCalc();
+}
+
+function spPayHalf(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const half=Math.ceil((s.balance||s.pending||0)/2);
+  document.getElementById('sp-pay-amt').value=half;
+  spPayCalc();
+}
+
+function spPayCalc(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const amt=+document.getElementById('sp-pay-amt').value||0;
+  const bal=s.balance||s.pending||0;
+  const prev=document.getElementById('sp-pay-preview');
+  const prevTxt=document.getElementById('sp-pay-preview-text');
+  if(amt<=0){ prev.style.display='none'; return; }
+  const newBal=Math.max(bal-amt,0);
+  const overpay=amt>bal;
+  prev.style.display='block';
+  prev.style.borderColor=overpay?'rgba(248,81,73,.3)':'rgba(63,185,80,.2)';
+  prevTxt.innerHTML= overpay
+    ? `⚠️ Amount ₹${amt} exceeds balance ₹${bal.toFixed(0)} — will record ₹${bal.toFixed(0)} only`
+    : `After payment: Paid <strong style="color:var(--green)">₹${((s.paid||0)+Math.min(amt,bal)).toFixed(0)}</strong> · Balance <strong style="color:${newBal>0?'var(--red)':'var(--green)'}">${newBal>0?'₹'+newBal.toFixed(0):'Fully Cleared ✅'}</strong>`;
+}
+
+function confirmStudentPayment(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const enteredAmt=+document.getElementById('sp-pay-amt').value||0;
+  if(!enteredAmt||enteredAmt<=0){ toast('⚠️ Enter payment amount'); return; }
+  const bal=s.balance||s.pending||0;
+  const amt=Math.min(enteredAmt, bal); // cap at balance
+  const mode=document.getElementById('sp-pay-mode').value;
+  const notes=document.getElementById('sp-pay-notes').value.trim();
+
+  // Update student record
+  s.paid=(s.paid||0)+amt;
+  s.balance=Math.max(bal-amt,0);
+  s.pending=s.balance;
+
+  // Log payment in student history
+  s.payHistory=s.payHistory||[];
+  s.payHistory.push({
+    date:new Date().toISOString().slice(0,10),
+    amount:amt, mode, notes,
+    balanceAfter:s.balance
+  });
+
+  closeModal('student-pay-modal');
+  renderStudents();
+  autoSave();
+
+  const msg=s.balance<=0
+    ? `✅ Fee fully cleared for ${s.name}! ₹${amt.toFixed(0)} received. 🎉`
+    : `✅ ₹${amt.toFixed(0)} received from ${s.name}. Balance: ₹${s.balance.toFixed(0)}`;
+  toast(msg);
+
+  // WA receipt option if phone available
+  if(s.phone){
+    const biz=S.settings.bizName||'Meenatchi Traders';
+    const waMsg=`🎓 *${biz}*\nHi, fee payment received!\n\n👤 ${s.name}\n💰 Paid: ₹${amt.toFixed(0)} (${mode})\n📚 Course: ${s.courseName||s.cls||'—'}\n✅ Balance: ₹${s.balance.toFixed(0)}\n\nThank you! 🙏`;
+    setTimeout(()=>showWAPrompt(s.phone, waMsg, s.name+' fee receipt'), 400);
+  }
+}
+
+// Keep old markFeePaid as full-pay shortcut (used in some places)
 function markFeePaid(id){
   const s=S.students.find(x=>x.id===id);
-  if(!s) return;
-  const bal=s.balance||s.pending||0;
-  if(bal<=0){ toast('Already paid!'); return; }
-  s.paid=(s.paid||0)+bal;
-  s.balance=0; s.pending=0;
-  renderStudents(); autoSave(); toast('✅ Fee marked as paid for '+s.name+'!');
+  if(!s){ toast('Student not found'); return; }
+  openStudentPayModal(id);
 }
 function delStudent(id){S.students=S.students.filter(s=>s.id!==id);renderStudents();renderCourseStats();autoSave();toast('🗑️ Student removed');}
 
@@ -6911,9 +7051,13 @@ function addCustomer(){
   // Track referral
   if(ref){
     const refC=S.customers.find(x=>x.name===ref);
-    if(refC){refC.points=(refC.points||0)+50;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:50,reason:'Referral bonus: '+name,balance:refC.points});}
+    if(refC){refC.points=(refC.points||0)+10;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:10,reason:'Referral bonus: '+name,balance:refC.points});}
     S.referrals=S.referrals||[];
-    S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:50});
+    // Award 10 pts to referrer + 10 pts to new customer
+    S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:10});
+    // New customer also gets 10 bonus points for being referred
+    const newCust=S.customers.find(x=>x.name===name);
+    if(newCust){newCust.points=(newCust.points||0)+10;newCust.pointsHistory=newCust.pointsHistory||[];newCust.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:10,reason:'Joined via referral by '+ref,balance:newCust.points});}
   }
   ['c-name','c-phone','c-addr','c-bday','c-ref'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   renderCustomers();refreshCustDatalist();autoSave();toast('✅ Customer added!'+(bday?' Birthday saved 🎂':''));
