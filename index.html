@@ -771,9 +771,18 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="sc y"><div class="sc-label">Today</div><div class="sc-val" id="s-today">₹0</div></div>
         <div class="sc b"><div class="sc-label">This Week</div><div class="sc-val" id="s-week">₹0</div></div>
         <div class="sc g"><div class="sc-label">This Month</div><div class="sc-val" id="s-month">₹0</div></div>
-        <div class="sc p"><div class="sc-label">Orders</div><div class="sc-val" id="s-orders">0</div></div>
+        <div class="sc r"><div class="sc-label">Pending</div><div class="sc-val" id="s-pending-total">₹0</div></div>
       </div>
-      <div class="two-col">
+      <!-- Sales tabs -->
+      <div class="tab-bar" style="margin-bottom:14px">
+        <div class="tab active" onclick="salesTab(this,'st-new')">➕ New Sale</div>
+        <div class="tab" onclick="salesTab(this,'st-history')">📜 Sales History</div>
+        <div class="tab" onclick="salesTab(this,'st-pending');renderSalesPending()">⏳ Pending Payments</div>
+        <div class="tab" onclick="salesTab(this,'st-partial');renderSalesPartial()">💰 Record Payment</div>
+      </div>
+
+      <!-- New Sale -->
+      <div id="st-new">
         <div class="card">
           <div class="card-h"><h3>➕ New Sale</h3></div>
           <div class="card-b">
@@ -894,6 +903,10 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div>
+      </div><!-- end st-new -->
+
+      <!-- Sales History Tab -->
+      <div id="st-history" style="display:none">
       <div class="card">
         <div class="card-h"><h3>📜 Sales History</h3>
           <div style="display:flex;gap:6px;align-items:center">
@@ -908,7 +921,66 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </table></div>
         </div>
       </div>
-    </div>
+      </div><!-- end st-history -->
+
+      <!-- Pending Payments Tab -->
+      <div id="st-pending" style="display:none">
+        <div class="card">
+          <div class="card-h">
+            <h3>⏳ Pending Payments from Sales</h3>
+            <button class="btn btn-g" style="font-size:11px" onclick="bulkRemindPending()">📢 Remind All</button>
+          </div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Total</th><th>Received</th><th>Pending ₹</th><th>Days</th><th>Actions</th></tr></thead>
+              <tbody id="sales-pending-tbody"><tr><td colspan="8"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div><!-- end st-pending -->
+
+      <!-- Record Payment / Partial Tab -->
+      <div id="st-partial" style="display:none">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-h"><h3>💰 Record Payment</h3></div>
+            <div class="card-b">
+              <div class="fg"><label class="fl">Customer</label>
+                <input class="fi" id="dp-cust" list="dp-cust-dl" placeholder="Select customer..." oninput="dpAutoFill()" autocomplete="off">
+                <datalist id="dp-cust-dl"></datalist>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:10px" id="dp-cust-info" style="display:none">
+                <div style="font-size:11px;color:var(--text3)">Outstanding balance</div>
+                <div id="dp-pending-amt" style="font-size:20px;font-weight:700;color:var(--red)">₹0.00</div>
+              </div>
+              <div class="fg"><label class="fl">Amount Received (₹) <span style="color:var(--red)">*</span></label>
+                <div class="fi-ico"><input class="fi" id="dp-recv-amt" type="number" placeholder="0" oninput="dpCalcPreview()"><span class="fi-ico-btn">₹</span></div>
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                  <button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="dpPayFull()">Pay Full</button>
+                  <button class="btn btn-o" style="font-size:10px;padding:3px 8px" onclick="dpPayHalf()">Pay Half</button>
+                </div>
+              </div>
+              <div id="dp-preview" style="display:none;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:var(--text2)"></div>
+              <div class="fg"><label class="fl">Payment Mode</label>
+                <select class="fs" id="dp-mode"><option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option></select>
+              </div>
+              <div class="fg"><label class="fl">Notes</label><input class="fi" id="dp-notes" placeholder="e.g. Paid via GPay on 20 March..."></div>
+              <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:4px" onclick="recordPayment()">✅ Record Payment & Clear Pending</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>📋 All Pending Customers</h3></div>
+            <div class="card-b" style="padding:0">
+              <div class="tbl-wrap"><table>
+                <thead><tr><th>Customer</th><th>Pending ₹</th><th>Age</th><th>Action</th></tr></thead>
+                <tbody id="dp-pending-list"><tr><td colspan="4"><div class="empty"><div class="ei">🎉</div><p>No pending!</p></div></td></tr></tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end st-partial -->
+
+    </div><!-- end p-sales -->
 
     <!-- ===== PRODUCTS & STOCK ===== -->
     <div class="page" id="p-products">
@@ -1726,21 +1798,13 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="sc p"><div class="sc-ico">📦</div><div class="sc-label">Total Units/30D</div><div class="sc-val" id="dp-units">0</div><div class="sc-sub">All products</div></div>
       </div>
       <div class="card">
-        <div class="card-h"><h3>📅 Next Week Predictions</h3><button class="btn btn-y" style="font-size:10px">Recalculate</button></div>
-        <div class="card-b"><div class="empty" style="padding:36px"><div class="ei" style="font-size:36px">📊</div><p style="font-size:12px;color:var(--text2)">Not enough sales data yet. Add at least 30 days of sales!</p></div></div>
-      </div>
-      <div class="card">
-        <div class="card-h"><h3>📦 Recommended Purchase Quantities</h3></div>
-        <div class="card-b">
+        <div class="card-h"><h3>📊 Demand Prediction — Day · Week · Month</h3><button class="btn btn-y" style="font-size:10px" onclick="renderDemand()">🔄 Refresh</button></div>
+        <div class="card-b" style="padding:0">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Product</th><th>30D Sales</th><th>Trend</th><th>Next Week Est.</th><th>Suggested Order</th></tr></thead>
-            <tbody id="dp-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">📦</div><p>Add more sales data</p></div></td></tr></tbody>
+            <thead><tr><th>Product</th><th>Today</th><th>This Week (WoW%)</th><th>This Month (MoM%)</th><th>Next 7d Forecast</th><th>Stock Days Left</th><th>Status</th></tr></thead>
+            <tbody id="dp-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>Add sales data to see demand predictions</p></div></td></tr></tbody>
           </table></div>
         </div>
-      </div>
-      <div class="card">
-        <div class="card-h"><h3>📈 Sales Trend (Last 30 Days by Product)</h3></div>
-        <div class="card-b" id="dp-trend"><div class="empty"><div class="ei">📈</div><p>No trend data yet</p></div></div>
       </div>
     </div>
 
@@ -4451,7 +4515,7 @@ function renderPointsLedger(){
       <td style="color:${+rupeeVal>0?'var(--green)':'var(--text3)'};font-weight:600">₹${rupeeVal}</td>
       <td style="color:${expColor};font-size:11px">${expiry||'—'}${expired?' ⚠️':''}</td>
       <td style="display:flex;gap:3px;flex-wrap:wrap">
-        <button class="btn btn-b" style="font-size:10px;padding:2px 6px" ${!canRedeem?'disabled style="opacity:.4;cursor:not-allowed;font-size:10px;padding:2px 6px"':''} onclick="redeemPoints('${c.name.replace(/'/g,"\\'")}')">🔄 Redeem</button>
+        <button class="btn btn-b" style="font-size:10px;padding:2px 6px${!canRedeem?';opacity:.5':''}" ${!canRedeem?'disabled':''} onclick="redeemPoints('${c.name.replace(/'/g,"\\'")}')">🔄 Redeem</button>
         <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱</button>
         <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋</button>
       </td>
@@ -6957,6 +7021,135 @@ function clearSale(){
   document.getElementById('product-rows').innerHTML='';prodRowCount=0;addProductRow();
 }
 
+// ── Sales page tab switcher ────────────────────────────────────
+function salesTab(el, id){
+  tabSwitch(el, id, ['st-new','st-history','st-pending','st-partial']);
+  if(id==='st-history') renderSalesTable();
+  if(id==='st-pending') renderSalesPending();
+  if(id==='st-partial') renderSalesPartial();
+}
+
+// ── Pending payments from sales (separate tab) ─────────────────
+function renderSalesPending(){
+  const tb = document.getElementById('sales-pending-tbody'); if(!tb) return;
+  // Collect all pending sales (pending > 0)
+  const pendingSales = S.sales.filter(s=>(s.pending||0)>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const totalPend = pendingSales.reduce((a,s)=>a+(s.pending||0),0);
+  // Update stat card
+  const spEl = document.getElementById('s-pending-total');
+  if(spEl) spEl.textContent = '₹'+totalPend.toFixed(0);
+  if(!pendingSales.length){
+    tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr>';
+    return;
+  }
+  const today = new Date();
+  tb.innerHTML = pendingSales.map(s=>{
+    const days = Math.floor((today-new Date(s.date+'T00:00:00'))/86400000);
+    const ageColor = days>90?'var(--red)':days>30?'var(--accent)':'var(--text3)';
+    const prodNames = (s.products||[]).map(p=>p.name).join(', ');
+    return `<tr>
+      <td>${s.date}</td>
+      <td><strong>${s.customer}</strong></td>
+      <td style="font-size:11px">${prodNames.substring(0,25)}${prodNames.length>25?'…':''}</td>
+      <td style="color:var(--accent)">₹${s.total.toFixed(0)}</td>
+      <td style="color:var(--green)">₹${(s.recv||0).toFixed(0)}</td>
+      <td style="color:var(--red);font-weight:700">₹${s.pending.toFixed(0)}</td>
+      <td style="color:${ageColor}">${days}d${days>90?' ⚠️':''}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="quickCollect(${s.id})">💰 Collect</button>
+        <button class="btn btn-b" style="font-size:10px;padding:2px 6px" onclick="sendWA('${s.customer.replace(/'/g,"\\'")}',${s.pending},'${(s.phone||'').replace(/'/g,"\\'")}')">📱</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Quick collect on a specific sale
+function quickCollect(saleId){
+  const sale = S.sales.find(s=>s.id===saleId); if(!sale) return;
+  const amt = +prompt(`Collecting from ${sale.customer}.\nPending: ₹${sale.pending.toFixed(0)}\nEnter amount received:`, sale.pending.toFixed(0));
+  if(!amt||amt<=0) return;
+  const collect = Math.min(amt, sale.pending);
+  sale.recv = (sale.recv||0)+collect;
+  sale.pending = Math.max(sale.pending-collect,0);
+  if(sale.pending===0) sale.status='Delivered';
+  // Update customer
+  const c = S.customers.find(x=>x.name===sale.customer);
+  if(c){ c.paid=(c.paid||0)+collect; c.pending=Math.max((c.pending||0)-collect,0); }
+  autoSave(); renderSalesPending(); updateDashStats(); renderWA(); renderPendingCust();
+  toast(`✅ ₹${collect.toFixed(0)} collected from ${sale.customer}!`);
+}
+
+// ── Record Payment tab ─────────────────────────────────────────
+function renderSalesPartial(){
+  // Populate customer datalist
+  const dl = document.getElementById('dp-cust-dl'); if(!dl) return;
+  const pendCusts = S.customers.filter(c=>c.pending>0);
+  dl.innerHTML = pendCusts.map(c=>`<option value="${c.name}">`).join('');
+  // Render pending list on right
+  const tb = document.getElementById('dp-pending-list'); if(!tb) return;
+  if(!pendCusts.length){
+    tb.innerHTML='<tr><td colspan="4"><div class="empty"><div class="ei">🎉</div><p>No pending!</p></div></td></tr>';
+    return;
+  }
+  const today = new Date();
+  tb.innerHTML = pendCusts.map(c=>{
+    const oldest = S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0)
+      .reduce((a,s)=>s.date<a?s.date:a, new Date().toISOString().slice(0,10));
+    const days = Math.floor((today-new Date(oldest+'T00:00:00'))/86400000);
+    return `<tr>
+      <td><strong>${c.name}</strong><div style="font-size:10px;color:var(--text3)">${c.phone||''}</div></td>
+      <td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(0)}</td>
+      <td style="color:${days>30?'var(--accent)':'var(--text3)'}">${days}d</td>
+      <td><button class="btn btn-b" style="font-size:10px;padding:2px 6px" onclick="dpSelectCust('${c.name.replace(/'/g,"\\'")}')">Select</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function dpSelectCust(name){
+  const custEl = document.getElementById('dp-cust'); if(custEl) custEl.value=name;
+  dpAutoFill();
+}
+
+function dpAutoFill(){
+  const name = document.getElementById('dp-cust')?.value.trim();
+  const c = S.customers.find(x=>x.name.toLowerCase()===name?.toLowerCase());
+  const infoEl = document.getElementById('dp-cust-info');
+  const amtEl  = document.getElementById('dp-pending-amt');
+  if(c&&c.pending>0){
+    if(infoEl) infoEl.style.display='block';
+    if(amtEl)  amtEl.textContent='₹'+c.pending.toFixed(2);
+  } else {
+    if(infoEl) infoEl.style.display='none';
+  }
+  document.getElementById('dp-recv-amt').value='';
+  const prev=document.getElementById('dp-preview'); if(prev) prev.style.display='none';
+}
+
+function dpPayFull(){
+  const name=document.getElementById('dp-cust')?.value.trim();
+  const c=S.customers.find(x=>x.name.toLowerCase()===name?.toLowerCase());
+  if(!c){toast('Select a customer first');return;}
+  document.getElementById('dp-recv-amt').value=c.pending.toFixed(0);
+  dpCalcPreview();
+}
+function dpPayHalf(){
+  const name=document.getElementById('dp-cust')?.value.trim();
+  const c=S.customers.find(x=>x.name.toLowerCase()===name?.toLowerCase());
+  if(!c){toast('Select a customer first');return;}
+  document.getElementById('dp-recv-amt').value=Math.ceil(c.pending/2).toFixed(0);
+  dpCalcPreview();
+}
+function dpCalcPreview(){
+  const name=document.getElementById('dp-cust')?.value.trim();
+  const c=S.customers.find(x=>x.name.toLowerCase()===name?.toLowerCase());
+  const prev=document.getElementById('dp-preview'); if(!prev) return;
+  const amt=+document.getElementById('dp-recv-amt')?.value||0;
+  if(!c||!amt){ prev.style.display='none'; return; }
+  const newBal=Math.max(c.pending-amt,0);
+  prev.style.display='block';
+  prev.innerHTML=`After payment: Balance <strong style="color:${newBal>0?'var(--red)':'var(--green)'}">${newBal>0?'₹'+newBal.toFixed(0):'Fully Cleared ✅'}</strong>`;
+}
+
 function renderSalesTable(){
   const today=new Date().toISOString().slice(0,10);
   const todaySales=S.sales.filter(s=>s.date===today);
@@ -6976,9 +7169,37 @@ function renderSalesTable(){
 }
 
 function deleteSale(id){
+  const sale=S.sales.find(s=>s.id===id);
+  if(!sale){toast('Sale not found');return;}
+  if(!confirm('Delete this sale? Points and pending will be reversed.')) return;
+  // Reverse loyalty points earned on this sale
+  const cust=S.customers.find(x=>x.name===sale.customer);
+  if(cust){
+    // Remove earned points
+    cust.pointsHistory=(cust.pointsHistory||[]).filter(h=>
+      !(h.reason&&h.reason.includes('Sale ₹'+sale.total.toFixed(0))&&h.date===sale.date));
+    // Recalculate points balance from history
+    cust.points=(cust.pointsHistory||[]).reduce((a,h)=>a+(h.earned||0)-(h.used||0),0);
+    cust.points=Math.max(0,cust.points);
+    // Reverse pending
+    if((sale.pending||0)>0){
+      cust.pending=Math.max((cust.pending||0)-(sale.pending||0),0);
+    }
+    // Reverse paid amount
+    if((sale.recv||0)>0){
+      cust.paid=Math.max((cust.paid||0)-(sale.recv||0),0);
+    }
+    // Restore product stock sold count
+    (sale.products||[]).forEach(sp=>{
+      const prod=S.products.find(p=>p.name===sp.name);
+      if(prod) prod.sold=Math.max((prod.sold||0)-sp.qty,0);
+    });
+  }
+  // Remove matching order
+  S.orders=S.orders.filter(o=>!(o.customer===sale.customer&&Math.abs(o.amount-sale.total)<0.01&&o.date===sale.date));
   S.sales=S.sales.filter(s=>s.id!==id);
-  renderSalesTable();updateDashStats();renderWeeklyChart();
-  autoSave();toast('🗑️ Sale removed');
+  renderSalesTable();updateDashStats();renderWeeklyChart();renderCustomers();renderWA();renderPendingCust();
+  autoSave();toast('🗑️ Sale deleted and reversed');
 }
 
 // ===== CUSTOMERS =====
@@ -7145,7 +7366,12 @@ function updateOrderStatus(id,status){
     }), o.customer+' — '+status);
   }
 }
-function deleteOrder(id){S.orders=S.orders.filter(o=>o.id!==id);renderOrders();autoSave();toast('🗑️ Order removed');}
+function deleteOrder(id){
+  if(!confirm('Delete this order?')) return;
+  S.orders=S.orders.filter(o=>o.id!==id);
+  renderOrders();updateDashStats();
+  autoSave();toast('🗑️ Order removed');
+}
 
 // ===== WHATSAPP =====
 
@@ -7897,11 +8123,63 @@ function renderForecastTable(){
 function renderDemand(){
   document.getElementById('dp-tracked').textContent=S.products.length;
   const tb=document.getElementById('dp-tbody');
-  if(!S.products.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">📦</div><p>Add products first</p></div></td></tr>';return;}
+  if(!S.products.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>Add products first</p></div></td></tr>';return;}
+
+  const now    = new Date();
+  const today  = now.toISOString().slice(0,10);
+  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week.toISOString().slice(0,10);
+  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month.toISOString().slice(0,10);
+  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7.toISOString().slice(0,10);
+  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30.toISOString().slice(0,10);
+
   tb.innerHTML=S.products.map(p=>{
-    const used=S.sales.reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
-    const weekEst=Math.ceil((used/30)*7);
-    return `<tr><td><strong>${p.name}</strong></td><td>${used} ${p.unit||'packs'}</td><td><span class="badge bb">→ Stable</span></td><td>${weekEst} ${p.unit||'packs'}</td><td><strong>${weekEst} ${p.unit||'packs'}</strong></td></tr>`;
+    // Sales qty helper
+    const qtyBetween=(from,to)=>S.sales
+      .filter(s=>s.date>=from&&s.date<=to)
+      .reduce((a,s)=>{const pp=s.products?.find(x=>x.name===p.name);return a+(pp?pp.qty:0);},0);
+
+    const todayQty  = qtyBetween(today, today);
+    const thisWeek  = qtyBetween(weekStr, today);
+    const lastWeek  = qtyBetween(prev7Str, weekStr);
+    const thisMonth = qtyBetween(monthStr, today);
+    const lastMonth = qtyBetween(prev30Str, monthStr);
+
+    // Week-on-week and month-on-month trend
+    const wowPct = lastWeek>0 ? Math.round((thisWeek-lastWeek)/lastWeek*100) : (thisWeek>0?100:0);
+    const momPct = lastMonth>0? Math.round((thisMonth-lastMonth)/lastMonth*100):(thisMonth>0?100:0);
+
+    const trendIcon=(pct)=>pct>10?'📈':pct<-10?'📉':'➡️';
+    const trendColor=(pct)=>pct>10?'var(--green)':pct<-10?'var(--red)':'var(--text3)';
+
+    // Forecast next 7 days based on last 30-day avg
+    const dailyAvg = thisMonth/30;
+    const forecast7 = Math.ceil(dailyAvg*7);
+
+    // Status
+    const bal = (p.stock||0)-(p.sold||0);
+    const daysLeft = dailyAvg>0?Math.floor(bal/dailyAvg):999;
+    const status = daysLeft<=3?'<span class="badge br">🚨 Critical</span>':
+                   daysLeft<=7?'<span class="badge by">⚠️ Low</span>':
+                   thisWeek===0?'<span class="badge bb">💤 No Sales</span>':
+                   '<span class="badge bg">✅ Good</span>';
+
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td style="text-align:center;font-weight:600">${todayQty}</td>
+      <td>
+        <span style="font-weight:600">${thisWeek}</span>
+        <span style="font-size:10px;color:${trendColor(wowPct)};margin-left:4px">${trendIcon(wowPct)} ${wowPct>0?'+':''}${wowPct}%</span>
+        <div style="font-size:9px;color:var(--text3)">prev: ${lastWeek}</div>
+      </td>
+      <td>
+        <span style="font-weight:600">${thisMonth}</span>
+        <span style="font-size:10px;color:${trendColor(momPct)};margin-left:4px">${trendIcon(momPct)} ${momPct>0?'+':''}${momPct}%</span>
+        <div style="font-size:9px;color:var(--text3)">prev: ${lastMonth}</div>
+      </td>
+      <td style="color:var(--blue);font-weight:600">${forecast7} ${p.unit||'packs'}</td>
+      <td style="color:${daysLeft<=7?'var(--red)':'var(--text3)'}">${daysLeft<999?daysLeft+'d':'∞'}</td>
+      <td>${status}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -8135,18 +8413,12 @@ function renderDashPending(){
   }).join('');
 }
 
-function quickCollect(name){
-  // Pre-fill the payment form with this customer
-  const custEl = document.getElementById('dp-cust');
-  if(custEl){ custEl.value = name; onDpCustInput(name); }
-  // Scroll to form
-  document.getElementById('dp-recv-amt')?.focus();
-}
+// quickCollect — see updated version above
 
 function onDpCustInput(val){
-  const c = S.customers.find(x=>x.name.toLowerCase()===val.toLowerCase());
-  const pendEl = document.getElementById('dp-pending-amt');
-  if(pendEl) pendEl.value = c ? c.pending.toFixed(2) : '';
+  // alias for dpAutoFill — backwards compat
+  const custEl=document.getElementById('dp-cust');if(custEl)custEl.value=val;
+  dpAutoFill();
 }
 
 function recordPayment(){
@@ -9341,9 +9613,23 @@ function saveRepackSession(){
     coverMat.qty=Math.max(coverMat.qty-coversUsed,0);
     logPackUsage('Cover/Bag',coverMat.name,-coversUsed,coverMat.qty,`Repack: ${prod} ×${outputPacks} packs`);
   }
-  // Add output packs to product stock
+  // Repack: deduct input quantity from raw product stock, add output packs back
   const p=S.products.find(x=>x.name.toLowerCase()===prod.toLowerCase());
-  if(p){ p.stock=(p.stock||0)+outputPacks; logStockCorrection(p.name,outputPacks,'Repack output'); }
+  if(p){
+    // Deduct input units (raw material used)
+    const stockBefore=p.stock||0;
+    p.stock=Math.max(stockBefore-inputQty,0);
+    // Add output packs (finished goods)
+    p.stock=(p.stock||0)+outputPacks;
+    logStockCorrection(p.name, outputPacks-inputQty, 'Repack: -'+inputQty+' raw +'+outputPacks+' packs');
+    // Log the conversion detail
+    S.stockCorrections=S.stockCorrections||[];
+    S.stockCorrections.push({
+      date:repackDate, product:p.name,
+      note:'Repack: '+inputQty+' units → '+outputPacks+' packs of '+packSize,
+      before:stockBefore, after:p.stock
+    });
+  }
   // Mark linked order as repacked
   if(linkedOrderId){
     const o=S.supplierOrders.find(x=>x.id===linkedOrderId);
