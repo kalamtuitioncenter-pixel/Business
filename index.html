@@ -1365,14 +1365,59 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="card" style="margin-bottom:12px">
           <div class="card-h" style="background:rgba(88,166,255,.04);border-bottom:1px solid rgba(88,166,255,.15)">
             <h3>📦 Supplier Reorder Message</h3>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:10px;color:var(--text3)">Sent when ordering from supplier</span>
-              <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reorder')">👁 Preview</button>
-            </div>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reorder')">👁 Preview</button>
           </div>
           <div class="card-b">
             <textarea class="fi" id="tmpl-reorder" rows="4" style="resize:vertical;font-size:12px"></textarea>
             <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> Product · <span class="tmpl-var">{amount}</span> Qty · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{date}</span></div>
+          </div>
+        </div>
+
+        <!-- 🎉 Promo / Offer Message -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
+            <h3>🎉 Promo / Offer Message</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-promo')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-promo" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{body}</span> Offer text · <span class="tmpl-var">{discount}</span> % off · <span class="tmpl-var">{till}</span> Expiry · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{phone}</span></div>
+          </div>
+        </div>
+
+        <!-- 🔄 Exchange / Return Message -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(88,166,255,.04);border-bottom:1px solid rgba(88,166,255,.15)">
+            <h3>🔄 Exchange / Return Message</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-exchange')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-exchange" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{product}</span> Item · <span class="tmpl-var">{date}</span> · <span class="tmpl-var">{reason}</span> · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{phone}</span></div>
+          </div>
+        </div>
+
+        <!-- 🎂 Birthday Message -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(248,81,73,.04);border-bottom:1px solid rgba(248,81,73,.15)">
+            <h3>🎂 Birthday Wish Message</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-birthday')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-birthday" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{biz}</span></div>
+          </div>
+        </div>
+
+        <!-- ✅ Payment Received Message -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h" style="background:rgba(63,185,80,.04);border-bottom:1px solid rgba(63,185,80,.2)">
+            <h3>✅ Payment Received Confirmation</h3>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-payment-received')">👁 Preview</button>
+          </div>
+          <div class="card-b">
+            <textarea class="fi" id="tmpl-payment-received" rows="4" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{amount}</span> Paid · <span class="tmpl-var">{date}</span> · <span class="tmpl-var">{biz}</span></div>
           </div>
         </div>
 
@@ -3949,13 +3994,25 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`,
+    `🏪 *{biz}* — Bill Receipt\n\nHi {name}! ✅ Thank you for your purchase.\n\n📦 *Products:* {product}\n💰 *Total:* ₹{amount}\n💳 *Mode:* {mode}\n📅 *Date:* {date}\n\nYour bill is attached above.\n⭐ Loyalty points earned on this purchase!\n\nThank you for shopping with us 🙏`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
 
   reorder:
-    `📦 *Reorder Request — {biz}*\n\nHi,\nProduct: *{name}*\nQuantity: *{amount}*\nDate: {date}\n\nPlease confirm availability and price.\nThank you! 🙏`
+    `📦 *Reorder Request — {biz}*\n\nHi,\nProduct: *{name}*\nQuantity: *{amount}*\nDate: {date}\n\nPlease confirm availability and price.\nThank you! 🙏`,
+
+  promo:
+    `🎉 *{biz}* — Special Offer!\n\nHi {name},\n\n{body}\n\n🏷️ Discount: {discount}%\n⏰ Valid until: {till}\n\nVisit us or call: {phone}\n\nDon't miss out! 😊`,
+
+  exchange:
+    `🔄 *{biz}* — Exchange/Return Update\n\nHi {name},\n\n{product}\n📅 Date: {date}\n📝 Reason: {reason}\n\nPlease contact us for any queries.\n📞 {phone}\n\nThank you! 🙏`,
+
+  birthday:
+    `🎂 *{biz}* — Happy Birthday!\n\nDear {name},\n\nWishing you a wonderful birthday! 🎉🎁\n\nAs our valued customer, enjoy a special birthday offer on your next visit.\n\nThank you for your continued support 🙏`,
+
+  'payment-received':
+    `✅ *{biz}* — Payment Received\n\nHi {name},\n\nWe have received your payment of *₹{amount}* on {date}.\n\nThank you for clearing your dues! 🙏\n\n{biz}`
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -4029,13 +4086,20 @@ function getWATmpl(key, vars){
   const phone = S.settings.phone    || '';
   const date  = fmtDate(new Date());
   return tmpl
-    .replace(/\{biz\}/g,     biz)
-    .replace(/\{phone\}/g,   phone)
-    .replace(/\{date\}/g,    date)
-    .replace(/\{name\}/g,    vars.name    || '')
-    .replace(/\{amount\}/g,  vars.amount  || '')
-    .replace(/\{product\}/g, vars.product || '')
-    .replace(/\{mode\}/g,    vars.mode    || '');
+    .replace(/\{biz\}/g,      biz)
+    .replace(/\{phone\}/g,    phone)
+    .replace(/\{date\}/g,     date)
+    .replace(/\{name\}/g,     vars.name      || '')
+    .replace(/\{amount\}/g,   vars.amount    || '')
+    .replace(/\{product\}/g,  vars.product   || '')
+    .replace(/\{mode\}/g,     vars.mode      || '')
+    .replace(/\{discount\}/g, vars.discount  || '')
+    .replace(/\{till\}/g,     vars.till      || '')
+    .replace(/\{body\}/g,     vars.body      || '')
+    .replace(/\{reason\}/g,   vars.reason    || '')
+    .replace(/\{points\}/g,   vars.points    || '')
+    .replace(/\{value\}/g,    vars.value     || '')
+    .replace(/\{expiry\}/g,   vars.expiry    || '');
 }
 
 function waPreview(tmplId){
@@ -4274,8 +4338,14 @@ function bwGenPromoMsg(){
   const biz   = S.settings.bizName||'Meenatchi Traders';
   const phone = S.settings.phone||'';
   // Use customized promo template (editable in WA Templates)
-  const baseMsg = getWATmpl('pending',{name:'{name}',amount:'',biz,phone:phone||''});
-  const msg = `🎉 *${title}* — ${biz}\n\n${disc?`🏷️ Discount: ${disc}% OFF\n`:''}${till?`⏰ Valid until: ${till}\n`:''}${body?body+'\n':''}\nVisit us or call: ${phone||'our store'}\n\nThank you for your support! 🙏`;
+  // Use customizable promo template (edit in WA & Reminders → ✏️ Message Templates)
+  const msg = getWATmpl('promo',{
+    name: '{name}',          // bulk-replaced per customer on send
+    body: body||title,
+    discount: disc||'',
+    till: till||'',
+    biz, phone: phone||S.settings.phone||''
+  });
   const el = document.getElementById('bw-promo-msg');
   if(el) el.value = msg;
 }
@@ -4307,7 +4377,7 @@ function bwSendSelected(type){
       if(!phone){ toast('⚠️ '+name+' has no phone number'); return; }
       const finalMsg = tplMsg
         ? tplMsg.replace('{name}',name).replace('{product}',product).replace('{biz}',biz)
-        : (savedMsg||`Hi ${name}, it's time to reorder ${product}! Contact ${biz}. 😊`);
+        : (savedMsg||getWATmpl('reminder',{name,product,biz}));
       items.push({phone, msg:finalMsg, remId:cb.dataset.remid});
     });
   } else if(type==='custom'){
@@ -4836,8 +4906,8 @@ function sendBirthdayWA(name){
   const c=S.customers.find(x=>x.name===name);
   const gift=S.bdayGifts?.find(g=>g.custName===name);
   if(!c){toast('Customer not found');return;}
-  const defaultBdayMsg = getWATmpl('reminder',{name,product:'Birthday Wishes',biz:S.settings.bizName||'Meenatchi Traders'});
-  const msg=(gift?.msg||`🎂 Happy Birthday ${name}! 🎉\n\n${defaultBdayMsg}`)
+  // Use customizable birthday template (edit in WA Templates → 🎂 Birthday)
+  const msg=(gift?.msg||getWATmpl('birthday',{name,biz:S.settings.bizName||'Meenatchi Traders'}))
     .replace('{name}',name)
     .replace('{product}',gift?.product||'')
     .replace('{qty}',gift?.qty||'');
@@ -5425,9 +5495,11 @@ function confirmExchange(){
   const ph=sale.phone||cust?.phone||'';
   if(ph){
     const biz=S.settings.bizName||'Meenatchi Traders';
-    // Use pending/reminder template for exchange notification
-    const msg = getWATmpl('reminder',{name:sale.customer,product:summary,biz}) +
-      `\n📅 ${date} | Reason: ${reason}`;
+    // Use customizable exchange template (edit in WA Templates → 🔄 Exchange/Return)
+    const msg = getWATmpl('exchange',{
+      name: sale.customer, product: summary, biz,
+      date, reason
+    });
     setTimeout(()=>showWAPrompt(ph,msg,sale.customer+' — Exchange/Return'),400);
   }
 }
@@ -7252,7 +7324,7 @@ function saveSale(){
     date: sale.date, biz: S.settings.bizName||'Meenatchi Traders',
     phone: S.settings.phone||''
   });
-  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);
+  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust+((_waPhone)?' 📱 Tap Send to WhatsApp ↓':''));
   // Capture before clearSale wipes local vars
   const _waPhone = phone;
   const _waCust  = cust;
@@ -7681,13 +7753,15 @@ function updateOrderStatus(id,status){
   renderPendingCust();
   checkUndeliveredOrders();
   toast('📦 Order updated: '+status);
-  // WA notification using saved template
-  if(o.phone){
-    showWAPrompt(o.phone, getWATmpl('order-'+status.toLowerCase(),{
+  // WA notification — open WhatsApp directly (no prompt needed, user explicitly changed status)
+  if(o.phone && status!=='Pending'){
+    const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
       name:    o.customer,
       product: o.product,
       amount:  '₹'+(o.amount||0).toFixed(0)
-    }), o.customer+' — '+status);
+    });
+    // Delay slightly so toast is visible first
+    setTimeout(()=>openWA(o.phone, orderMsg), 300);
   }
 }
 function deleteOrder(id){
@@ -7731,23 +7805,26 @@ function cleanPhone(raw){
 // ─────────────────────────────────────────────────────────
 function openWA(phone, msg){
   const clean = cleanPhone(phone);
-  if(!clean){ toast('⚠️ No phone number saved for this customer'); return; }
+  if(!clean){ toast('⚠️ No phone number for this customer. Add it in Customer Management.'); return; }
 
   const encoded = encodeURIComponent(msg);
-  const isAndroid = /android/i.test(navigator.userAgent);
-  const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isMobile  = isAndroid || isIOS;
+  const ua = navigator.userAgent;
+  const isAndroid = /android/i.test(ua);
+  const isIOS     = /iphone|ipad|ipod/i.test(ua);
 
-  if(isMobile){
-    // ── Mobile (Android WebIntoApp + iOS) ───────────────────────
-    // whatsapp:// deep link is the ONLY reliable method in WebView.
-    // intent:// goes to Play Store. window.open() stays in WebView.
-    // whatsapp://send navigates to WhatsApp app directly.
-    // The WebView app (WebIntoApp) stays alive — user presses Back to return.
+  if(isAndroid){
+    // Android WebIntoApp: use intent:// which works in WebView
+    // Falls back to Play Store if WhatsApp not installed
+    const intentUrl = 'intent://send?phone=' + clean + '&text=' + encoded +
+      '#Intent;scheme=whatsapp;package=com.whatsapp;end';
+    window.location.href = intentUrl;
+
+  } else if(isIOS){
+    // iOS: whatsapp:// deep link works reliably
     window.location.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
 
   } else {
-    // ── Desktop ──────────────────────────────────────────────────
+    // Desktop browser
     window.open('https://wa.me/' + clean + '?text=' + encoded,
       '_blank', 'noopener,noreferrer');
   }
@@ -7781,9 +7858,9 @@ function showWAPrompt(phone, msg, customerName){
     </div>
     <button onclick="sendPendingWA()"
       style="background:rgba(63,185,80,1);border:none;color:#fff;border-radius:10px;
-             padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;
-             box-shadow:0 2px 8px rgba(63,185,80,.4)">
-      📱 Send
+             padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
+             box-shadow:0 2px 12px rgba(63,185,80,.5);min-height:44px;min-width:80px">
+      📱 Send WA
     </button>
     <button onclick="document.getElementById('wa-prompt-bar')?.remove();_pendingWA=null"
       style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);
@@ -8806,11 +8883,11 @@ function recordPayment(){
   toast('✅ ₹'+recvAmt.toFixed(0)+' collected from '+name+(remaining>0?' · ₹'+remaining.toFixed(0)+' still pending':' · Fully cleared! 🎉'));
   // WA receipt using template
   if(c.phone){
-    const biz=S.settings.bizName||'Meenatchi Traders';
     const stillPending=c.pending;
-    const msg=stillPending>0
-      ? getWATmpl('pending',{name,amount:'₹'+stillPending.toFixed(0)})
-      : `✅ *Payment Confirmed — ${biz}*\nHi ${name}, your payment of ₹${recvAmt.toFixed(0)} has been received. Thank you! 🙏`;
+    // Use customizable templates for payment WA
+    const msg = stillPending>0
+      ? getWATmpl('pending',{name, amount:'₹'+stillPending.toFixed(0)})
+      : getWATmpl('payment-received',{name, amount:'₹'+recvAmt.toFixed(0), date:new Date().toLocaleDateString('en-IN')});
     setTimeout(()=>showWAPrompt(c.phone, msg, name), 500);
   }
 }
