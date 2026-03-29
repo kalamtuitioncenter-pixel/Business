@@ -3876,6 +3876,17 @@ function refreshAllFull(){
   checkUndeliveredOrders();
 }
 
+// ── Local date helper — always returns YYYY-MM-DD in DEVICE timezone ──
+// new Date().toISOString() uses UTC time → shows yesterday in India before 5:30AM IST
+// Always use localDate() instead of new Date().toISOString().slice(0,10)
+function localDate(d){
+  const dt = d ? new Date(d) : new Date();
+  const y  = dt.getFullYear();
+  const m  = String(dt.getMonth()+1).padStart(2,'0');
+  const day= String(dt.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+
 function persistState(){
   try {
     const toSave = Object.assign({}, S, { editProdId: null, _editSupplierId: null });
@@ -3950,7 +3961,7 @@ function nav(page){
   if(page==='repacktrack'){ renderRepackLog(); renderRepackStats(); rpPopulateDatalists(); renderSplitStats(); }
   if(page==='packstock'){   renderPackStock(); psTypeChange(); }
   if(page==='demand'){ renderDemand(); }
-  if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
+  if(page==='autoreport'){ document.getElementById('rep-date').value=localDate(); genReport(); }
   if(page==='target'){
     // Load saved targets into form inputs on every visit
     if(S.target.set){
@@ -4754,7 +4765,7 @@ function getPointsExpiry(c){
   if(!lastEarnDate) return null;
   const ps = getPtsSettings();
   const expDate = new Date(new Date(lastEarnDate).getTime() + ps.validity*86400000);
-  return expDate.toISOString().slice(0,10);
+  return localDate(expDate);
 }
 function isPointsExpired(c){
   const exp = getPointsExpiry(c);
@@ -4817,7 +4828,7 @@ function redeemPoints(name, billTotal){
   if(confirm(`Redeem ${pointsToUse} pts = ₹${actualDiscount.toFixed(0)} discount for ${name}?\n(Max ${ps.maxPct}% of ₹${bill} = ₹${maxDiscount})`)){
     c.pointsHistory = c.pointsHistory||[];
     c.pointsHistory.push({
-      date: new Date().toISOString().slice(0,10),
+      date: localDate(),
       used: pointsToUse,
       reason: `Redeemed ₹${actualDiscount.toFixed(0)} discount on ₹${bill} bill`,
       balance: Math.max((c.points||0)-pointsToUse, 0)
@@ -4836,7 +4847,7 @@ function renderWeeklyPoints(){
   const ps = getPtsSettings();
   const today = new Date();
   const weekStart = new Date(today); weekStart.setDate(today.getDate()-7);
-  const wStr = weekStart.toISOString().slice(0,10);
+  const wStr = localDate(weekStart);
   const list = S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
   if(!list.length){
     tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📅</div><p>No points data yet</p></div></td></tr>';
@@ -5164,7 +5175,7 @@ function spPopulateDatalists(){
   dl.innerHTML=S.products.map(p=>`<option value="${p.name}">`).join('');
   // Set today's date
   const dEl=document.getElementById('sp-date');
-  if(dEl&&!dEl.value) dEl.value=new Date().toISOString().slice(0,10);
+  if(dEl&&!dEl.value) dEl.value=localDate();
   // Add default child rows if empty
   if(!document.querySelectorAll('#sp-child-rows .sp-child-row').length){
     addChildRow(); addChildRow();
@@ -5350,7 +5361,7 @@ function saveSplitSession(){
   const sticker =+document.getElementById('sp-sticker')?.value||1;
   const cover   =+document.getElementById('sp-cover')?.value||1;
   const lMode   =document.getElementById('sp-leftover-mode')?.value||'carryforward';
-  const date    =document.getElementById('sp-date')?.value||new Date().toISOString().slice(0,10);
+  const date    =document.getElementById('sp-date')?.value||localDate();
   const notes   =document.getElementById('sp-notes')?.value||'';
 
   if(!prod){toast('⚠️ Select a product');return;}
@@ -5551,7 +5562,7 @@ function clearCustomerPoints(name){
   if(!c){toast('Customer not found');return;}
   if(!confirm(`Clear ALL points for ${name}?\nCurrent: ${c.points||0} pts\nThis cannot be undone.`)) return;
   c.pointsHistory=c.pointsHistory||[];
-  c.pointsHistory.push({date:new Date().toISOString().slice(0,10),used:c.points||0,reason:'Manual clear by admin',balance:0});
+  c.pointsHistory.push({date:localDate(),used:c.points||0,reason:'Manual clear by admin',balance:0});
   c.points=0;
   autoSave(); renderPointsLedger(); renderLeaderboard();
   toast(`🗑️ Points cleared for ${name}`);
@@ -5564,7 +5575,7 @@ function openExchangeModal(saleId){
   const sale=S.sales.find(s=>s.id===saleId);
   if(!sale){toast('Sale not found');return;}
   document.getElementById('ex-sale-id').value=saleId;
-  document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ex-date').value=localDate();
   document.getElementById('ex-type').value='exchange';
   document.getElementById('ex-reason').value='';
   document.getElementById('ex-diff').value='0';
@@ -6066,7 +6077,7 @@ function confirmStudentPayment(){
   // Log payment in student history
   s.payHistory=s.payHistory||[];
   s.payHistory.push({
-    date:new Date().toISOString().slice(0,10),
+    date:localDate(),
     amount:amt, mode, notes,
     balanceAfter:s.balance
   });
@@ -6086,7 +6097,7 @@ function confirmStudentPayment(){
     const waMsg=getWATmpl('receipt',{
       name:s.name, product:s.courseName||s.cls||'Tuition Fee',
       amount:amt.toFixed(0), mode,
-      date:new Date().toISOString().slice(0,10), biz
+      date:localDate(), biz
     })+'\n📚 Course: '+(s.courseName||s.cls||'—')+'\n✅ Balance: ₹'+s.balance.toFixed(0);
     setTimeout(()=>showWAPrompt(s.phone, waMsg, s.name+' fee receipt'), 400);
   }
@@ -6170,7 +6181,7 @@ function deleteAd(id){
 }
 
 function renderAdStats(){
-  const now=new Date().toISOString().slice(0,10);
+  const now=localDate();
   const active=S.advertisements.filter(a=>!a.endDate||a.endDate>=now).length;
   const totalSpend=S.advertisements.reduce((a,x)=>a+(x.spend||0),0);
   const totalSales=S.advertisements.reduce((a,x)=>a+(x.sales||0),0);
@@ -6193,7 +6204,7 @@ function renderAds(){
     el.innerHTML='<div class="empty"><div class="ei">📢</div><p>No campaigns yet. Add your first ad campaign!</p></div>';
     return;
   }
-  const now=new Date().toISOString().slice(0,10);
+  const now=localDate();
   // Find best performer for badge
   const bestId=[...S.advertisements].filter(a=>a.spend>0).sort((a,b)=>((b.sales||0)-(b.spend||0))-((a.sales||0)-(a.spend||0)))[0]?.id;
   el.innerHTML=S.advertisements.map(ad=>{
@@ -6980,7 +6991,7 @@ function saveEditProduct(){
   if(addStock > 0){
     p._stockHistory = p._stockHistory||[];
     p._stockHistory.push({
-      date: new Date().toISOString().slice(0,10),
+      date: localDate(),
       added: addStock,
       newTotal: newStock,
       note: 'Manual stock update'
@@ -7624,7 +7635,7 @@ function collectSalePayment(saleId){
   // Send WA receipt
   const phone = sale.phone || cu?.phone;
   if(phone){
-    const msg = getWATmpl('receipt',{name:sale.customer,product:(sale.products||[]).map(p=>p.name).join(', '),amount:collect.toFixed(0),mode:'Cash',date:new Date().toISOString().slice(0,10),biz:S.settings.bizName||'Meenatchi Traders'});
+    const msg = getWATmpl('receipt',{name:sale.customer,product:(sale.products||[]).map(p=>p.name).join(', '),amount:collect.toFixed(0),mode:'Cash',date:localDate(),biz:S.settings.bizName||'Meenatchi Traders'});
     setTimeout(()=>showWAPrompt(phone,msg,sale.customer),500);
   }
 }
@@ -7644,7 +7655,7 @@ function renderSalesPartial(){
   const today = new Date();
   tb.innerHTML = pendCusts.map(c=>{
     const oldest = S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0)
-      .reduce((a,s)=>s.date<a?s.date:a, new Date().toISOString().slice(0,10));
+      .reduce((a,s)=>s.date<a?s.date:a, localDate());
     const days = Math.floor((today-new Date(oldest+'T00:00:00'))/86400000);
     return `<tr>
       <td><strong>${c.name}</strong><div style="font-size:10px;color:var(--text3)">${c.phone||''}</div></td>
@@ -7719,7 +7730,7 @@ function resendBillWA(saleId){
 }
 
 function renderSalesTable(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
@@ -7867,13 +7878,13 @@ function addCustomer(){
     S.referrals=S.referrals||[];
     // Award 10 pts to referrer + 10 pts to new customer
     const refBonus = getPtsSettings().referralBonus||10;
-    S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:refBonus});
+    S.referrals.push({referrer:ref,referred:name,date:localDate(),bonus:refBonus});
     // New customer also gets referralBonus points for being referred
     const newCust=S.customers.find(x=>x.name===name);
-    if(newCust){newCust.points=(newCust.points||0)+refBonus;newCust.pointsHistory=newCust.pointsHistory||[];newCust.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:refBonus,reason:'Joined via referral by '+ref,balance:newCust.points});}
+    if(newCust){newCust.points=(newCust.points||0)+refBonus;newCust.pointsHistory=newCust.pointsHistory||[];newCust.pointsHistory.push({date:localDate(),earned:refBonus,reason:'Joined via referral by '+ref,balance:newCust.points});}
     // Referrer also gets referralBonus points
     const refC=S.customers.find(x=>x.name===ref);
-    if(refC){refC.points=(refC.points||0)+refBonus;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:refBonus,reason:'Referral bonus: '+name,balance:refC.points});}
+    if(refC){refC.points=(refC.points||0)+refBonus;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:localDate(),earned:refBonus,reason:'Referral bonus: '+name,balance:refC.points});}
   }
   ['c-name','c-phone','c-addr','c-bday','c-ref'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   gsMaybeSync('addCustomer', c);
@@ -7916,11 +7927,11 @@ function renderPendingCust(){
 // ===== ORDERS =====
 // ── Renumber all orders sequentially after any change ──────────
 function renumberOrders(){
-  // Sort by internal timestamp id (creation order)
+  // Sort chronologically by creation id
   S.orders.sort((a,b)=>a.id-b.id);
-  // Assign sequential display numbers
+  // Assign sequential numbers (o.num = #1 oldest, #N newest)
   S.orders.forEach((o,i)=>{ o.num=i+1; });
-  // Update counter for next order
+  // Update counter for next new order
   S.orderCounter = S.orders.length + 1;
 }
 
@@ -7932,9 +7943,16 @@ function renderOrders(){
   });
   if(!S.orders.length){tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">🚚</div><p>No orders yet</p></div></td></tr>';return;}
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
-  const sortedOrders=S.orders.slice().sort((a,b)=>a.id-b.id);
-  tb.innerHTML=sortedOrders.map((o,idx)=>`<tr>
-    <td><strong style="font-size:13px">#${o.num||idx+1}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
+  // Sort descending by sale date, then by id within same date
+  const sortedOrders=S.orders.slice().sort((a,b)=>{
+    if(b.date!==a.date) return b.date>a.date?1:-1;
+    return b.id-a.id;
+  });
+  // Renumber display: #1 = oldest, #N = newest (preserve chronological numbering)
+  const chronOrder=S.orders.slice().sort((a,b)=>a.id-b.id);
+  const numMap={}; chronOrder.forEach((o,i)=>numMap[o.id]=i+1);
+  tb.innerHTML=sortedOrders.map((o)=>`<tr>
+    <td><strong style="font-size:13px">#${numMap[o.id]||o.num||'—'}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
     <td>${o.product}</td><td>${o.qty}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td>
     <td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td>
     <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)">${['Pending','Processing','Ready','Delivered','Cancelled'].map(s=>`<option ${s===o.status?'selected':''} >${s}</option>`).join('')}</select></td>
@@ -8281,9 +8299,9 @@ function renderInventory(){
   const days     = +document.getElementById('inv-period')?.value || 30;
   const now      = new Date();
   const cutoff   = new Date(); cutoff.setDate(cutoff.getDate()-days);
-  const cutStr   = cutoff.toISOString().slice(0,10);
+  const cutStr   = localDate(cutoff);
   const prevCut  = new Date(); prevCut.setDate(prevCut.getDate()-(days*2));
-  const prevStr  = prevCut.toISOString().slice(0,10);
+  const prevStr  = localDate(prevCut);
 
   // Compute analytics per product
   const products = S.products.map(p=>{
@@ -8488,7 +8506,7 @@ function copyReorderMsg(name, qty, unit){
 
 // ===== SMART PROFIT =====
 function renderSmartProfit(){
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDate();
   const todaySales = S.sales.filter(s=>s.date===today);
   const rev   = todaySales.reduce((a,s)=>a+s.total,0);
   const prof  = todaySales.reduce((a,s)=>a+s.profit,0);
@@ -8522,7 +8540,7 @@ function renderProductPerformance(days){
   if(!S.products.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">💡</div><p>No products</p></div></td></tr>';return;}
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate()-days);
-  const cutStr = cutoff.toISOString().slice(0,10);
+  const cutStr = localDate(cutoff);
   const periodSales = S.sales.filter(s=>s.date>=cutStr);
   const soldMap={};
   periodSales.forEach(s=>s.products?.forEach(p=>{soldMap[p.name]=(soldMap[p.name]||0)+p.qty;}));
@@ -8728,7 +8746,7 @@ function renderSmartReminders(){
     el.innerHTML='<div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>No buying reminders due yet. Reminders appear when customers are due for reorder based on their purchase history.</p></div></div></div>';
     return;
   }
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   el.innerHTML=`
     <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
       💡 <strong>Smart Buying Reminders</strong> — Based on each customer's purchase history, the app calculates when they're likely to need to reorder. One combined WhatsApp message per customer.
@@ -8899,11 +8917,11 @@ function renderDemand(){
   if(!S.products.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>Add products first</p></div></td></tr>';return;}
 
   const now    = new Date();
-  const today  = now.toISOString().slice(0,10);
-  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week.toISOString().slice(0,10);
-  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month.toISOString().slice(0,10);
-  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7.toISOString().slice(0,10);
-  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30.toISOString().slice(0,10);
+  const today  = localDate(now);
+  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = localDate(week);
+  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = localDate(month);
+  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = localDate(prev7);
+  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= localDate(prev30);
 
   tb.innerHTML=S.products.map(p=>{
     // Sales qty helper
@@ -8962,7 +8980,7 @@ function updateDashStats(){
   S.customers.forEach(cust=>{
     cust.pending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
   });
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   const todaySales=S.sales.filter(s=>s.date===today);
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
   const mTotal=S.sales.reduce((a,s)=>a+s.total,0);
@@ -9000,7 +9018,7 @@ function openNPAModal(custId){
   document.getElementById('npa-cust-id').value  = custId;
   document.getElementById('npa-cust-show').textContent = c.name;
   document.getElementById('npa-amount-show').textContent = '₹'+c.pending.toFixed(2);
-  document.getElementById('npa-date').value      = new Date().toISOString().slice(0,10);
+  document.getElementById('npa-date').value      = localDate();
   document.getElementById('npa-reason').value    = 'customer_absconded';
   document.getElementById('npa-notes').value     = '';
   document.getElementById('npa-partial-chk').checked = false;
@@ -9024,7 +9042,7 @@ function confirmNPA(){
   const custId   = +document.getElementById('npa-cust-id').value;
   const reason   = document.getElementById('npa-reason').value;
   const notes    = document.getElementById('npa-notes').value.trim();
-  const date     = document.getElementById('npa-date').value || new Date().toISOString().slice(0,10);
+  const date     = document.getElementById('npa-date').value || localDate();
   const partial  = document.getElementById('npa-partial-chk').checked;
   const c=S.customers.find(x=>x.id===custId);
   if(!c){toast('Customer not found');return;}
@@ -9148,7 +9166,7 @@ function renderDashPending(){
   // Calculate oldest pending sale date for each customer
   const withDays = pendCust.map(c=>{
     const pendSales = S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0);
-    const oldest = pendSales.reduce((a,s)=>s.date<a?s.date:a, today.toISOString().slice(0,10));
+    const oldest = pendSales.reduce((a,s)=>s.date<a?s.date:a, today);
     const daysSince = pendSales.length
       ? Math.floor((today - new Date(oldest+'T00:00:00')) / 86400000) : 0;
     return {...c, daysSince, pendSalesCount:pendSales.length};
@@ -9402,7 +9420,7 @@ function saveTarget(){
 
 // ===== AUTO REPORT =====
 function genReport(){
-  const date=document.getElementById('rep-date').value||new Date().toISOString().slice(0,10);
+  const date=document.getElementById('rep-date').value||localDate();
   const daySales=S.sales.filter(s=>s.date===date);
   const total=daySales.reduce((a,s)=>a+s.total,0);
   const profit=daySales.reduce((a,s)=>a+s.profit,0);
@@ -9773,7 +9791,7 @@ function calcBreakEven(){
 function generateReportPDF(){
   genReport(); // ensure report is fresh
   const biz = S.settings.bizName||'Meenatchi Traders';
-  const date = document.getElementById('rep-date')?.value||new Date().toISOString().slice(0,10);
+  const date = document.getElementById('rep-date')?.value||localDate();
   const sales = document.getElementById('rep-sales')?.textContent||'₹0';
   const profit= document.getElementById('rep-profit')?.textContent||'₹0';
   const tea   = document.getElementById('rep-tea')?.textContent||'₹0';
@@ -9851,8 +9869,8 @@ function getProductAnalytics(p, days){
   const now    = new Date();
   const cut1   = new Date(); cut1.setDate(cut1.getDate()-days);
   const cut2   = new Date(); cut2.setDate(cut2.getDate()-(days*2));
-  const c1Str  = cut1.toISOString().slice(0,10);
-  const c2Str  = cut2.toISOString().slice(0,10);
+  const c1Str  = localDate(cut1);
+  const c2Str  = localDate(cut2);
 
   const recentSales = S.sales.filter(s=>s.date>=c1Str);
   const prevSales   = S.sales.filter(s=>s.date>=c2Str && s.date<c1Str);
@@ -9876,12 +9894,12 @@ function getProductAnalytics(p, days){
   // Reorder point: (wAvgDaily * leadTime) + (wAvgDaily * safetyDays)
   const reorderPoint   = wAvgDaily > 0 ? Math.ceil(wAvgDaily * (leadTime + safetyDays)) : p.alert;
   const daysLeft       = wAvgDaily > 0 ? Math.floor(bal / wAvgDaily) : Infinity;
-  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000).toISOString().slice(0,10) : null;
+  const stockoutDate   = wAvgDaily > 0 ? localDate(new Date(now.getTime() + daysLeft*86400000)) : null;
   const orderByDate    = wAvgDaily > 0
-    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000).toISOString().slice(0,10)
+    ? localDate(new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000))
     : null;
   const expectedReceive= orderByDate
-    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000).toISOString().slice(0,10)
+    ? localDate(new Date(new Date(orderByDate).getTime() + leadTime*86400000))
     : null;
 
   // Suggested reorder qty: target days supply, rounded to pack size
@@ -10024,7 +10042,7 @@ function prefillOrder(prodId){
     document.getElementById('so-prod').value  = p.name;
     document.getElementById('so-qty').value   = a.suggestedQty;
     document.getElementById('so-price').value = p.bprice||0;
-    const today = new Date().toISOString().slice(0,10);
+    const today = localDate();
     document.getElementById('so-order-date').value = today;
     soCalcDates();
     soAutoFill();
@@ -10040,7 +10058,7 @@ function soPopulateDatalists(){
   soSetDefaults();
 }
 function soSetDefaults(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   const od=document.getElementById('so-order-date');
   if(od&&!od.value) od.value=today;
   soCalcDates();
@@ -10049,7 +10067,7 @@ function soCalcDates(){
   const orderDate=document.getElementById('so-order-date')?.value;
   const lead=+document.getElementById('so-lead')?.value||3;
   if(!orderDate) return;
-  const exp=new Date(new Date(orderDate).getTime()+lead*86400000).toISOString().slice(0,10);
+  const exp=localDate(new Date(new Date(orderDate).getTime()+lead*86400000));
   const ed=document.getElementById('so-exp-date');
   if(ed) ed.value=exp;
   // Auto-calc total
@@ -10118,7 +10136,7 @@ function clearSupplierOrderForm(){
   document.getElementById('so-lead').value=3;
   document.getElementById('so-min-qty').value=1;
   document.getElementById('so-status').value='Planned';
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   const od=document.getElementById('so-order-date');if(od)od.value=today;
   soCalcDates();
   const hint=document.getElementById('so-ai-hint');if(hint)hint.textContent='Select a product to see AI suggestion';
@@ -10292,7 +10310,7 @@ function renderSOReports(){
 function rpPopulateDatalists(){
   const pdl=document.getElementById('rp-prod-dl');
   if(pdl) pdl.innerHTML=S.products.map(p=>`<option value="${p.name}">`).join('');
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDate();
   const rd=document.getElementById('rp-date');if(rd&&!rd.value)rd.value=today;
   // Fill linked orders
   const lo=document.getElementById('rp-linked-order');
@@ -10368,7 +10386,7 @@ function saveRepackSession(){
   const outputPacks=Math.floor(effectiveInput/packSize);
   const stickersUsed=outputPacks*stickerPer;
   const coversUsed=outputPacks*coverPer;
-  const repackDate=document.getElementById('rp-date')?.value||new Date().toISOString().slice(0,10);
+  const repackDate=document.getElementById('rp-date')?.value||localDate();
   const linkedOrderId=+document.getElementById('rp-linked-order')?.value||null;
 
   // Validation: check packaging stock
@@ -10590,7 +10608,7 @@ function renderPackStock(){
       const monthUsed=m.type==='Sticker'?monthLog.reduce((a,r)=>a+r.stickersUsed,0):m.type==='Cover/Bag'?monthLog.reduce((a,r)=>a+r.coversUsed,0):0;
       const dailyUse=monthUsed/30;
       const daysLeft=dailyUse>0?Math.floor(m.qty/dailyUse):Infinity;
-      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000).toISOString().slice(0,10):null;
+      const orderByDate=daysLeft!==Infinity&&daysLeft<30?localDate(new Date(now.getTime()+(daysLeft-m.leadTime)*86400000)):null;
       let status='bg',statusTxt='✅ OK';
       if(m.qty<=0){ status='br'; statusTxt='🚨 Out'; }
       else if(m.qty<=m.minStock){ status='br'; statusTxt='🚨 Reorder Now'; }
@@ -10707,7 +10725,7 @@ function renderWeeklyChart(){
   const dateLabels = [];
   for(let i=6;i>=0;i--){
     const d=new Date(now); d.setDate(now.getDate()-i);
-    dateLabels.push(d.toISOString().slice(0,10));
+    dateLabels.push(localDate(d));
   }
   const dayVals = dateLabels.map(()=>0);
   S.sales.forEach(s=>{
@@ -10857,7 +10875,7 @@ function autoCreateReminderFromSale(sale){
       if(exists){
         exists.lastDate = sale.date;
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
-        exists.dueDate = due.toISOString().slice(0,10);
+        exists.dueDate = localDate(due);
         exists.snoozed = false;
       } else {
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
@@ -10865,7 +10883,7 @@ function autoCreateReminderFromSale(sale){
           id:Date.now()+Math.random(),
           custName:sale.customer,phone:sale.phone||'',
           product:p.name,lastDate:sale.date,days:rule.days,
-          dueDate:due.toISOString().slice(0,10),priority:rule.priority,
+          dueDate:localDate(due),priority:rule.priority,
           notes:'Auto-created from sale',
           msg:getWATmpl('reminder',{name:sale.customer,product:p.name}),
           sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -10886,7 +10904,7 @@ function autoCreateReminderFromSale(sale){
     const due = new Date(sale.date); due.setDate(due.getDate()+earliestDays);
     if(exists){
       exists.lastDate=sale.date;
-      exists.dueDate=due.toISOString().slice(0,10);
+      exists.dueDate=localDate(due);
       exists.snoozed=false;
     } else {
       const rule = S.productRules.find(r=>r.product===triggerProd.name&&r.autoCreate);
@@ -10894,7 +10912,7 @@ function autoCreateReminderFromSale(sale){
         id:Date.now()+Math.random(),
         custName:sale.customer,phone:sale.phone||'',
         product:allProdNames,lastDate:sale.date,days:earliestDays,
-        dueDate:due.toISOString().slice(0,10),priority:rule?.priority||'medium',
+        dueDate:localDate(due),priority:rule?.priority||'medium',
         notes:'Auto-created: '+sale.products.length+' products, earliest reorder '+earliestDays+'d',
         msg:getWATmpl('reminder',{name:sale.customer,product:allProdNames}),
         sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -11005,7 +11023,7 @@ function calcNextDue(){
   if(!lastDate || !days) return;
   const due = new Date(lastDate);
   due.setDate(due.getDate() + days);
-  document.getElementById('rem-due-date').value = due.toISOString().slice(0,10);
+  document.getElementById('rem-due-date').value = localDate(due);
 }
 
 function populateReminderDataLists(){
@@ -11020,7 +11038,7 @@ function populateReminderDataLists(){
   if(ruleDL) ruleDL.innerHTML = S.products.map(p=>`<option value="${p.name}">`).join('');
   // Set today's date as default for last purchase
   const ldEl = document.getElementById('rem-last-date');
-  if(ldEl && !ldEl.value) ldEl.value = new Date().toISOString().slice(0,10);
+  if(ldEl && !ldEl.value) ldEl.value = localDate();
   // Wire customer input to auto-fill phone
   const remCust = document.getElementById('rem-cust');
   if(remCust && !remCust._phoneWired){
@@ -11057,7 +11075,7 @@ function addReminder(){
     product: prod,
     lastDate,
     days,
-    dueDate: due.toISOString().slice(0,10),
+    dueDate: localDate(due),
     priority: document.getElementById('rem-priority').value,
     notes: document.getElementById('rem-notes').value,
     msg: document.getElementById('rem-msg-custom').value || getWATmpl('reminder',{name:cust,product:prod}),
@@ -11078,7 +11096,7 @@ function clearReminderForm(){
   ['rem-cust','rem-phone','rem-prod','rem-days','rem-notes','rem-msg-custom'].forEach(id=>{
     const e=document.getElementById(id); if(e) e.value='';
   });
-  document.getElementById('rem-last-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rem-last-date').value = localDate();
   document.getElementById('rem-due-date').value = '';
   document.getElementById('rem-priority').value = 'medium';
 }
@@ -11128,7 +11146,7 @@ function snoozeReminder(id, extraDays){
   if(!r) return;
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + extraDays);
-  r.dueDate = due.toISOString().slice(0,10);
+  r.dueDate = localDate(due);
   r.snoozed = true;
   renderRemindersStats();
   renderRemindersToday();
@@ -11143,8 +11161,8 @@ function markReminderSent(id){
   // Advance due date by interval
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + r.days);
-  r.dueDate = due.toISOString().slice(0,10);
-  r.lastDate = new Date().toISOString().slice(0,10);
+  r.dueDate = localDate(due);
+  r.lastDate = localDate();
   r.snoozed = false;
   renderRemindersStats();
   renderRemindersToday();
@@ -11376,7 +11394,7 @@ function quickAddReminder(name, phone){
   setTimeout(()=>{
     document.getElementById('rem-cust').value = name;
     document.getElementById('rem-phone').value = phone;
-    document.getElementById('rem-last-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('rem-last-date').value = localDate();
   }, 50);
 }
 
@@ -11920,7 +11938,7 @@ window.addEventListener('DOMContentLoaded', function(){
   const now = new Date();
   document.getElementById('date-chip').textContent = now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   document.getElementById('dash-date-sub').textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' — 0 orders today';
-  const today = now.toISOString().slice(0,10);
+  const today = localDate(); // Use local timezone — not UTC (fixes IST date shift)
   ['s-date','tc-date','rep-filter-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
   // Restore WA auto-send checkbox from saved setting
   const waChk=document.getElementById('s-auto-wa');
