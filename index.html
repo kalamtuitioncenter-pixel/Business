@@ -883,7 +883,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
               <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-invoice" style="accent-color:var(--accent)"> Generate Invoice</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSave()"> 📱 Auto Send WA Bill</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSaveNow();toast(this.checked?'📱 WA Bill: ON':'📱 WA Bill: OFF')"> 📱 Auto Send WA Bill</label>
               <div class="fg" style="margin:0;flex:1">
                 <select class="fs" id="s-ad-source" style="font-size:11px;height:32px">
                   <option value="">📢 Ad Source (optional)</option>
@@ -7331,7 +7331,10 @@ function saveSale(){
   clearSale();
   // Open WhatsApp DIRECTLY after sale save (no prompt bar needed)
   // Controlled by the 📱 WA Receipt checkbox in the sale form
-  if(_waPhone && S.settings.autoWaReceipt !== false){
+  // Read checkbox directly at save time — this is the source of truth
+  const waChkBox = document.getElementById('s-auto-wa');
+  const shouldSendWA = waChkBox ? waChkBox.checked : (S.settings.autoWaReceipt !== false);
+  if(_waPhone && shouldSendWA){
     setTimeout(()=>openWA(_waPhone, _waMsg), 600);
   }
 }
@@ -11538,6 +11541,9 @@ window.addEventListener('DOMContentLoaded', function(){
   document.getElementById('dash-date-sub').textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' — 0 orders today';
   const today = now.toISOString().slice(0,10);
   ['s-date','tc-date','rep-filter-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
+  // Restore WA auto-send checkbox from saved setting
+  const waChk=document.getElementById('s-auto-wa');
+  if(waChk) waChk.checked = S.settings.autoWaReceipt !== false;
   const rd=document.getElementById('rep-date');if(rd)rd.value=today;
 
   // ── Restore biz name in settings form ──
