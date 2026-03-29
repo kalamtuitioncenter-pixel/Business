@@ -63,7 +63,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
 
 /* CONTENT */
-#content{padding:16px;flex:1}
+#content{padding:12px;flex:1}
 .page{display:none}
 .page.active{display:block;animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -115,12 +115,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   /* ── Page header ── */
   .ph{ margin-bottom:12px; }
-  .ph h1{ font-size:16px; flex-wrap:wrap; }
+  .ph h1{ font-size:17px; flex-wrap:wrap; }
   .ph p{ font-size:11px; }
 
   /* ── Stat grids all go 2 col ── */
   .sc-grid,.sc-grid-resp{ grid-template-columns:repeat(2,1fr) !important; gap:8px; }
-  .sc{ padding:10px 12px; }
+  .sc{ padding:8px 10px; }
   .sc-val{ font-size:15px !important; }
   .sc-label{ font-size:8px !important; }
   .sc-sub{ font-size:9px; }
@@ -279,20 +279,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   table{ min-width:420px; }
   th,td{ padding:6px 8px; font-size:10px; }
 }
-.ph{margin-bottom:18px}
+.ph{margin-bottom:12px}
 .ph h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
 .ph p{color:var(--text2);font-size:12px;margin-top:3px}
 
 /* STAT CARDS */
-.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
 /* Responsive stat grid — adapts on mobile */
 .sc-grid-resp{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:default}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden;cursor:default}
 .sc::after{content:'';position:absolute;top:-10px;right:-10px;width:55px;height:55px;border-radius:50%;opacity:.1}
 .sc.y::after{background:var(--accent)}.sc.g::after{background:var(--green)}.sc.b::after{background:var(--blue)}.sc.r::after{background:var(--red)}.sc.p::after{background:var(--purple)}.sc.o::after{background:var(--orange)}
-.sc-ico{font-size:18px;margin-bottom:10px;opacity:.7}
-.sc-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
-.sc-val{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700}
+.sc-ico{font-size:16px;margin-bottom:6px;opacity:.7}
+.sc-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.sc-val{font-family:'Poppins',sans-serif;font-size:18px;font-weight:700}
+.sc-sub{font-size:9px;color:var(--text3);margin-top:2px}
 .sc.y .sc-val{color:var(--accent)}.sc.g .sc-val{color:var(--green)}.sc.b .sc-val{color:var(--blue)}.sc.r .sc-val{color:var(--red)}.sc.p .sc-val{color:var(--purple)}.sc.o .sc-val{color:var(--orange)}
 .sc-sub{font-size:10px;color:var(--text3);margin-top:3px}
 
@@ -306,7 +307,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .card-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
 .card-h h3{font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
-.card-b{padding:14px 16px}
+.card-b{padding:12px 14px}
 
 /* BUTTONS */
 .btn{padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;transition:all .12s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
@@ -738,7 +739,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
               <thead><tr><th>Customer</th><th>Phone</th><th style="color:var(--red)">Pending ₹</th><th>Days Since Sale</th><th>Actions</th></tr></thead>
-              <tbody id="dp-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
+              <tbody id="dash-pending-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
             </table></div>
           </div>
         </div>
@@ -881,8 +882,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <input type="hidden" id="s-final-total" value="0">
             </div>
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
               <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-invoice" style="accent-color:var(--accent)"> Generate Invoice</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSave()"> 📱 WA Receipt</label>
               <div class="fg" style="margin:0;flex:1">
                 <select class="fs" id="s-ad-source" style="font-size:11px;height:32px">
                   <option value="">📢 Ad Source (optional)</option>
@@ -2353,7 +2355,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <!-- POINTS -->
       <div id="lt-pts" style="display:none">
         <div class="card">
-          <div class="card-h"><h3>⭐ Points Ledger</h3><button class="btn btn-y" style="font-size:10px" onclick="renderPointsLedger()">🔄 Refresh</button></div>
+          <div class="card-h"><h3>⭐ Points Ledger</h3><div style="display:flex;gap:6px"><button class="btn btn-y" style="font-size:10px" onclick="renderPointsLedger()">🔄 Refresh</button><button class="btn btn-r" style="font-size:10px" onclick="recalcAllLoyaltyPoints()" title="Fix incorrect point values">🔧 Recalculate All</button></div></div>
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
               <thead><tr><th>Customer</th><th>Phone</th><th>Points</th><th>Redeem Value</th><th>Expiry Date</th><th>Actions</th></tr></thead>
@@ -3100,7 +3102,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <div class="fr2">
               <div class="fg"><label class="fl">Material Name</label><input class="fi" id="ps-name" placeholder="e.g. 100g Sticker, Poly Cover..."></div>
               <div class="fg"><label class="fl">Type</label>
-                <select class="fs" id="ps-type">
+                <select class="fs" id="ps-type" onchange="psTypeChange()">
                   <option>Sticker</option><option>Cover/Bag</option><option>Box</option>
                   <option>Label</option><option>Tape</option><option>Other</option>
                 </select>
@@ -3123,8 +3125,18 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <div class="fg"><label class="fl">Lead Time (days)</label><input class="fi" id="ps-lead" type="number" value="3" min="1"></div>
             </div>
             <div class="fr2">
-              <div class="fg"><label class="fl">Buy Price per Unit (₹)</label><input class="fi" id="ps-price" type="number" placeholder="0"></div>
+              <div class="fg"><label class="fl">Buy Price per Unit (₹)</label><input class="fi" id="ps-price" type="number" placeholder="0" oninput="psCalcCost()"></div>
               <div class="fg"><label class="fl">Linked Products</label><input class="fi" id="ps-linked" placeholder="e.g. Tea 100g, Tea 250g"></div>
+            </div>
+            <!-- Sticker sheet details (shown when type = Sticker) -->
+            <div id="ps-sheet-wrap" style="background:rgba(249,200,70,.06);border:1px solid rgba(249,200,70,.2);border-radius:8px;padding:10px 12px;margin-bottom:10px;display:none">
+              <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🏷️ Sticker Sheet Details</div>
+              <div class="fr3">
+                <div class="fg"><label class="fl" style="font-size:10px">Stickers Per Sheet</label><input class="fi" id="ps-per-sheet" type="number" placeholder="e.g. 24" min="1" oninput="psCalcSheet()"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Sheets in Stock</label><input class="fi" id="ps-sheets-qty" type="number" placeholder="0" min="0" oninput="psCalcSheet()"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Price Per Sheet (₹)</label><input class="fi" id="ps-sheet-price" type="number" placeholder="0" oninput="psCalcSheet()"></div>
+              </div>
+              <div id="ps-sheet-calc" style="font-size:11.5px;color:var(--text2);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px"></div>
             </div>
             <div id="ps-calc-hint" style="font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:8px"></div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="ps-notes" rows="2" placeholder="Any notes..."></textarea></div>
@@ -3350,6 +3362,52 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 <!-- MODALS -->
+<!-- Customer Exchange / Return Modal -->
+<div class="mo" id="exchange-modal">
+  <div class="mo-box" style="max-width:480px">
+    <div class="mo-h" style="background:rgba(88,166,255,.06);border-bottom:1px solid rgba(88,166,255,.15)">
+      <h2>🔄 Exchange / Return</h2>
+      <button class="xbtn" onclick="closeModal('exchange-modal')">✕</button>
+    </div>
+    <div class="mo-b">
+      <input type="hidden" id="ex-sale-id">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)" id="ex-sale-info">—</div>
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fs" id="ex-type" onchange="exTypeChange()">
+          <option value="exchange">🔄 Exchange (swap product)</option>
+          <option value="return">↩️ Full Return / Refund</option>
+          <option value="partial_return">💰 Partial Return</option>
+        </select>
+      </div>
+      <div id="ex-exchange-wrap">
+        <div class="fr2">
+          <div class="fg"><label class="fl">Product Returned</label><input class="fi" id="ex-return-prod" placeholder="Product being returned"></div>
+          <div class="fg"><label class="fl">New Product Given</label><input class="fi" id="ex-new-prod" placeholder="Replacement product"></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Price Difference (₹)</label><div class="fi-ico"><input class="fi" id="ex-diff" type="number" placeholder="0" value="0"><span class="fi-ico-btn">₹</span></div></div>
+          <div class="fg"><label class="fl">Difference Settled By</label>
+            <select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">No Difference</option></select>
+          </div>
+        </div>
+      </div>
+      <div id="ex-return-wrap" style="display:none">
+        <div class="fr2">
+          <div class="fg"><label class="fl">Refund Amount (₹)</label><div class="fi-ico"><input class="fi" id="ex-refund-amt" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+          <div class="fg"><label class="fl">Refund Mode</label>
+            <select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Reason <span style="color:var(--red)">*</span></label><input class="fi" id="ex-reason" placeholder="e.g. Wrong size, defective, customer changed mind..."></div>
+      <div class="fg"><label class="fl">Date</label><input class="fi" id="ex-date" type="date"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center" onclick="confirmExchange()">✅ Confirm</button>
+        <button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Student Partial Fee Payment Modal -->
 <div class="mo" id="student-pay-modal">
   <div class="mo-box" style="max-width:420px">
@@ -3404,6 +3462,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 </div>
+
+<!-- NPA Write-off Modal -->
+<div class="mo" id="npa-modal">
   <div class="mo-box" style="max-width:460px">
     <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
       <h2>🚫 Mark as NPA — Write Off</h2>
@@ -3573,7 +3634,8 @@ const S = {
   // ── Smart Repack Split Engine ──
   splitLog:[],       // split repack history
   splitPresets:[],   // saved split patterns
-  npaLog:[]          // NPA bad-debt write-offs
+  npaLog:[],         // NPA bad-debt write-offs
+  exchangeLog:[]    // exchange/return records
 };
 
 // ===== LOCALSTORAGE PERSISTENCE =====
@@ -3677,7 +3739,7 @@ function loadPersistedState(){
                   'categories','target','reminders','productRules','bdayGifts','referrals',
                   'supplierOrders','repackLog','packMaterials','packUsageHistory',
                   'reorderSettings','stockCorrections','courses','advertisements',
-                  'splitLog','splitPresets','npaLog'];
+                  'splitLog','splitPresets','npaLog','exchangeLog'];
     keys.forEach(k => {
       if(saved[k] !== undefined) S[k] = saved[k];
     });
@@ -3727,7 +3789,7 @@ function nav(page){
   if(page==='bizanalytics'){ renderBaMonthly(); }
   if(page==='reorder'){     renderReorderEngine(); soPopulateDatalists(); }
   if(page==='repacktrack'){ renderRepackLog(); renderRepackStats(); rpPopulateDatalists(); renderSplitStats(); }
-  if(page==='packstock'){   renderPackStock(); }
+  if(page==='packstock'){   renderPackStock(); psTypeChange(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=new Date().toISOString().slice(0,10); genReport(); }
   if(page==='target'){
@@ -4212,7 +4274,9 @@ function bwGenPromoMsg(){
   const till  = document.getElementById('bw-promo-till')?.value||'';
   const biz   = S.settings.bizName||'Meenatchi Traders';
   const phone = S.settings.phone||'';
-  const msg = `🎉 *${title}* — ${biz}\n\nDear {name},\n${disc?`🏷️ Get *${disc}% OFF* on your next purchase!\n`:''}${till?`⏰ Valid until: ${till}\n`:''}\nVisit us or call: ${phone||'our store'}\n\nDon't miss out! 😊`;
+  // Use customized promo template (editable in WA Templates)
+  const baseMsg = getWATmpl('pending',{name:'{name}',amount:'',biz,phone:phone||''});
+  const msg = `🎉 *${title}* — ${biz}\n\n${disc?`🏷️ Discount: ${disc}% OFF\n`:''}${till?`⏰ Valid until: ${till}\n`:''}${body?body+'\n':''}\nVisit us or call: ${phone||'our store'}\n\nThank you for your support! 🙏`;
   const el = document.getElementById('bw-promo-msg');
   if(el) el.value = msg;
 }
@@ -4429,7 +4493,7 @@ function getPtsSettings(){
   // The DOM inputs on the Loyalty page are only for editing — call savePtsSettings() to commit.
   const saved = S.settings.pts || {};
   return {
-    perRupee:  saved.perRupee  || 1,
+    perRupee:  Math.max(1, Math.min(saved.perRupee||1, 100)), // 1-100 pts per ₹10
     redeemVal: saved.redeemVal || 10,
     minOrder:  saved.minOrder  || 250,
     maxPct:    saved.maxPct    || 10,
@@ -4518,6 +4582,7 @@ function renderPointsLedger(){
         <button class="btn btn-b" style="font-size:10px;padding:2px 6px${!canRedeem?';opacity:.5':''}" ${!canRedeem?'disabled':''} onclick="redeemPoints('${c.name.replace(/'/g,"\\'")}')">🔄 Redeem</button>
         <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱</button>
         <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋</button>
+        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" title="Clear all points" onclick="clearCustomerPoints(this.dataset.n)" data-n="${c.name}">🗑️</button>
       </td>
     </tr>`;
   }).join('');
@@ -4772,7 +4837,8 @@ function sendBirthdayWA(name){
   const c=S.customers.find(x=>x.name===name);
   const gift=S.bdayGifts?.find(g=>g.custName===name);
   if(!c){toast('Customer not found');return;}
-  const msg=(gift?.msg||`🎂 Happy Birthday ${name}! 🎉 Wishing you a wonderful day from Meenatchi Traders!`)
+  const defaultBdayMsg = getWATmpl('reminder',{name,product:'Birthday Wishes',biz:S.settings.bizName||'Meenatchi Traders'});
+  const msg=(gift?.msg||`🎂 Happy Birthday ${name}! 🎉\n\n${defaultBdayMsg}`)
     .replace('{name}',name)
     .replace('{product}',gift?.product||'')
     .replace('{qty}',gift?.qty||'');
@@ -5235,6 +5301,168 @@ function renderSplitStats(){
   setEl('sp-preset-count', (S.splitPresets||[]).length);
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  LOYALTY — Clear Customer Points
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+//  RECALCULATE ALL LOYALTY POINTS — fixes corrupted point values
+// ═══════════════════════════════════════════════════════════════
+function recalcAllLoyaltyPoints(){
+  if(!confirm('Recalculate ALL customer loyalty points from their sales history?\n\nThis fixes incorrect point values. Cannot be undone.')) return;
+  const ps = getPtsSettings();
+  let fixed = 0;
+  S.customers.forEach(cust=>{
+    const custSales = S.sales.filter(s=>s.customer===cust.name);
+    // Rebuild points history from scratch
+    let pts = 0;
+    const newHistory = [];
+    // Sort sales by date
+    custSales.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(sale=>{
+      const earned = Math.floor(sale.total / 10) * ps.perRupee;
+      pts += earned;
+      newHistory.push({date:sale.date, earned, reason:'Sale ₹'+sale.total.toFixed(0)+' (recalc)', balance:pts});
+    });
+    // Apply any redemptions from old history
+    (cust.pointsHistory||[]).filter(h=>h.used>0).forEach(h=>{
+      pts = Math.max(pts - h.used, 0);
+      newHistory.push({...h, balance:pts});
+    });
+    if(cust.points !== pts){ fixed++; }
+    cust.points = Math.max(pts, 0);
+    cust.pointsHistory = newHistory;
+  });
+  autoSave();
+  renderPointsLedger();
+  renderLeaderboard();
+  toast('✅ Recalculated points for '+S.customers.length+' customers ('+fixed+' corrected). Rule: ₹10 = '+ps.perRupee+' pt(s)');
+}
+
+function clearCustomerPoints(name){
+  const c=S.customers.find(x=>x.name===name);
+  if(!c){toast('Customer not found');return;}
+  if(!confirm(`Clear ALL points for ${name}?\nCurrent: ${c.points||0} pts\nThis cannot be undone.`)) return;
+  c.pointsHistory=c.pointsHistory||[];
+  c.pointsHistory.push({date:new Date().toISOString().slice(0,10),used:c.points||0,reason:'Manual clear by admin',balance:0});
+  c.points=0;
+  autoSave(); renderPointsLedger(); renderLeaderboard();
+  toast(`🗑️ Points cleared for ${name}`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXCHANGE / RETURN SYSTEM
+// ═══════════════════════════════════════════════════════════════
+function openExchangeModal(saleId){
+  const sale=S.sales.find(s=>s.id===saleId);
+  if(!sale){toast('Sale not found');return;}
+  document.getElementById('ex-sale-id').value=saleId;
+  document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ex-type').value='exchange';
+  document.getElementById('ex-reason').value='';
+  document.getElementById('ex-diff').value='0';
+  document.getElementById('ex-refund-amt').value='';
+  const prodNames=(sale.products||[]).map(p=>p.name).join(', ');
+  document.getElementById('ex-return-prod').value=prodNames;
+  document.getElementById('ex-new-prod').value='';
+  document.getElementById('ex-sale-info').innerHTML=
+    `<strong>${sale.customer}</strong> · ${sale.date} · ₹${sale.total.toFixed(2)} · ${prodNames}`;
+  exTypeChange();
+  openModal('exchange-modal');
+}
+
+function exTypeChange(){
+  const type=document.getElementById('ex-type')?.value;
+  const exWrap=document.getElementById('ex-exchange-wrap');
+  const retWrap=document.getElementById('ex-return-wrap');
+  if(exWrap) exWrap.style.display=(type==='exchange')?'block':'none';
+  if(retWrap) retWrap.style.display=(type!=='exchange')?'block':'none';
+  if(type==='return'){
+    const saleId=+document.getElementById('ex-sale-id').value;
+    const sale=S.sales.find(s=>s.id===saleId);
+    if(sale) document.getElementById('ex-refund-amt').value=sale.total.toFixed(2);
+  }
+}
+
+function confirmExchange(){
+  const saleId=+document.getElementById('ex-sale-id').value;
+  const sale=S.sales.find(s=>s.id===saleId);
+  if(!sale){toast('Sale not found');return;}
+  const type  =document.getElementById('ex-type').value;
+  const reason=document.getElementById('ex-reason').value.trim();
+  const date  =document.getElementById('ex-date').value;
+  if(!reason){toast('⚠️ Enter a reason for the exchange/return');return;}
+  const cust=S.customers.find(x=>x.name===sale.customer);
+  let summary='';
+  if(type==='exchange'){
+    const retProd=document.getElementById('ex-return-prod').value.trim();
+    const newProd=document.getElementById('ex-new-prod').value.trim();
+    const diff=+document.getElementById('ex-diff').value||0;
+    const settled=document.getElementById('ex-settled').value;
+    sale.exchanged=true; sale.exchangeDate=date; sale.exchangeReason=reason; sale.exchangeNewProd=newProd;
+    if(diff>0&&settled==='credit'&&cust) cust.pending=(cust.pending||0)+diff;
+    S.sales.push({id:Date.now(),date,customer:sale.customer,phone:sale.phone||'',mode:'Exchange',status:'Delivered',
+      products:[{name:'Exchange: '+newProd,qty:1,price:0,disc:0,total:0}],
+      total:diff>0?diff:0,recv:settled==='cash'?diff:0,pending:settled==='credit'?diff:0,profit:0,
+      exchangeNote:`Exchanged: ${retProd} → ${newProd} | ${reason}`});
+    summary=`🔄 Exchange: ${retProd} → ${newProd}${diff?` · ₹${diff} diff (${settled})`:''}`;
+  } else {
+    const refundAmt=+document.getElementById('ex-refund-amt').value||0;
+    const refundMode=document.getElementById('ex-refund-mode').value;
+    sale.returned=true; sale.returnDate=date; sale.returnReason=reason; sale.refundAmount=refundAmt;
+    if(cust&&refundAmt>0){
+      cust.paid=Math.max((cust.paid||0)-refundAmt,0);
+      if(type==='return'){
+        cust.pointsHistory=(cust.pointsHistory||[]).filter(h=>!(h.reason&&h.reason.includes('Sale ₹'+sale.total.toFixed(0))&&h.date===sale.date));
+        cust.points=Math.max(0,(cust.pointsHistory||[]).reduce((a,h)=>a+(h.earned||0)-(h.used||0),0));
+      }
+    }
+    summary=`↩️ ${type==='return'?'Full Return':'Partial Return'}: ₹${refundAmt} via ${refundMode}`;
+  }
+  closeModal('exchange-modal');
+  autoSave();
+  renderSalesTable(); updateDashStats(); renderCustomers();
+  if(document.querySelector('.page.active')?.id==='p-loyalty') renderLoyalty();
+  toast(`✅ ${summary}`);
+  const ph=sale.phone||cust?.phone||'';
+  if(ph){
+    const biz=S.settings.bizName||'Meenatchi Traders';
+    // Use pending/reminder template for exchange notification
+    const msg = getWATmpl('reminder',{name:sale.customer,product:summary,biz}) +
+      `\n📅 ${date} | Reason: ${reason}`;
+    setTimeout(()=>showWAPrompt(ph,msg,sale.customer+' — Exchange/Return'),400);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PACKAGING STOCK — Sticker Sheet Calculator
+// ═══════════════════════════════════════════════════════════════
+function psTypeChange(){
+  const type=document.getElementById('ps-type')?.value;
+  const wrap=document.getElementById('ps-sheet-wrap');
+  if(wrap) wrap.style.display=(type==='Sticker'||type==='Label')?'block':'none';
+}
+
+function psCalcSheet(){
+  const perSheet=+document.getElementById('ps-per-sheet')?.value||0;
+  const sheets  =+document.getElementById('ps-sheets-qty')?.value||0;
+  const price   =+document.getElementById('ps-sheet-price')?.value||0;
+  const calc    =document.getElementById('ps-sheet-calc');
+  if(!calc) return;
+  if(!perSheet||!sheets){calc.textContent='';return;}
+  const total=perSheet*sheets;
+  const cost=price*sheets;
+  const each=total>0?(cost/total).toFixed(3):0;
+  calc.innerHTML='📊 Total stickers: <strong style="color:var(--accent)">'+total.toLocaleString()+'</strong>  ·  💰 Total cost: <strong style="color:var(--red)">₹'+cost.toFixed(2)+'</strong>  ·  🏷️ Per sticker: <strong style="color:var(--green)">₹'+each+'</strong>';
+  // Auto-fill stock qty
+  const stockEl=document.getElementById('ps-stock-qty');
+  if(stockEl&&!stockEl.value) stockEl.value=total;
+  // Auto-fill unit price
+  const priceEl=document.getElementById('ps-price');
+  if(priceEl&&price>0&&perSheet>0) priceEl.value=(price/perSheet).toFixed(3);
+}
+
+function psCalcCost(){ psCalcSheet(); psCalc(); }
+
 function cmTab(el, id){
   tabSwitch(el, id, ['cm-list','cm-add','cm-report']);
   if(id==='cm-list')   renderCourses();
@@ -5645,7 +5873,11 @@ function confirmStudentPayment(){
   // WA receipt option if phone available
   if(s.phone){
     const biz=S.settings.bizName||'Meenatchi Traders';
-    const waMsg=`🎓 *${biz}*\nHi, fee payment received!\n\n👤 ${s.name}\n💰 Paid: ₹${amt.toFixed(0)} (${mode})\n📚 Course: ${s.courseName||s.cls||'—'}\n✅ Balance: ₹${s.balance.toFixed(0)}\n\nThank you! 🙏`;
+    const waMsg=getWATmpl('receipt',{
+      name:s.name, product:s.courseName||s.cls||'Tuition Fee',
+      amount:amt.toFixed(0), mode,
+      date:new Date().toISOString().slice(0,10), biz
+    })+'\n📚 Course: '+(s.courseName||s.cls||'—')+'\n✅ Balance: ₹'+s.balance.toFixed(0);
     setTimeout(()=>showWAPrompt(s.phone, waMsg, s.name+' fee receipt'), 400);
   }
 }
@@ -6964,16 +7196,20 @@ function saveSale(){
   c.paid=(c.paid||0)+(sale.total-pending);
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
-  if(phone&&!c.phone) c.phone=phone;
-  // Save DOB if entered and not already set
+  // Always update customer details from sales entry (sync to Customer Management)
+  if(phone) c.phone=phone;  // always update phone
   const bdayVal = document.getElementById('s-bday')?.value;
-  if(bdayVal && !c.bday) c.bday = bdayVal;
-  // Save address if entered
+  if(bdayVal) c.bday = bdayVal;  // always update DOB if entered
   const addrVal = document.getElementById('s-addr')?.value.trim();
-  if(addrVal && !c.addr) c.addr = addrVal;
+  if(addrVal) c.addr = addrVal;  // always update address if entered
+  c.mode = sale.mode;            // always update payment mode
   // Award loyalty points (on finalTotal, not originalTotal)
-  const ppr  = S.settings.pts?.perRupee || +document.getElementById('pts-per-rupee')?.value || 1;
-  const earnedPts = Math.floor((finalTotal/10) * ppr);
+  // Points rule: ₹10 = 1 point (default). perRupee = points earned per ₹10 spent.
+  const ptsSettings = getPtsSettings();
+  const ppr = ptsSettings.perRupee || 1;
+  // Ensure ppr is treated as "points per 10 rupees" not "points per rupee"
+  // If someone accidentally set ppr=10 (thinking it means ₹10=1pt), cap it
+  const earnedPts = Math.floor(finalTotal / 10) * Math.max(1, Math.round(ppr));
   // Deduct redeemed points first
   if(redeemPts>0 && redeemDisc>0){
     c.points = Math.max((c.points||0)-redeemPts, 0);
@@ -7009,9 +7245,20 @@ function saveSale(){
   if(adSrc) linkSaleToAd(adSrc, finalTotal);
   document.getElementById('s-ad-source').value='';
   gsMaybeSync('addSale', sale);
-  autoSave();
+  autoSaveNow(); // immediate save — sales must never be debounced
   refreshCustDatalist();
-  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);clearSale();
+  const receiptMsg = getWATmpl('receipt',{
+    name: cust, product: products.map(p=>p.name).join(', '),
+    amount: finalTotal.toFixed(2), mode: sale.mode,
+    date: sale.date, biz: S.settings.bizName||'Meenatchi Traders',
+    phone: S.settings.phone||''
+  });
+  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);
+  clearSale();
+  // Auto-prompt WA receipt if customer has phone
+  if(phone && S.settings.autoWaReceipt!==false){
+    setTimeout(()=>showWAPrompt(phone, receiptMsg, cust+' — Receipt'), 500);
+  }
 }
 
 function clearSale(){
@@ -7022,6 +7269,29 @@ function clearSale(){
 }
 
 // ── Sales page tab switcher ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  CLEAR CUSTOMER POINTS (Loyalty Ledger Delete Button)
+// ═══════════════════════════════════════════════════════════════
+// clearCustomerPoints defined above
+
+// openExchangeModal defined above
+
+// exTypeChange defined above
+
+// confirmExchange defined above
+
+// psTypeChange defined above
+
+// psCalcSheet defined above
+
+// psCalcCost defined above
+
+function toggleAutoWaReceipt(){
+  S.settings.autoWaReceipt = document.getElementById('auto-wa-receipt')?.checked;
+  autoSave();
+  toast(S.settings.autoWaReceipt?'✅ Auto WA receipt ON':'WA receipt OFF');
+}
+
 function salesTab(el, id){
   tabSwitch(el, id, ['st-new','st-history','st-pending','st-partial']);
   if(id==='st-history') renderSalesTable();
@@ -7155,7 +7425,7 @@ function renderSalesTable(){
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
-  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
+  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-p" style="font-size:9px;padding:2px 5px" onclick="openExchangeModal(${s.id})" title="Exchange/Return">🔄</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
   tb.innerHTML=todaySales.length?todaySales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales today</p></div></td></tr>';
   htb.innerHTML=S.sales.length?S.sales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales history</p></div></td></tr>';
   // Update summary stats
@@ -7199,7 +7469,9 @@ function deleteSale(id){
   S.orders=S.orders.filter(o=>!(o.customer===sale.customer&&Math.abs(o.amount-sale.total)<0.01&&o.date===sale.date));
   S.sales=S.sales.filter(s=>s.id!==id);
   renderSalesTable();updateDashStats();renderWeeklyChart();renderCustomers();renderWA();renderPendingCust();
-  autoSave();toast('🗑️ Sale deleted and reversed');
+  // Sync loyalty if currently visible
+  if(document.querySelector('.page.active')?.id==='p-loyalty') { renderLoyalty(); loadPtsSettings(); }
+  autoSave();toast('🗑️ Sale deleted and reversed. Points & pending reversed.');
 }
 
 // ===== CUSTOMERS =====
@@ -7287,6 +7559,11 @@ function addCustomer(){
 function deleteCust(id){S.customers=S.customers.filter(c=>c.id!==id);renderCustomers();autoSave();toast('🗑️ Customer removed');}
 
 function renderPendingCust(){
+  // Resync customer pending from actual sales to prevent stale display
+  S.customers.forEach(cust=>{
+    const realPending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
+    cust.pending=realPending;
+  });
   const list=S.customers.filter(c=>c.pending>0);
   const tb=document.getElementById('pending-cust-tbody');
   if(!tb) return;
@@ -7486,6 +7763,11 @@ function sendProductUpdateWA(sale){
   setTimeout(()=>{ showWAPrompt(sale.phone, msg, sale.customer); }, 400);
 }
 function renderWA(){
+  // Resync customer pending from actual sales
+  S.customers.forEach(cust=>{
+    const realPending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
+    cust.pending=realPending;
+  });
   const list=S.customers.filter(c=>c.pending>0);
   const tb=document.getElementById('wa-tbody');
   if(!tb) return;
@@ -8185,6 +8467,10 @@ function renderDemand(){
 
 // ===== DASHBOARD STATS =====
 function updateDashStats(){
+  // Resync all customer pending amounts from actual sales (single source of truth)
+  S.customers.forEach(cust=>{
+    cust.pending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
+  });
   const today=new Date().toISOString().slice(0,10);
   const todaySales=S.sales.filter(s=>s.date===today);
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
@@ -8388,7 +8674,7 @@ function renderDashPending(){
   if(dl) dl.innerHTML = pendCust.map(c=>`<option value="${c.name}">`).join('');
 
   // Table
-  const tb = document.getElementById('dp-tbody');
+  const tb = document.getElementById('dash-pending-tbody');
   if(!tb) return;
   if(!withDays.length){
     tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear. 🎊</p></div></td></tr>';
@@ -9613,21 +9899,24 @@ function saveRepackSession(){
     coverMat.qty=Math.max(coverMat.qty-coversUsed,0);
     logPackUsage('Cover/Bag',coverMat.name,-coversUsed,coverMat.qty,`Repack: ${prod} ×${outputPacks} packs`);
   }
-  // Repack: deduct input quantity from raw product stock, add output packs back
+  // Repack: deduct input raw stock, add finished packs back
   const p=S.products.find(x=>x.name.toLowerCase()===prod.toLowerCase());
   if(p){
-    // Deduct input units (raw material used)
     const stockBefore=p.stock||0;
-    p.stock=Math.max(stockBefore-inputQty,0);
-    // Add output packs (finished goods)
-    p.stock=(p.stock||0)+outputPacks;
-    logStockCorrection(p.name, outputPacks-inputQty, 'Repack: -'+inputQty+' raw +'+outputPacks+' packs');
-    // Log the conversion detail
+    // inputQty is in same unit as stock (packs/kg/g)
+    // Deduct the input raw material from stock
+    const deductQty = inputQty; // units consumed as raw
+    p.stock=Math.max(stockBefore - deductQty, 0);
+    // Add the output packs as new stock
+    p.stock = (p.stock||0) + outputPacks;
+    logStockCorrection(p.name, outputPacks - deductQty,
+      'Repack: −'+deductQty+' raw → +'+outputPacks+' packs of '+packSize+'g');
     S.stockCorrections=S.stockCorrections||[];
     S.stockCorrections.push({
       date:repackDate, product:p.name,
-      note:'Repack: '+inputQty+' units → '+outputPacks+' packs of '+packSize,
-      before:stockBefore, after:p.stock
+      note:'Repack: '+deductQty+' units raw → '+outputPacks+' packs ('+packSize+'g each)',
+      before:stockBefore, after:p.stock,
+      packSize, outputPacks, deductQty
     });
   }
   // Mark linked order as repacked
@@ -9704,9 +9993,10 @@ function savePackMaterial(){
   const name=document.getElementById('ps-name')?.value.trim();
   if(!name){ toast('⚠️ Enter material name'); return; }
   const editId=+document.getElementById('ps-edit-id')?.value||0;
+  const type=document.getElementById('ps-type')?.value||'Sticker';
   const mat={
     id: editId||Date.now(),
-    name, type:document.getElementById('ps-type')?.value||'Sticker',
+    name, type,
     qty:+document.getElementById('ps-stock-qty')?.value||0,
     unit:document.getElementById('ps-unit')?.value||'Nos',
     perPack:+document.getElementById('ps-per-pack')?.value||1,
@@ -9717,7 +10007,11 @@ function savePackMaterial(){
     leadTime:+document.getElementById('ps-lead')?.value||3,
     price:+document.getElementById('ps-price')?.value||0,
     linked:document.getElementById('ps-linked')?.value.trim()||'',
-    notes:document.getElementById('ps-notes')?.value.trim()||''
+    notes:document.getElementById('ps-notes')?.value.trim()||'',
+    // Sticker sheet fields
+    perSheet:  +document.getElementById('ps-per-sheet')?.value||0,
+    sheetsQty: +document.getElementById('ps-sheets-qty')?.value||0,
+    sheetPrice:+document.getElementById('ps-sheet-price')?.value||0,
   };
   if(editId){
     const idx=S.packMaterials.findIndex(m=>m.id===editId);
@@ -9731,11 +10025,16 @@ function savePackMaterial(){
   psTab(document.querySelector('#p-packstock .tab-bar .tab'),'ps-stock');
 }
 function clearPackForm(){
-  ['ps-name','ps-stock-qty','ps-per-pack','ps-min-stock','ps-safety','ps-reorder-qty','ps-sup-name','ps-price','ps-linked','ps-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['ps-name','ps-stock-qty','ps-per-pack','ps-min-stock','ps-safety','ps-reorder-qty',
+   'ps-sup-name','ps-price','ps-linked','ps-notes','ps-per-sheet','ps-sheets-qty','ps-sheet-price'
+  ].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('ps-edit-id').value='';
   document.getElementById('ps-lead').value=3;
   document.getElementById('ps-form-title').textContent='➕ Add Packaging Material';
   document.getElementById('ps-calc-hint').textContent='';
+  document.getElementById('ps-sheet-calc').textContent='';
+  const wrap=document.getElementById('ps-sheet-wrap');
+  if(wrap) wrap.style.display='none';
 }
 function editPackMaterial(id){
   const m=S.packMaterials.find(x=>x.id===id); if(!m) return;
@@ -9797,7 +10096,10 @@ function renderPackStock(){
       else if(m.qty<=m.minStock){ status='br'; statusTxt='🚨 Reorder Now'; }
       else if(m.qty<=m.safetyStock){ status='by'; statusTxt='⚠️ Low'; }
       return `<tr>
-        <td><strong>${m.name}</strong><div style="font-size:9px;color:var(--text3)">${m.linked||'—'}</div></td>
+        <td><strong>${m.name}</strong>
+          <div style="font-size:9px;color:var(--text3)">${m.linked||'—'}</div>
+          ${m.type==='Sticker'&&m.perSheet?`<div style="font-size:9px;color:var(--accent)">📋 ${m.sheetsQty||0} sheets × ${m.perSheet}/sheet · ₹${(m.sheetPrice||0).toFixed(2)}/sheet</div>`:''}
+        </td>
         <td><span class="badge bp">${m.type}</span></td>
         <td style="color:${m.qty<=m.minStock?'var(--red)':'var(--accent)'};font-weight:700">${m.qty} ${m.unit}</td>
         <td style="color:var(--text3)">${m.minStock}</td>
@@ -11082,6 +11384,16 @@ function clearAllData(){
 }
 
 // ===== INIT (runs after all functions defined) =====
+// ── Save immediately when app is closed/refreshed ──────────────
+window.addEventListener('beforeunload', function(){
+  persistState(); // immediate, no debounce
+});
+window.addEventListener('pagehide', function(){
+  persistState(); // for mobile browsers (Android)
+});
+// ── Also save every 30 seconds as safety net ─────────────────────
+setInterval(persistState, 30000);
+
 window.addEventListener('DOMContentLoaded', function(){
   // ── Load persisted state from localStorage first ──
   const hadSaved = loadPersistedState();
