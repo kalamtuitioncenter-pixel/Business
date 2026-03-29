@@ -2357,7 +2357,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div>
-      <div id="sf-ins" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>Insights available after 7 days of sales</p></div></div></div></div>
+      <div id="sf-ins" style="display:none"><div class="empty" style="padding:30px"><div class="ei">💡</div><p>Loading insights...</p></div></div>
       <div id="sf-exp" style="display:none"><div class="card"><div class="card-b"><button class="btn btn-y" onclick="toast('📥 Exporting forecast...')">📥 Export Forecast CSV</button></div></div></div>
     </div>
 
@@ -4551,6 +4551,7 @@ function remTab(el,id){tabSwitch(el,id,['rt-today','rt-all','rt-rules','rt-add',
 function sfTab(el,id){
   tabSwitch(el,id,['sf-ov','sf-tbl','sf-ins','sf-exp']);
   if(id==='sf-tbl') renderForecastTable();
+  if(id==='sf-ins') renderInsights();
 }
 function supTab(el,id){
   if(el)tabSwitch(el,id,['sup-all','sup-add','sup-cat']);
@@ -7415,13 +7416,22 @@ function saveSale(){
   c.paid=(c.paid||0)+(sale.total-pending);
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
-  // Always update customer details from sales entry (sync to Customer Management)
-  if(phone) c.phone=phone;  // always update phone
+  // ── Always sync ALL customer details from every sales entry ────────────
+  // This ensures Customer Management is always up-to-date
+  if(phone)  c.phone = phone;
+  if(sale.mode) c.mode = sale.mode;
   const bdayVal = document.getElementById('s-bday')?.value;
-  if(bdayVal) c.bday = bdayVal;  // always update DOB if entered
+  if(bdayVal) c.bday = bdayVal;
   const addrVal = document.getElementById('s-addr')?.value.trim();
-  if(addrVal) c.addr = addrVal;  // always update address if entered
-  c.mode = sale.mode;            // always update payment mode
+  if(addrVal) c.addr = addrVal;
+  // Track all purchases per product (used for smart reminders)
+  c.purchaseHistory = c.purchaseHistory||[];
+  products.forEach(p=>{
+    c.purchaseHistory.push({
+      date:sale.date, product:p.name, qty:p.qty, price:p.price
+    });
+  });
+  c.lastSaleDate = sale.date; // for reminder scheduling
   // Award loyalty points (on finalTotal, not originalTotal)
   // Points rule: ₹10 = 1 point (default). perRupee = points earned per ₹10 spent.
   const ptsSettings = getPtsSettings();
@@ -7866,6 +7876,7 @@ function addCustomer(){
     if(refC){refC.points=(refC.points||0)+refBonus;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:refBonus,reason:'Referral bonus: '+name,balance:refC.points});}
   }
   ['c-name','c-phone','c-addr','c-bday','c-ref'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  gsMaybeSync('addCustomer', c);
   renderCustomers();refreshCustDatalist();autoSave();toast('✅ Customer added!'+(bday?' Birthday saved 🎂':''));
 }
 
@@ -8619,6 +8630,152 @@ function renderLoyaltyImpact(){
 }
 
 // ===== SALES FORECAST AI =====
+// ════════════════════════════════════════════════════════════════
+//  SMART BUYING REMINDER — calculates avg purchase interval per
+//  customer per product, generates consolidated WA reminder
+// ════════════════════════════════════════════════════════════════
+function calcSmartReminders(){
+  const reminders=[];
+  const today=new Date();
+  S.customers.forEach(cust=>{
+    if(!cust.phone) return; // skip if no phone
+    // Group purchases by product
+    const byProd={};
+    (cust.purchaseHistory||[]).forEach(ph=>{
+      if(!byProd[ph.product]) byProd[ph.product]=[];
+      byProd[ph.product].push({date:ph.date, qty:ph.qty||1});
+    });
+    const prodReminders=[];
+    Object.entries(byProd).forEach(([prodName, purchases])=>{
+      purchases.sort((a,b)=>new Date(a.date)-new Date(b.date));
+      if(purchases.length<1) return;
+      // Calculate average days between purchases
+      let avgInterval=30; // default 30 days
+      if(purchases.length>=2){
+        const intervals=[];
+        for(let i=1;i<purchases.length;i++){
+          const diff=Math.floor((new Date(purchases[i].date)-new Date(purchases[i-1].date))/86400000);
+          if(diff>0) intervals.push(diff);
+        }
+        if(intervals.length>0){
+          avgInterval=Math.round(intervals.reduce((a,v)=>a+v,0)/intervals.length);
+        }
+      } else {
+        // Only 1 purchase — estimate based on qty (e.g. 2×500g @ 15g/day = 66 days)
+        // Use 30 days default but could be enhanced with product consumption data
+        avgInterval=30;
+      }
+      // Last purchase date
+      const lastBuy=new Date(purchases[purchases.length-1].date+'T00:00:00');
+      const daysSince=Math.floor((today-lastBuy)/86400000);
+      const daysUntilReminder=avgInterval;
+      const shouldRemind=daysSince>=daysUntilReminder;
+      const daysOverdue=daysSince-daysUntilReminder;
+      if(shouldRemind||daysSince>=(daysUntilReminder-3)){
+        // Include if due now or due within 3 days
+        prodReminders.push({
+          product:prodName,
+          lastBuy:purchases[purchases.length-1].date,
+          qty:purchases[purchases.length-1].qty,
+          avgInterval,
+          daysSince,
+          daysOverdue,
+          due:shouldRemind
+        });
+      }
+    });
+    if(prodReminders.length>0){
+      reminders.push({
+        custName:cust.name,
+        phone:cust.phone,
+        products:prodReminders,
+        anyDue:prodReminders.some(r=>r.due)
+      });
+    }
+  });
+  // Sort: overdue first
+  return reminders.sort((a,b)=>{
+    const aMax=Math.max(...a.products.map(r=>r.daysOverdue||0));
+    const bMax=Math.max(...b.products.map(r=>r.daysOverdue||0));
+    return bMax-aMax;
+  });
+}
+
+function sendSmartReminderWA(custName){
+  const cust=S.customers.find(x=>x.name===custName);
+  if(!cust||!cust.phone){ toast('⚠️ No phone for '+custName); return; }
+  const reminders=calcSmartReminders().find(r=>r.custName===custName);
+  if(!reminders){ toast('No reminders due for '+custName); return; }
+  const biz=S.settings.bizName||'Meenatchi Traders';
+  // Build combined single message for all products
+  const prodLines=reminders.products.map(r=>
+    `• *${r.product}* (${r.qty} unit${r.qty>1?'s':''}) — last bought ${r.daysSince}d ago`
+  ).join('\\n');
+  const msg=getWATmpl('reminder',{
+    name:custName,
+    product:reminders.products.map(r=>r.product).join(', '),
+    biz
+  })+'\n\n'+prodLines;
+  openWA(cust.phone, msg);
+  toast('📱 Reminder sent to '+custName);
+}
+
+function renderSmartReminders(){
+  const el=document.getElementById('sf-ins');
+  if(!el) return;
+  const reminders=calcSmartReminders();
+  if(!reminders.length){
+    el.innerHTML='<div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>No buying reminders due yet. Reminders appear when customers are due for reorder based on their purchase history.</p></div></div></div>';
+    return;
+  }
+  const today=new Date().toISOString().slice(0,10);
+  el.innerHTML=`
+    <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
+      💡 <strong>Smart Buying Reminders</strong> — Based on each customer's purchase history, the app calculates when they're likely to need to reorder. One combined WhatsApp message per customer.
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <h3>🔔 ${reminders.length} Customer${reminders.length!==1?'s':''} Due for Reminder</h3>
+        <button class="btn btn-g" style="font-size:11px" onclick="sendAllSmartReminders()">📢 Send All</button>
+      </div>
+      <div class="card-b" style="padding:0">
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Customer</th><th>Products Due</th><th>Last Bought</th><th>Avg Interval</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            ${reminders.map(r=>`<tr>
+              <td><strong>${r.custName}</strong><div style="font-size:10px;color:var(--text3)">${r.phone}</div></td>
+              <td style="font-size:11px">${r.products.map(p=>`<div style="margin-bottom:2px">📦 ${p.product} <span style="color:var(--text3)">(qty:${p.qty})</span></div>`).join('')}</td>
+              <td style="font-size:11px">${r.products[0]?.lastBuy||'—'}</td>
+              <td style="font-size:11px">${r.products[0]?.avgInterval||30}d avg</td>
+              <td>${r.anyDue
+                ?'<span class="badge br">🔴 Overdue</span>'
+                :'<span class="badge by">🟡 Due Soon</span>'}</td>
+              <td><button class="btn btn-g" style="font-size:10px;padding:3px 8px" onclick="sendSmartReminderWA('${r.custName.replace(/'/g,"\''")}')">📱 Send</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>
+    </div>`;
+}
+
+function sendAllSmartReminders(){
+  const reminders=calcSmartReminders().filter(r=>r.anyDue&&r.phone);
+  if(!reminders.length){toast('No overdue reminders');return;}
+  let i=0;
+  const sendNext=()=>{
+    if(i>=reminders.length){toast('✅ All '+i+' reminders sent!');return;}
+    sendSmartReminderWA(reminders[i].custName);
+    i++;
+    // slight delay between sends
+    if(i<reminders.length) setTimeout(sendNext,2000);
+  };
+  sendNext();
+}
+
+function renderInsights(){
+  renderSmartReminders();
+}
+
 function renderSalesForecast(){
   const sf=document.getElementById('sf-prod-list');
   if(sf){
@@ -11512,7 +11669,13 @@ async function gsSyncAll(){
       reminders:    S.reminders||[],
       productRules: S.productRules||[],
       bdayGifts:    S.bdayGifts||[],
-      referrals:    S.referrals||[]
+      referrals:    S.referrals||[],
+      npaLog:       S.npaLog||[],
+      exchangeLog:  S.exchangeLog||[],
+      splitLog:     S.splitLog||[],
+      repackLog:    S.repackLog||[],
+      advertisements: S.advertisements||[],
+      courses:      S.courses||[]
     };
 
     const counts = {
