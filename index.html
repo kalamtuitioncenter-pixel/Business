@@ -67,9 +67,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .page{display:none}
 .page.active{display:block;animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
 /* BOTTOM NAV (mobile only) */
-#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,6px)}
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,10px)}
 .bn-grid{display:grid;grid-template-columns:repeat(5,1fr)}
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;cursor:pointer;color:var(--text3);transition:all .12s;font-size:9px;font-weight:500}
 .bn-item.active{color:var(--accent)}
@@ -259,6 +260,98 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   body{ overflow-x:hidden; }
   #main{ overflow-x:hidden; }
   #content{ overflow-x:hidden; }
+
+  /* ── Product row in sales: stack fields vertically ── */
+  .prod-row{ display:flex !important; flex-direction:column; gap:8px; padding:10px; background:var(--surface2); border-radius:8px; margin-bottom:8px; }
+  .prod-row > div, .prod-row > select, .prod-row > input{ width:100% !important; }
+  .prod-row-inner{ display:flex; gap:6px; flex-wrap:wrap; }
+  .prod-row-inner > div{ flex:1; min-width:80px; }
+
+  /* ── Table action buttons: always wrap on mobile ── */
+  td[style*="display:flex"]{
+    flex-wrap:wrap !important;
+    gap:4px !important;
+    min-width:0 !important;
+  }
+  td[style*="display:flex"] .btn{
+    font-size:10px !important;
+    padding:4px 7px !important;
+    min-height:30px !important;
+    white-space:nowrap;
+  }
+
+  /* ── Tables: reduce min-width for smaller screens ── */
+  table{ min-width:360px; font-size:11px; }
+  th,td{ padding:7px 8px !important; font-size:10.5px !important; }
+
+  /* ── All inline 4-col grids → 2-col ── */
+  [style*="grid-template-columns:repeat(4"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+  [style*="grid-template-columns:2fr 1fr 1fr 1fr"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+  [style*="grid-template-columns:repeat(3"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+
+  /* ── Bottom nav: increase padding so content not covered ── */
+  #main{ padding-bottom:80px !important; }
+
+  /* ── Card headers: wrap properly ── */
+  .card-h{ flex-wrap:wrap !important; gap:6px !important; align-items:flex-start !important; }
+  .card-h h3{ font-size:13px !important; flex:1 1 auto; min-width:0; }
+  .card-h .btn{ font-size:10px !important; padding:4px 8px !important; flex-shrink:0; }
+
+  /* ── Buttons in mobile: minimum tap size ── */
+  .btn{ min-height:36px !important; }
+  
+  /* ── Full-width save buttons ── */
+  button[style*="width:100%"]{ min-height:44px !important; font-size:14px !important; }
+
+  /* ── Inputs: comfortable size ── */
+  .fi, .fs{ font-size:14px !important; padding:10px 12px !important; }
+  textarea.fi{ font-size:13px !important; }
+
+  /* ── Stat cards: prevent overflow text ── */
+  .sc-val{ font-size:14px !important; word-break:break-all; }
+  .sc-label{ font-size:8px !important; }
+  .sc-ico{ font-size:14px !important; margin-bottom:4px; }
+
+  /* ── Page header: compact ── */
+  .ph{ margin-bottom:10px !important; }
+  .ph h1{ font-size:16px !important; margin-bottom:2px; }
+  .ph p{ font-size:11px !important; color:var(--text3); }
+
+  /* ── Two-col inside page always 1-col ── */
+  .two-col, .two-col-eq{ grid-template-columns:1fr !important; gap:10px !important; }
+
+  /* ── Forms: comfortable spacing ── */
+  .fg{ margin-bottom:10px !important; }
+  .fl{ font-size:11px !important; margin-bottom:4px !important; }
+
+  /* ── Score/leaderboard row ── */
+  .lb-row{ flex-wrap:wrap !important; gap:4px !important; }
+
+  /* ── WA prompt bar ── */
+  #wa-prompt-bar{ bottom:85px !important; left:8px !important; right:8px !important; transform:none !important; width:auto !important; }
+
+  /* ── Smart Profit stats 2×2 ── */
+  #p-smartprofit .sc-grid{ grid-template-columns:repeat(2,1fr) !important; }
+
+  /* ── Settings: single column ── */
+  .settings-grid, [class*="settings"]{ grid-template-columns:1fr !important; }
+
+  /* ── Reminders: hide less important columns ── */
+  #rem-today-tbody td:nth-child(n+5):nth-child(-n+7),
+  #rem-today-tbody th:nth-child(n+5):nth-child(-n+7){ font-size:10px !important; }
+
+  /* ── Package stock table ── */
+  #ps-tbody td:nth-child(7),#ps-tbody th:nth-child(7),
+  #ps-tbody td:nth-child(8),#ps-tbody th:nth-child(8){ display:none; }
+
+  /* ── Invoice modal ── */
+  .mo-box{ padding-bottom:env(safe-area-inset-bottom, 16px) !important; }
 }
 
 /* ════════════════════════════════
@@ -814,7 +907,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
               <span style="font-size:11px;font-weight:600;color:var(--text2)">PRODUCTS</span>
-              <button class="btn btn-y" style="font-size:10px;padding:4px 10px" onclick="addProductRow()">+ Add Product</button>
+              <button class="btn btn-y" style="font-size:12px;padding:8px 16px;min-height:38px" onclick="addProductRow()">➕ Add Product</button>
             </div>
             <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;margin-bottom:10px">
               <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">
@@ -4720,7 +4813,7 @@ function renderWeeklyPoints(){
       <td style="color:var(--red)">${usedWeek>0?'-'+usedWeek:'—'}</td>
       <td style="color:${+value>0?'var(--green)':'var(--text3)'};font-weight:600">₹${value}</td>
       <td style="color:${expColor};font-size:11px">${expired?'⚠️ Expired':(expiry||'—')}</td>
-      <td style="display:flex;gap:3px">
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
         <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendPointsWA('${c.name.replace(/'/g,"\\'")}')">📱 WA</button>
         <button class="btn btn-o" style="font-size:10px;padding:2px 6px" onclick="copyPointsMsg('${c.name.replace(/'/g,"\\'")}')">📋 Copy</button>
       </td>
@@ -6238,7 +6331,7 @@ function renderProducts(){
       <td>${p.stock}</td><td>${p.sold}</td>
       <td style="font-weight:700;color:var(--text)">${bal}</td>
       <td>${alertStatus}</td>
-      <td style="display:flex;gap:4px">
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="openEditProduct(${p.id})">Edit</button>
         <button class="btn btn-r" style="font-size:10px;padding:3px 8px" onclick="deleteProduct(${p.id})">Del</button>
       </td>
@@ -6871,16 +6964,26 @@ function renderStockStatus(){
 let prodRowCount=0;
 function addProductRow(){
   prodRowCount++;
+  const id=prodRowCount;
   const opts=S.products.map(p=>`<option value="${p.id}" data-price="${p.sprice}">${p.name}</option>`).join('');
   const row=document.createElement('div');
-  row.id='pr-'+prodRowCount;
-  row.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
+  row.id='pr-'+id;
+  // Mobile-first card layout: product select full width, qty/price/disc in a row
+  row.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px';
   row.innerHTML=`
-    <select class="fs" style="font-size:11px" onchange="priceFromProd(this,${prodRowCount})"><option value="">Select...</option>${opts}</select>
-    <input class="fi" id="pr-qty-${prodRowCount}" type="number" placeholder="1" min="1" value="1" style="font-size:11px" oninput="calcSaleTotal()">
-    <input class="fi" id="pr-price-${prodRowCount}" type="number" placeholder="0" style="font-size:11px" oninput="calcSaleTotal()">
-    <input class="fi" id="pr-disc-${prodRowCount}" type="number" placeholder="0" style="font-size:11px" oninput="calcSaleTotal()">
-    <button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0 4px" onclick="removeProdRow(${prodRowCount})">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px">Item ${id}</span>
+      <button style="background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.25);color:var(--red);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px;min-height:26px" onclick="removeProdRow(${id})">✕ Remove</button>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <label class="fl">Product</label>
+      <select class="fs" onchange="priceFromProd(this,${id})"><option value="">Select product…</option>${opts}</select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="fg" style="margin:0"><label class="fl">Qty</label><input class="fi" id="pr-qty-${id}" type="number" placeholder="1" min="1" value="1" oninput="calcSaleTotal()"></div>
+      <div class="fg" style="margin:0"><label class="fl">Price ₹</label><input class="fi" id="pr-price-${id}" type="number" placeholder="0" oninput="calcSaleTotal()"></div>
+      <div class="fg" style="margin:0"><label class="fl">Disc ₹</label><input class="fi" id="pr-disc-${id}" type="number" placeholder="0" oninput="calcSaleTotal()"></div>
+    </div>
   `;
   document.getElementById('product-rows').appendChild(row);
 }
@@ -7324,18 +7427,18 @@ function saveSale(){
     date: sale.date, biz: S.settings.bizName||'Meenatchi Traders',
     phone: S.settings.phone||''
   });
-  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust+((_waPhone)?' 📱 Tap Send to WhatsApp ↓':''));
+  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts');
   // Capture phone/msg before clearSale resets the form
   const _waPhone = phone;
   const _waMsg   = receiptMsg;
+  const _waCust  = cust;
   clearSale();
-  // Open WhatsApp DIRECTLY after sale save (no prompt bar needed)
-  // Controlled by the 📱 WA Receipt checkbox in the sale form
+  // Show confirm prompt only if checkbox is checked — user taps Send or Skip
   // Read checkbox directly at save time — this is the source of truth
   const waChkBox = document.getElementById('s-auto-wa');
-  const shouldSendWA = waChkBox ? waChkBox.checked : (S.settings.autoWaReceipt !== false);
-  if(_waPhone && shouldSendWA){
-    setTimeout(()=>openWA(_waPhone, _waMsg), 600);
+  const shouldPromptWA = waChkBox ? waChkBox.checked : (S.settings.autoWaReceipt !== false);
+  if(_waPhone && shouldPromptWA){
+    setTimeout(()=>showWAConfirm(_waPhone, _waMsg, _waCust), 400);
   }
 }
 
@@ -7541,12 +7644,52 @@ function dpCalcPreview(){
   prev.innerHTML=`After payment: Balance <strong style="color:${newBal>0?'var(--red)':'var(--green)'}">${newBal>0?'₹'+newBal.toFixed(0):'Fully Cleared ✅'}</strong>`;
 }
 
+// Resend WhatsApp bill for any past sale
+function resendBillWA(saleId){
+  const s = S.sales.find(x=>x.id===saleId);
+  if(!s){ toast('Sale not found'); return; }
+  const phone = s.phone || S.customers.find(x=>x.name===s.customer)?.phone || '';
+  if(!phone){ toast('⚠️ No phone number for '+s.customer+'. Edit customer to add phone.'); return; }
+  const prodNames = (s.products||[]).map(p=>p.name).join(', ');
+  const msg = getWATmpl('receipt',{
+    name:    s.customer,
+    product: prodNames,
+    amount:  s.total.toFixed(2),
+    mode:    s.mode,
+    date:    s.date,
+    biz:     S.settings.bizName||'Meenatchi Traders'
+  });
+  openWA(phone, msg);
+}
+
 function renderSalesTable(){
   const today=new Date().toISOString().slice(0,10);
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
-  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-p" style="font-size:9px;padding:2px 5px" onclick="openExchangeModal(${s.id})" title="Exchange/Return">🔄</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
+  const row=(s)=>{
+    const prodNames=(s.products||[]).map(p=>p.name).join(', ');
+    const waPhone=s.phone||(S.customers.find(x=>x.name===s.customer)?.phone)||'';
+    return `<tr>
+      <td>${s.date}</td>
+      <td><strong>${s.customer}</strong><div style="font-size:9px;color:var(--text3)">${waPhone}</div></td>
+      <td style="font-size:11px">${prodNames}</td>
+      <td>${(s.products||[]).reduce((a,p)=>a+p.qty,0)}</td>
+      <td>₹${s.products[0]?.price||0}</td>
+      <td>₹${s.products[0]?.disc||0}</td>
+      <td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td>
+      <td>₹${(s.recv||0).toFixed(2)}</td>
+      <td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${(s.pending||0).toFixed(2)}</td>
+      <td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td>
+      <td><span class="badge bb">${s.status}</span></td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:9px;padding:3px 7px;font-weight:700" onclick="resendBillWA(${s.id})" title="Send WhatsApp Bill to ${s.customer}">📱 WA</button>
+        <button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})" title="Edit">✏️</button>
+        <button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})" title="Invoice">🧾</button>
+        <button class="btn btn-p" style="font-size:9px;padding:2px 5px" onclick="openExchangeModal(${s.id})" title="Exchange/Return">🔄</button>
+        <button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})" title="Delete">🗑️</button>
+      </td></tr>`;
+  };
   tb.innerHTML=todaySales.length?todaySales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales today</p></div></td></tr>';
   htb.innerHTML=S.sales.length?S.sales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales history</p></div></td></tr>';
   // Update summary stats
@@ -7610,7 +7753,7 @@ function renderCustomers(list){
     <td><span class="badge ${c.pending>0?'br':'bg'}">${c.pending>0?'Pending':'Clear'}</span></td>
     <td style="color:var(--green)">₹${(c.paid||0).toFixed(2)}</td>
     <td style="color:${c.pending>0?'var(--red)':'var(--text3)'}">₹${(c.pending||0).toFixed(2)}</td>
-    <td style="display:flex;gap:3px">
+    <td style="display:flex;gap:3px;flex-wrap:wrap">
       <button class="btn btn-y" style="font-size:10px;padding:2px 6px" onclick="openEditCustomer(${c.id})">✏️</button>
       <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="deleteCust(${c.id})">🗑️</button>
     </td>
@@ -7812,57 +7955,70 @@ function openWA(phone, msg){
     return;
   }
   const encoded = encodeURIComponent(msg);
-  // wa.me is the official WhatsApp API — works on ALL platforms
-  // (Android WebIntoApp, iOS, Desktop). WhatsApp handles the app routing.
-  // intent:// causes Play Store redirect in WebView — DO NOT use.
-  // whatsapp:// is blocked by many Android WebViews — DO NOT use.
   const url = 'https://wa.me/' + clean + '?text=' + encoded;
-  window.open(url, '_blank');
+  // Use location.href — keeps single WebView, user presses Back to return to app
+  // window.open(_blank) creates new WebView tab in WebIntoApp → app appears dead
+  window.location.href = url;
 }
 
 // Pending WA — stored here so prompt button can access safely
 let _pendingWA = null;
 
-function showWAPrompt(phone, msg, customerName){
-  const existing = document.getElementById('wa-prompt-bar');
+function showWAConfirm(phone, msg, customerName){
+  // Clean confirm: Yes → openWA, No → dismiss. No auto-send.
+  const name = (customerName||'').replace(' — Receipt','').replace(' — Exchange/Return','');
+  const existing = document.getElementById('wa-confirm-bar');
   if(existing) existing.remove();
 
-  // Store pending so the Send button just calls sendPendingWA()
   _pendingWA = { phone, msg };
 
   const bar = document.createElement('div');
-  bar.id = 'wa-prompt-bar';
+  bar.id = 'wa-confirm-bar';
   bar.style.cssText = [
-    'position:fixed','bottom:90px','left:50%','transform:translateX(-50%)',
-    'background:#1a2f1a','border:2px solid rgba(63,185,80,.8)',
-    'border-radius:14px','padding:12px 18px','z-index:99999',
-    'display:flex','align-items:center','gap:12px',
-    'box-shadow:0 6px 32px rgba(0,0,0,.8)',
-    'max-width:94vw','min-width:280px','animation:fadeIn .2s ease'
+    'position:fixed',
+    'bottom:0','left:0','right:0',
+    'background:var(--surface)',
+    'border-top:2px solid rgba(63,185,80,.6)',
+    'border-radius:16px 16px 0 0',
+    'padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px)) 16px',
+    'z-index:99999',
+    'box-shadow:0 -8px 32px rgba(0,0,0,.5)',
+    'animation:slideUp .25s ease'
   ].join(';');
 
   bar.innerHTML = `
-    <div style="flex:1">
-      <div style="font-size:10px;color:rgba(63,185,80,.8);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">📋 Bill Ready</div>
-      <div style="font-size:13px;color:#fff;font-weight:600">Send receipt to <strong style="color:rgba(63,185,80,1)">${customerName.replace(' — Receipt','')}</strong>?</div>
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">📋 Sale Saved!</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)">Send WhatsApp bill to</div>
+      <div style="font-size:17px;font-weight:700;color:var(--green);margin-top:2px">${name}</div>
     </div>
-    <button onclick="sendPendingWA()"
-      style="background:rgba(63,185,80,1);border:none;color:#fff;border-radius:10px;
-             padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
-             box-shadow:0 2px 12px rgba(63,185,80,.5);min-height:44px;min-width:80px">
-      📱 Send WA
-    </button>
-    <button onclick="document.getElementById('wa-prompt-bar')?.remove();_pendingWA=null"
-      style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);
-             border-radius:8px;padding:10px 12px;font-size:14px;cursor:pointer;line-height:1">
-      ✕
-    </button>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="document.getElementById('wa-confirm-bar')?.remove();_pendingWA=null"
+        style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+               border-radius:12px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;min-height:50px">
+        ✕ Skip
+      </button>
+      <button onclick="sendPendingWA()"
+        style="background:var(--green);border:none;color:#fff;
+               border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;min-height:50px;
+               box-shadow:0 4px 12px rgba(63,185,80,.4)">
+        📱 Send WA
+      </button>
+    </div>`;
 
   document.body.appendChild(bar);
-  setTimeout(()=>{ document.getElementById('wa-prompt-bar')?.remove(); _pendingWA=null; }, 15000);
+  // Auto-dismiss after 20 seconds
+  setTimeout(()=>{ document.getElementById('wa-confirm-bar')?.remove(); _pendingWA=null; }, 20000);
+}
+
+// Keep showWAPrompt as alias (used in payment/reminder sends)
+function showWAPrompt(phone, msg, customerName){
+  showWAConfirm(phone, msg, customerName);
 }
 
 function sendPendingWA(){
+  // Remove whichever confirm bar is visible
+  document.getElementById('wa-confirm-bar')?.remove();
   document.getElementById('wa-prompt-bar')?.remove();
   if(_pendingWA){ openWA(_pendingWA.phone, _pendingWA.msg); _pendingWA=null; }
 }
@@ -9005,7 +9161,7 @@ function renderSuppliers(){
   document.getElementById('sup-total').textContent='₹'+S.suppliers.reduce((a,s)=>a+s.total,0).toFixed(2);
   const tb=document.getElementById('sup-tbody');
   if(!S.suppliers.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🚛</div><p>No suppliers yet. Add your first supplier!</p></div></td></tr>';return;}
-  tb.innerHTML=S.suppliers.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.phone||'—'}</td><td>${s.prods||'—'}</td><td>₹${s.total.toFixed(2)}</td><td>${s.lastOrder}</td><td style="display:flex;gap:4px"><button class="btn btn-y" style="font-size:10px;padding:2px 6px" onclick="editSupplier(${s.id})">✏️</button><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delSup(${s.id})">🗑️</button></td></tr>`).join('');
+  tb.innerHTML=S.suppliers.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.phone||'—'}</td><td>${s.prods||'—'}</td><td>₹${s.total.toFixed(2)}</td><td>${s.lastOrder}</td><td style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:10px;padding:2px 6px" onclick="editSupplier(${s.id})">✏️</button><button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delSup(${s.id})">🗑️</button></td></tr>`).join('');
 }
 function delSup(id){S.suppliers=S.suppliers.filter(s=>s.id!==id);renderSuppliers();autoSave();toast('🗑️ Supplier removed');}
 
