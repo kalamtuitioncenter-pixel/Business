@@ -883,7 +883,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
               <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-invoice" style="accent-color:var(--accent)"> Generate Invoice</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSave()"> 📱 WA Receipt</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSave()"> 📱 Auto Send WA Bill</label>
               <div class="fg" style="margin:0;flex:1">
                 <select class="fs" id="s-ad-source" style="font-size:11px;height:32px">
                   <option value="">📢 Ad Source (optional)</option>
@@ -7325,15 +7325,14 @@ function saveSale(){
     phone: S.settings.phone||''
   });
   toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust+((_waPhone)?' 📱 Tap Send to WhatsApp ↓':''));
-  // Capture before clearSale wipes local vars
+  // Capture phone/msg before clearSale resets the form
   const _waPhone = phone;
-  const _waCust  = cust;
   const _waMsg   = receiptMsg;
   clearSale();
-  // Auto-prompt WA receipt — always show if phone exists
-  // (S.settings.autoWaReceipt defaults to true; only skip if explicitly set false)
+  // Open WhatsApp DIRECTLY after sale save (no prompt bar needed)
+  // Controlled by the 📱 WA Receipt checkbox in the sale form
   if(_waPhone && S.settings.autoWaReceipt !== false){
-    setTimeout(()=>showWAPrompt(_waPhone, _waMsg, _waCust), 600);
+    setTimeout(()=>openWA(_waPhone, _waMsg), 600);
   }
 }
 
@@ -7760,8 +7759,8 @@ function updateOrderStatus(id,status){
       product: o.product,
       amount:  '₹'+(o.amount||0).toFixed(0)
     });
-    // Delay slightly so toast is visible first
-    setTimeout(()=>openWA(o.phone, orderMsg), 300);
+    // Open WhatsApp directly — no delay needed with wa.me
+    openWA(o.phone, orderMsg);
   }
 }
 function deleteOrder(id){
@@ -7805,29 +7804,17 @@ function cleanPhone(raw){
 // ─────────────────────────────────────────────────────────
 function openWA(phone, msg){
   const clean = cleanPhone(phone);
-  if(!clean){ toast('⚠️ No phone number for this customer. Add it in Customer Management.'); return; }
-
-  const encoded = encodeURIComponent(msg);
-  const ua = navigator.userAgent;
-  const isAndroid = /android/i.test(ua);
-  const isIOS     = /iphone|ipad|ipod/i.test(ua);
-
-  if(isAndroid){
-    // Android WebIntoApp: use intent:// which works in WebView
-    // Falls back to Play Store if WhatsApp not installed
-    const intentUrl = 'intent://send?phone=' + clean + '&text=' + encoded +
-      '#Intent;scheme=whatsapp;package=com.whatsapp;end';
-    window.location.href = intentUrl;
-
-  } else if(isIOS){
-    // iOS: whatsapp:// deep link works reliably
-    window.location.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
-
-  } else {
-    // Desktop browser
-    window.open('https://wa.me/' + clean + '?text=' + encoded,
-      '_blank', 'noopener,noreferrer');
+  if(!clean){
+    toast('⚠️ No phone number for this customer. Add it in Customer Management.');
+    return;
   }
+  const encoded = encodeURIComponent(msg);
+  // wa.me is the official WhatsApp API — works on ALL platforms
+  // (Android WebIntoApp, iOS, Desktop). WhatsApp handles the app routing.
+  // intent:// causes Play Store redirect in WebView — DO NOT use.
+  // whatsapp:// is blocked by many Android WebViews — DO NOT use.
+  const url = 'https://wa.me/' + clean + '?text=' + encoded;
+  window.open(url, '_blank');
 }
 
 // Pending WA — stored here so prompt button can access safely
@@ -8888,7 +8875,7 @@ function recordPayment(){
     const msg = stillPending>0
       ? getWATmpl('pending',{name, amount:'₹'+stillPending.toFixed(0)})
       : getWATmpl('payment-received',{name, amount:'₹'+recvAmt.toFixed(0), date:new Date().toLocaleDateString('en-IN')});
-    setTimeout(()=>showWAPrompt(c.phone, msg, name), 500);
+    setTimeout(()=>openWA(c.phone, msg), 400);
   }
 }
 
