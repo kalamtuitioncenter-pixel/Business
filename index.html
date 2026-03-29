@@ -7862,8 +7862,9 @@ function renderOrders(){
   });
   if(!S.orders.length){tb.innerHTML='<tr><td colspan="10"><div class="empty"><div class="ei">🚚</div><p>No orders yet</p></div></td></tr>';return;}
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
-  tb.innerHTML=S.orders.slice().reverse().map(o=>`<tr>
-    <td><strong>#${o.id}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
+  const sortedOrders=S.orders.slice().sort((a,b)=>a.id-b.id);
+  tb.innerHTML=sortedOrders.map((o,idx)=>`<tr>
+    <td><strong>#${idx+1}</strong><div style="font-size:9px;color:var(--text3)">ID:${o.id}</div></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
     <td>${o.product}</td><td>${o.qty}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td>
     <td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td>
     <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)">${['Pending','Processing','Ready','Delivered','Cancelled'].map(s=>`<option ${s===o.status?'selected':''} >${s}</option>`).join('')}</select></td>
@@ -7955,10 +7956,11 @@ function openWA(phone, msg){
     return;
   }
   const encoded = encodeURIComponent(msg);
-  const url = 'https://wa.me/' + clean + '?text=' + encoded;
-  // Use location.href — keeps single WebView, user presses Back to return to app
-  // window.open(_blank) creates new WebView tab in WebIntoApp → app appears dead
-  window.location.href = url;
+  // whatsapp:// URI → Android OS intercepts and opens WhatsApp app DIRECTLY
+  // No webpage, no "Open app" button, no stuck WebView tab.
+  // User sends message → presses Back → returns straight to Meenatchi Traders app.
+  // wa.me shows a webpage in WebView (not what we want).
+  window.location.href = 'whatsapp://send?phone=' + clean + '&text=' + encoded;
 }
 
 // Pending WA — stored here so prompt button can access safely
