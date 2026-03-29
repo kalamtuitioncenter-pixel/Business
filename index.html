@@ -2448,12 +2448,34 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Points Validity</div>
             <div style="display:flex;align-items:center;gap:4px;font-size:12px">
-              <input id="pts-validity" type="number" value="90" min="30" max="365" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--blue);font-weight:700;font-size:12px;text-align:center">
+              <input id="pts-validity" type="number" value="90" min="1" max="3650" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--blue);font-weight:700;font-size:12px;text-align:center">
               <span style="color:var(--text3)">days</span>
             </div>
           </div>
-          <div style="display:flex;align-items:flex-end;gap:6px">
-            <button class="btn btn-y" style="font-size:11px;padding:5px 12px" onclick="savePtsSettings()">💾 Save</button>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Min Pts to Redeem</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <input id="pts-min-redeem" type="number" value="100" min="1" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--accent);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">pts</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Birthday Bonus</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <input id="pts-birthday-bonus" type="number" value="0" min="0" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--red);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">pts</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Referral Bonus</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px">
+              <input id="pts-referral-bonus" type="number" value="10" min="0" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--green);font-weight:700;font-size:12px;text-align:center">
+              <span style="color:var(--text3)">pts each</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-y" style="font-size:11px;padding:5px 12px" onclick="savePtsSettings()">💾 Save Rules</button>
+            <button class="btn btn-r" style="font-size:11px;padding:5px 12px" onclick="recalcAllLoyaltyPoints()" title="Recalculate all customer points with new rule">🔄 Recalc All</button>
             <span id="pts-save-status" style="font-size:10px;color:var(--green)"></span>
           </div>
         </div>
@@ -4655,24 +4677,44 @@ function getPtsSettings(){
   // The DOM inputs on the Loyalty page are only for editing — call savePtsSettings() to commit.
   const saved = S.settings.pts || {};
   return {
-    perRupee:  Math.max(1, Math.min(saved.perRupee||1, 100)), // 1-100 pts per ₹10
-    redeemVal: saved.redeemVal || 10,
-    minOrder:  saved.minOrder  || 250,
-    maxPct:    saved.maxPct    || 10,
-    validity:  saved.validity  || 90,
+    perRupee:      Math.max(0.1, Math.min(saved.perRupee||1, 100)), // pts per ₹10
+    redeemVal:     saved.redeemVal     || 10,   // ₹ value per 100 pts
+    minOrder:      saved.minOrder      || 0,    // min bill to earn pts
+    maxPct:        saved.maxPct        || 10,   // max redeem % of bill
+    validity:      saved.validity      || 90,   // pts expiry days
+    birthdayBonus: saved.birthdayBonus || 0,    // bonus pts on birthday
+    referralBonus: saved.referralBonus || 10,   // pts for referral
+    minRedeemPts:  saved.minRedeemPts  || 100,  // min pts to redeem
   };
 }
 function savePtsSettings(silent){
   // Read from DOM (this is the ONLY place that reads from DOM inputs for pts settings)
+  const prev = S.settings.pts || {};
   const ps = {
-    perRupee:  +document.getElementById('pts-per-rupee')?.value  || 1,
-    redeemVal: +document.getElementById('pts-redeem-val')?.value || 10,
-    minOrder:  +document.getElementById('pts-min-order')?.value  || 0,
-    maxPct:    +document.getElementById('pts-max-pct')?.value    || 10,
-    validity:  +document.getElementById('pts-validity')?.value   || 90,
+    perRupee:      +document.getElementById('pts-per-rupee')?.value      || 1,
+    redeemVal:     +document.getElementById('pts-redeem-val')?.value     || 10,
+    minOrder:      +document.getElementById('pts-min-order')?.value      || 0,
+    maxPct:        +document.getElementById('pts-max-pct')?.value        || 10,
+    validity:      +document.getElementById('pts-validity')?.value       || 90,
+    birthdayBonus: +document.getElementById('pts-birthday-bonus')?.value || 0,
+    referralBonus: +document.getElementById('pts-referral-bonus')?.value || 10,
+    minRedeemPts:  +document.getElementById('pts-min-redeem')?.value     || 100,
   };
+  // Detect earn-rate change → prompt to recalculate old points
+  const earnRateChanged = prev.perRupee && prev.perRupee !== ps.perRupee;
   S.settings.pts = ps;
   autoSave();
+  // If earn rate changed and there are customers, offer to recalculate
+  if(earnRateChanged && S.customers.length>0 && !silent){
+    const doRecalc = confirm(
+      '⭐ Earn rate changed from '+prev.perRupee+' → '+ps.perRupee+' pts per ₹10.\n\n'+
+      'Do you want to recalculate ALL customer points based on the new rule?\n\n'+
+      '• YES → Recalculate all (recommended)\n'+
+      '• NO → Keep old points, apply new rule only to future sales'
+    );
+    if(doRecalc) recalcAllLoyaltyPoints(true); // silent=true skips second confirm
+    return;
+  }
   // Update rule summary line
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   s('pts-rule-earn', ps.perRupee);
@@ -4693,11 +4735,14 @@ function savePtsSettings(silent){
 function loadPtsSettings(){
   const ps = S.settings.pts || {};
   const setVal = (id,v) => { const e=document.getElementById(id); if(e&&v!==undefined) e.value=v; };
-  setVal('pts-per-rupee',  ps.perRupee  || 1);
-  setVal('pts-redeem-val', ps.redeemVal || 10);
-  setVal('pts-min-order',  ps.minOrder  || 250);
-  setVal('pts-max-pct',    ps.maxPct    || 10);
-  setVal('pts-validity',   ps.validity  || 90);
+  setVal('pts-per-rupee',      ps.perRupee      || 1);
+  setVal('pts-redeem-val',     ps.redeemVal     || 10);
+  setVal('pts-min-order',      ps.minOrder      || 250);
+  setVal('pts-max-pct',        ps.maxPct        || 10);
+  setVal('pts-validity',       ps.validity      || 90);
+  setVal('pts-min-redeem',     ps.minRedeemPts  || 100);
+  setVal('pts-birthday-bonus', ps.birthdayBonus || 0);
+  setVal('pts-referral-bonus', ps.referralBonus || 10);
   savePtsSettings(); // refresh rule line
 }
 function getPointsExpiry(c){
@@ -5470,8 +5515,8 @@ function renderSplitStats(){
 // ═══════════════════════════════════════════════════════════════
 //  RECALCULATE ALL LOYALTY POINTS — fixes corrupted point values
 // ═══════════════════════════════════════════════════════════════
-function recalcAllLoyaltyPoints(){
-  if(!confirm('Recalculate ALL customer loyalty points from their sales history?\n\nThis fixes incorrect point values. Cannot be undone.')) return;
+function recalcAllLoyaltyPoints(skipConfirm){
+  if(!skipConfirm && !confirm('Recalculate ALL customer loyalty points from their sales history?\n\nThis applies the current earn rule to all past sales.\nCannot be undone.')) return;
   const ps = getPtsSettings();
   let fixed = 0;
   S.customers.forEach(cust=>{
@@ -7401,6 +7446,7 @@ function saveSale(){
   // Create order from sale
   if(products.length){
     S.orders.push({id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
+  renumberOrders(); // keeps order numbers sequential
   }
   // Targeted post-sale render — only update what changed
   renderSalesTable();
@@ -7732,6 +7778,7 @@ function deleteSale(id){
   // Remove matching order
   S.orders=S.orders.filter(o=>!(o.customer===sale.customer&&Math.abs(o.amount-sale.total)<0.01&&o.date===sale.date));
   S.sales=S.sales.filter(s=>s.id!==id);
+  renumberOrders(); // resequence after sale+order deletion
   renderSalesTable();updateDashStats();renderWeeklyChart();renderCustomers();renderWA();renderPendingCust();
   // Sync loyalty if currently visible
   if(document.querySelector('.page.active')?.id==='p-loyalty') { renderLoyalty(); loadPtsSettings(); }
@@ -7807,14 +7854,16 @@ function addCustomer(){
   S.customers.push({id:Date.now(),name,phone,addr:document.getElementById('c-addr').value,paid:0,pending:0,lastProd:'—',mode:'Cash',points:0,bday,referredBy:ref,pointsHistory:[]});
   // Track referral
   if(ref){
-    const refC=S.customers.find(x=>x.name===ref);
-    if(refC){refC.points=(refC.points||0)+10;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:10,reason:'Referral bonus: '+name,balance:refC.points});}
     S.referrals=S.referrals||[];
     // Award 10 pts to referrer + 10 pts to new customer
-    S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:10});
-    // New customer also gets 10 bonus points for being referred
+    const refBonus = getPtsSettings().referralBonus||10;
+    S.referrals.push({referrer:ref,referred:name,date:new Date().toISOString().slice(0,10),bonus:refBonus});
+    // New customer also gets referralBonus points for being referred
     const newCust=S.customers.find(x=>x.name===name);
-    if(newCust){newCust.points=(newCust.points||0)+10;newCust.pointsHistory=newCust.pointsHistory||[];newCust.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:10,reason:'Joined via referral by '+ref,balance:newCust.points});}
+    if(newCust){newCust.points=(newCust.points||0)+refBonus;newCust.pointsHistory=newCust.pointsHistory||[];newCust.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:refBonus,reason:'Joined via referral by '+ref,balance:newCust.points});}
+    // Referrer also gets referralBonus points
+    const refC=S.customers.find(x=>x.name===ref);
+    if(refC){refC.points=(refC.points||0)+refBonus;refC.pointsHistory=refC.pointsHistory||[];refC.pointsHistory.push({date:new Date().toISOString().slice(0,10),earned:refBonus,reason:'Referral bonus: '+name,balance:refC.points});}
   }
   ['c-name','c-phone','c-addr','c-bday','c-ref'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   renderCustomers();refreshCustDatalist();autoSave();toast('✅ Customer added!'+(bday?' Birthday saved 🎂':''));
@@ -7854,6 +7903,16 @@ function renderPendingCust(){
 }
 
 // ===== ORDERS =====
+// ── Renumber all orders sequentially after any change ──────────
+function renumberOrders(){
+  // Sort by internal timestamp id (creation order)
+  S.orders.sort((a,b)=>a.id-b.id);
+  // Assign sequential display numbers
+  S.orders.forEach((o,i)=>{ o.num=i+1; });
+  // Update counter for next order
+  S.orderCounter = S.orders.length + 1;
+}
+
 function renderOrders(){
   const tb=document.getElementById('orders-tbody');
   ['ok-pending','ok-proc','ok-ready','ok-deliv','ok-cancel'].forEach((id,i)=>{
@@ -7864,7 +7923,7 @@ function renderOrders(){
   const sc={'Pending':'bb','Processing':'by','Ready':'bp','Delivered':'bg','Cancelled':'br'};
   const sortedOrders=S.orders.slice().sort((a,b)=>a.id-b.id);
   tb.innerHTML=sortedOrders.map((o,idx)=>`<tr>
-    <td><strong>#${idx+1}</strong><div style="font-size:9px;color:var(--text3)">ID:${o.id}</div></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
+    <td><strong style="font-size:13px">#${o.num||idx+1}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
     <td>${o.product}</td><td>${o.qty}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td>
     <td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td>
     <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)">${['Pending','Processing','Ready','Delivered','Cancelled'].map(s=>`<option ${s===o.status?'selected':''} >${s}</option>`).join('')}</select></td>
@@ -7913,6 +7972,7 @@ function updateOrderStatus(id,status){
 function deleteOrder(id){
   if(!confirm('Delete this order?')) return;
   S.orders=S.orders.filter(o=>o.id!==id);
+  renumberOrders(); // resequence after delete
   renderOrders();updateDashStats();
   autoSave();toast('🗑️ Order removed');
 }
@@ -11707,6 +11767,8 @@ window.addEventListener('DOMContentLoaded', function(){
   // ── Restore biz name in settings form ──
   if(S.settings.bizName){ const bn=document.getElementById('biz-name'); if(bn) bn.value=S.settings.bizName; }
   if(S.settings.owner){   const on=document.getElementById('owner-name'); if(on) on.value=S.settings.owner; }
+  // Renumber orders sequentially on every load (fixes gaps from deletions)
+  renumberOrders();
   // Resync all customer pending from actual sales on every load
   S.customers.forEach(cust=>{
     cust.pending = S.sales.filter(s=>s.customer===cust.name)
