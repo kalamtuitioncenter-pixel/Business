@@ -1246,7 +1246,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="card-b">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Phone</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Update</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Order No.</th><th>Date</th><th>Customer</th><th>Phone</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Update</th><th>Actions</th></tr></thead>
             <tbody id="orders-tbody"><tr><td colspan="10"><div class="empty"><div class="ei">🚚</div><p>No orders yet</p></div></td></tr></tbody>
           </table></div>
         </div>
@@ -1270,7 +1270,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="card">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Last Product</th><th>Payment</th><th>Status</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Cust No.</th><th>Name</th><th>Phone</th><th>Address</th><th>Last Product</th><th>Payment</th><th>Status</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
             <tbody id="customers-tbody"><tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr></tbody>
           </table></div>
         </div>
@@ -3677,7 +3677,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 <!-- Edit Customer Modal -->
 <div class="mo" id="edit-customer-modal">
   <div class="mo-box" style="max-width:480px">
-    <div class="mo-h"><h2>✏️ Edit Customer</h2><button class="xbtn" onclick="closeModal('edit-customer-modal')">✕</button></div>
+    <div class="mo-h"><h3 id="ec-modal-title" style="font-size:13px;color:var(--accent);font-family:monospace"></h3><h2>✏️ Edit Customer</h2><button class="xbtn" onclick="closeModal('edit-customer-modal')">✕</button></div>
     <div class="mo-b">
       <input type="hidden" id="ec-id">
       <div class="fg"><label class="fl">Full Name <span style="color:var(--red)">*</span></label><input class="fi" id="ec-name" placeholder="Customer name"></div>
@@ -3887,6 +3887,35 @@ function localDate(d){
   return y+'-'+m+'-'+day;
 }
 
+// ── Customer Number: 2026GS001, 2026GS002 ... ──────────────────
+// Format: {YEAR}GS{3-digit sequential number}
+// Permanent — never reused, never reassigned
+function nextCustNum(){
+  const year = new Date().getFullYear();
+  const prefix = year + 'GS';
+  // Find highest existing custNum for this year
+  const existing = S.customers
+    .map(x=>x.custNum||'')
+    .filter(n=>n.startsWith(prefix))
+    .map(n=>parseInt(n.replace(prefix,''))||0);
+  const next = existing.length > 0 ? Math.max(...existing)+1 : 1;
+  return prefix + String(next).padStart(3,'0');
+}
+
+// ── Order Number: 2026ORD001, 2026ORD002 ... ───────────────────
+// Format: {YEAR}ORD{3-digit sequential number}
+// Permanent — never reused even if order deleted
+function nextOrderNum(){
+  const year = new Date().getFullYear();
+  const prefix = year + 'ORD';
+  const existing = S.orders
+    .map(x=>x.orderNum||'')
+    .filter(n=>n.startsWith(prefix))
+    .map(n=>parseInt(n.replace(prefix,''))||0);
+  const next = existing.length > 0 ? Math.max(...existing)+1 : 1;
+  return prefix + String(next).padStart(3,'0');
+}
+
 function persistState(){
   try {
     const toSave = Object.assign({}, S, { editProdId: null, _editSupplierId: null });
@@ -3919,7 +3948,10 @@ function loadPersistedState(){
     if(!S.settings) S.settings = {bizName:'Meenatchi Traders',owner:'',logo:''};
     if(!S.settings.logo) S.settings.logo = '';
     if(!S.categories || !S.categories.length) S.categories = ['Tea','Nattu Sakkarai','Scrubber','MCS Items','Grocery','Spices','Snacks','Oils','Dry Fruits','Other'];
-    if(!S.orderCounter || S.orderCounter < 1) S.orderCounter = (S.orders||[]).length + 1;
+    // CRITICAL: always derive orderCounter from max existing ID, not array length
+    // length+1 causes duplicate IDs when orders have been deleted
+    const _maxOId = (S.orders||[]).length > 0 ? Math.max(...(S.orders||[]).map(o=>o.id||0)) : 0;
+    S.orderCounter = Math.max(S.orderCounter||0, _maxOId + 1);
     console.log('✅ State loaded from localStorage');
     return true;
   } catch(e) {
@@ -7423,7 +7455,7 @@ function saveSale(){
   S.sales.push(sale);
   // Update customer
   let c=S.customers.find(x=>x.name===cust);
-  const sAddr=document.getElementById('s-addr')?.value.trim()||'';if(!c){c={id:Date.now(),name:cust,phone,addr:sAddr,paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:''};S.customers.push(c);}
+  const sAddr=document.getElementById('s-addr')?.value.trim()||'';if(!c){c={id:Date.now(),custNum:nextCustNum(),name:cust,phone,addr:sAddr,paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:'',pointsHistory:[],purchaseHistory:[]};S.customers.push(c);}
   c.paid=(c.paid||0)+(sale.total-pending);
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
@@ -7466,7 +7498,8 @@ function saveSale(){
   c.pointsHistory.push({date:sale.date,earned:earnedPts,reason:'Sale ₹'+finalTotal.toFixed(0),balance:c.points});
   // Create order from sale
   if(products.length){
-    S.orders.push({id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
+    const _newOrderNum = nextOrderNum();
+  S.orders.push({id:S.orderCounter++,orderNum:_newOrderNum,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
   renumberOrders(); // keeps order numbers sequential
   }
   // Targeted post-sale render — only update what changed
@@ -7814,6 +7847,7 @@ function renderCustomers(list){
   const tb=document.getElementById('customers-tbody');
   if(!list.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr>';return;}
   tb.innerHTML=list.map(c=>`<tr>
+    <td><span style="font-size:10px;font-weight:700;color:var(--accent);font-family:monospace">${c.custNum||'—'}</span></td>
     <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}</td>
     <td>${c.phone||'—'}</td><td>${c.addr||'—'}</td>
     <td>${c.lastProd||'—'}</td>
@@ -7830,7 +7864,9 @@ function renderCustomers(list){
 
 function openEditCustomer(id){
   const c=S.customers.find(x=>x.id===id); if(!c) return;
-  document.getElementById('ec-id').value     = id;
+  document.getElementById('ec-id').value = id;
+  const _ecTitle = document.getElementById('ec-modal-title');
+  if(_ecTitle) _ecTitle.textContent = c.custNum ? c.custNum : '';
   document.getElementById('ec-name').value   = c.name||'';
   document.getElementById('ec-phone').value  = c.phone||'';
   document.getElementById('ec-addr').value   = c.addr||'';
@@ -7872,7 +7908,7 @@ function addCustomer(){
   if(!phone){toast('⚠️ Phone is required');return;}
   const bday=document.getElementById('c-bday').value;
   const ref=document.getElementById('c-ref').value.trim();
-  S.customers.push({id:Date.now(),name,phone,addr:document.getElementById('c-addr').value,paid:0,pending:0,lastProd:'—',mode:'Cash',points:0,bday,referredBy:ref,pointsHistory:[]});
+  S.customers.push({id:Date.now(),custNum:nextCustNum(),name,phone,addr:document.getElementById('c-addr').value,paid:0,pending:0,lastProd:'—',mode:'Cash',points:0,bday,referredBy:ref,pointsHistory:[]});
   // Track referral
   if(ref){
     S.referrals=S.referrals||[];
@@ -7927,12 +7963,13 @@ function renderPendingCust(){
 // ===== ORDERS =====
 // ── Renumber all orders sequentially after any change ──────────
 function renumberOrders(){
-  // Sort chronologically by creation id
+  // Sort chronologically by creation id (for consistent ordering)
   S.orders.sort((a,b)=>a.id-b.id);
-  // Assign sequential numbers (o.num = #1 oldest, #N newest)
-  S.orders.forEach((o,i)=>{ o.num=i+1; });
-  // Update counter for next new order
-  S.orderCounter = S.orders.length + 1;
+  // DO NOT reassign o.num — it is a permanent order number stamped at creation.
+  // Gaps from deletions are intentional and correct (like invoice numbers).
+  // Only ensure the counter is always ahead of the highest existing id.
+  const maxId = S.orders.length > 0 ? Math.max(...S.orders.map(o=>o.id)) : 0;
+  S.orderCounter = maxId + 1;
 }
 
 function renderOrders(){
@@ -7952,7 +7989,7 @@ function renderOrders(){
   const chronOrder=S.orders.slice().sort((a,b)=>a.id-b.id);
   const numMap={}; chronOrder.forEach((o,i)=>numMap[o.id]=i+1);
   tb.innerHTML=sortedOrders.map((o)=>`<tr>
-    <td><strong style="font-size:13px">#${numMap[o.id]||o.num||'—'}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
+    <td><strong style="font-size:11px;font-family:monospace;color:var(--accent)">${o.orderNum||'#'+(o.num||o.id)}</strong></td><td>${o.date}</td><td>${o.customer}</td><td>${o.phone||'—'}</td>
     <td>${o.product}</td><td>${o.qty}</td><td style="color:var(--accent);font-weight:700">₹${o.amount.toFixed(2)}</td>
     <td><span class="badge ${sc[o.status]||'bb'}">${o.status}</span></td>
     <td><select class="fs" style="font-size:10px;width:110px" onchange="updateOrderStatus(${o.id},this.value)">${['Pending','Processing','Ready','Delivered','Cancelled'].map(s=>`<option ${s===o.status?'selected':''} >${s}</option>`).join('')}</select></td>
@@ -7986,16 +8023,22 @@ function updateOrderStatus(id,status){
   renderWA();
   renderPendingCust();
   checkUndeliveredOrders();
-  toast('📦 Order updated: '+status);
-  // WA notification — open WhatsApp directly (no prompt needed, user explicitly changed status)
-  if(o.phone && status!=='Pending'){
-    const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
-      name:    o.customer,
-      product: o.product,
-      amount:  '₹'+(o.amount||0).toFixed(0)
-    });
-    // Open WhatsApp directly — no delay needed with wa.me
-    openWA(o.phone, orderMsg);
+  toast('📦 Order '+( o.orderNum||('#'+(o.num||o.id)) )+' → '+status);
+  // WA notification — look up CURRENT customer phone (not stale o.phone from order creation)
+  if(status!=='Pending'){
+    // Always get phone from S.customers for the order's customer — most reliable
+    const orderCust = S.customers.find(x=>x.name===o.customer);
+    const waPhone   = (orderCust?.phone || o.phone || '').trim();
+    if(waPhone){
+      const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
+        name:    o.customer,
+        product: o.product,
+        amount:  '₹'+(o.amount||0).toFixed(0)
+      });
+      openWA(waPhone, orderMsg);
+    } else {
+      toast('⚠️ No phone number saved for '+o.customer+'. Update in Customer Management.');
+    }
   }
 }
 function deleteOrder(id){
@@ -11948,7 +11991,50 @@ window.addEventListener('DOMContentLoaded', function(){
   // ── Restore biz name in settings form ──
   if(S.settings.bizName){ const bn=document.getElementById('biz-name'); if(bn) bn.value=S.settings.bizName; }
   if(S.settings.owner){   const on=document.getElementById('owner-name'); if(on) on.value=S.settings.owner; }
-  // Renumber orders sequentially on every load (fixes gaps from deletions)
+  // ── One-time migration: fix duplicates + backfill orderNum/custNum ──
+  (function migrateNumbering(){
+    let changed=false;
+    // Step A: fix duplicate order IDs (from old length+1 counter bug)
+    const seen={};
+    const maxId=S.orders.length>0?Math.max(...S.orders.map(o=>o.id||0)):0;
+    let nextId=maxId+1;
+    S.orders.forEach(o=>{
+      if(seen[o.id]){ o.id=nextId++; changed=true; }
+      seen[o.id]=true;
+    });
+    // Step B: backfill orderNum for existing orders that don't have one yet
+    // Sort by id to assign numbers in creation order
+    const ordWithout=S.orders.filter(o=>!o.orderNum).sort((a,b)=>a.id-b.id);
+    if(ordWithout.length>0){
+      const year=new Date().getFullYear();
+      // Find highest existing orderNum across all orders
+      const existingNums=S.orders
+        .filter(o=>o.orderNum)
+        .map(o=>{ const m=o.orderNum.match(/ORD(\d+)$/); return m?parseInt(m[1]):0; });
+      let ordSeq=existingNums.length>0?Math.max(...existingNums):0;
+      ordWithout.forEach(o=>{
+        ordSeq++;
+        o.orderNum=year+'ORD'+String(ordSeq).padStart(3,'0');
+        changed=true;
+      });
+    }
+    // Step C: backfill custNum for existing customers that don't have one yet
+    const custWithout=S.customers.filter(x=>!x.custNum);
+    if(custWithout.length>0){
+      const year=new Date().getFullYear();
+      const existingCNums=S.customers
+        .filter(x=>x.custNum)
+        .map(x=>{ const m=x.custNum.match(/GS(\d+)$/); return m?parseInt(m[1]):0; });
+      let cSeq=existingCNums.length>0?Math.max(...existingCNums):0;
+      custWithout.forEach(x=>{
+        cSeq++;
+        x.custNum=year+'GS'+String(cSeq).padStart(3,'0');
+        changed=true;
+      });
+    }
+    if(changed) autoSave();
+  })();
+  // Sort orders by id (renumberOrders no longer reassigns o.num)
   renumberOrders();
   // Resync all customer pending from actual sales on every load
   S.customers.forEach(cust=>{
