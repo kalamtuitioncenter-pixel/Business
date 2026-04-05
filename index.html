@@ -106,9 +106,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   #bottom-nav{ display:block; }
 
   /* ── Topbar ── */
-  #topbar{ padding:0 10px; gap:8px; height:50px; }
-  .tb-title{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100vw - 130px); }
+  #topbar{ padding:0 8px; gap:6px; height:48px; }
+  .tb-title{ font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100vw - 140px); font-weight:600; }
   .date-chip{ display:none; }
+  .tb-icon{ font-size:16px; flex-shrink:0; }
 
   /* ── Content ── */
   #content{ padding:10px; }
@@ -282,8 +283,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   button[style*="width:100%"]{ min-height:44px !important; }
 
   /* Stat cards compact */
-  .sc{ padding:8px 10px !important; }
+  .sc{ padding:8px 10px !important; overflow:hidden; }
   .sc-val{ font-size:15px !important; }
+  .sc::after{ width:36px !important; height:36px !important; top:-6px !important; right:-6px !important; }
   .sc-label{ font-size:8px !important; }
   .sc-ico{ font-size:16px !important; margin-bottom:2px; }
   .sc-grid{ gap:8px !important; }
@@ -382,7 +384,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* Responsive stat grid — adapts on mobile */
 .sc-grid-resp{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:default}
-.sc::after{content:'';position:absolute;top:-10px;right:-10px;width:55px;height:55px;border-radius:50%;opacity:.1}
+.sc::after{content:'';position:absolute;top:-8px;right:-8px;width:44px;height:44px;border-radius:50%;opacity:.12;pointer-events:none}
 .sc.y::after{background:var(--accent)}.sc.g::after{background:var(--green)}.sc.b::after{background:var(--blue)}.sc.r::after{background:var(--red)}.sc.p::after{background:var(--purple)}.sc.o::after{background:var(--orange)}
 .sc-ico{font-size:18px;margin-bottom:10px;opacity:.7}
 .sc-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
@@ -3785,6 +3787,7 @@ function nav(page){
   if(page==='packstock'){   renderPackStock(); psTypeChange(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=localDate(); genReport(); }
+  if(page==='reports'){ genReport(); renderBaMonthly(); }
   if(page==='target'){
     // Load saved targets into form inputs on every visit
     if(S.target.set){
@@ -5917,7 +5920,7 @@ function baTab(el,id){
   if(id==='ba-peak')   renderBaPeakHours();
   if(id==='ba-seasonal') renderBaSeasonal();
 }
-function repTab(el,id){tabSwitch(el,id,['rep-daily','rep-weekly','rep-monthly','rep-prod','rep-cust','rep-tui']);}
+function repTab(el,id){tabSwitch(el,id,['rep-daily','rep-weekly','rep-monthly','rep-prod','rep-cust']); if(id==='rep-monthly') renderBaMonthly(); if(id==='rep-prod') renderProductReport(); if(id==='rep-cust') renderPendingCust(); }
 function tabSwitch(el,id,ids){
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
