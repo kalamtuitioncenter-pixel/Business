@@ -63,13 +63,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
 
 /* CONTENT */
-#content{padding:16px;flex:1}
+#content{padding:12px;flex:1}
 .page{display:none}
 .page.active{display:block;animation:fadeIn .15s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
 /* BOTTOM NAV (mobile only) */
-#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,6px)}
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding:6px 0 env(safe-area-inset-bottom,10px)}
 .bn-grid{display:grid;grid-template-columns:repeat(5,1fr)}
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;cursor:pointer;color:var(--text3);transition:all .12s;font-size:9px;font-weight:500}
 .bn-item.active{color:var(--accent)}
@@ -115,12 +116,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
   /* ── Page header ── */
   .ph{ margin-bottom:12px; }
-  .ph h1{ font-size:16px; flex-wrap:wrap; }
+  .ph h1{ font-size:17px; flex-wrap:wrap; }
   .ph p{ font-size:11px; }
 
   /* ── Stat grids all go 2 col ── */
   .sc-grid,.sc-grid-resp{ grid-template-columns:repeat(2,1fr) !important; gap:8px; }
-  .sc{ padding:10px 12px; }
+  .sc{ padding:8px 10px; }
   .sc-val{ font-size:15px !important; }
   .sc-label{ font-size:8px !important; }
   .sc-sub{ font-size:9px; }
@@ -259,6 +260,98 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   body{ overflow-x:hidden; }
   #main{ overflow-x:hidden; }
   #content{ overflow-x:hidden; }
+
+  /* ── Product row in sales: stack fields vertically ── */
+  .prod-row{ display:flex !important; flex-direction:column; gap:8px; padding:10px; background:var(--surface2); border-radius:8px; margin-bottom:8px; }
+  .prod-row > div, .prod-row > select, .prod-row > input{ width:100% !important; }
+  .prod-row-inner{ display:flex; gap:6px; flex-wrap:wrap; }
+  .prod-row-inner > div{ flex:1; min-width:80px; }
+
+  /* ── Table action buttons: always wrap on mobile ── */
+  td[style*="display:flex"]{
+    flex-wrap:wrap !important;
+    gap:4px !important;
+    min-width:0 !important;
+  }
+  td[style*="display:flex"] .btn{
+    font-size:10px !important;
+    padding:4px 7px !important;
+    min-height:30px !important;
+    white-space:nowrap;
+  }
+
+  /* ── Tables: reduce min-width for smaller screens ── */
+  table{ min-width:360px; font-size:11px; }
+  th,td{ padding:7px 8px !important; font-size:10.5px !important; }
+
+  /* ── All inline 4-col grids → 2-col ── */
+  [style*="grid-template-columns:repeat(4"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+  [style*="grid-template-columns:2fr 1fr 1fr 1fr"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+  [style*="grid-template-columns:repeat(3"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+
+  /* ── Bottom nav: increase padding so content not covered ── */
+  #main{ padding-bottom:80px !important; }
+
+  /* ── Card headers: wrap properly ── */
+  .card-h{ flex-wrap:wrap !important; gap:6px !important; align-items:flex-start !important; }
+  .card-h h3{ font-size:13px !important; flex:1 1 auto; min-width:0; }
+  .card-h .btn{ font-size:10px !important; padding:4px 8px !important; flex-shrink:0; }
+
+  /* ── Buttons in mobile: minimum tap size ── */
+  .btn{ min-height:36px !important; }
+  
+  /* ── Full-width save buttons ── */
+  button[style*="width:100%"]{ min-height:44px !important; font-size:14px !important; }
+
+  /* ── Inputs: comfortable size ── */
+  .fi, .fs{ font-size:14px !important; padding:10px 12px !important; }
+  textarea.fi{ font-size:13px !important; }
+
+  /* ── Stat cards: prevent overflow text ── */
+  .sc-val{ font-size:14px !important; word-break:break-all; }
+  .sc-label{ font-size:8px !important; }
+  .sc-ico{ font-size:14px !important; margin-bottom:4px; }
+
+  /* ── Page header: compact ── */
+  .ph{ margin-bottom:10px !important; }
+  .ph h1{ font-size:16px !important; margin-bottom:2px; }
+  .ph p{ font-size:11px !important; color:var(--text3); }
+
+  /* ── Two-col inside page always 1-col ── */
+  .two-col, .two-col-eq{ grid-template-columns:1fr !important; gap:10px !important; }
+
+  /* ── Forms: comfortable spacing ── */
+  .fg{ margin-bottom:10px !important; }
+  .fl{ font-size:11px !important; margin-bottom:4px !important; }
+
+  /* ── Score/leaderboard row ── */
+  .lb-row{ flex-wrap:wrap !important; gap:4px !important; }
+
+  /* ── WA prompt bar ── */
+  #wa-prompt-bar{ bottom:85px !important; left:8px !important; right:8px !important; transform:none !important; width:auto !important; }
+
+  /* ── Smart Profit stats 2×2 ── */
+  #p-smartprofit .sc-grid{ grid-template-columns:repeat(2,1fr) !important; }
+
+  /* ── Settings: single column ── */
+  .settings-grid, [class*="settings"]{ grid-template-columns:1fr !important; }
+
+  /* ── Reminders: hide less important columns ── */
+  #rem-today-tbody td:nth-child(n+5):nth-child(-n+7),
+  #rem-today-tbody th:nth-child(n+5):nth-child(-n+7){ font-size:10px !important; }
+
+  /* ── Package stock table ── */
+  #ps-tbody td:nth-child(7),#ps-tbody th:nth-child(7),
+  #ps-tbody td:nth-child(8),#ps-tbody th:nth-child(8){ display:none; }
+
+  /* ── Invoice modal ── */
+  .mo-box{ padding-bottom:env(safe-area-inset-bottom, 16px) !important; }
 }
 
 /* ════════════════════════════════
@@ -279,20 +372,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   table{ min-width:420px; }
   th,td{ padding:6px 8px; font-size:10px; }
 }
-.ph{margin-bottom:18px}
+.ph{margin-bottom:12px}
 .ph h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
 .ph p{color:var(--text2);font-size:12px;margin-top:3px}
 
 /* STAT CARDS */
-.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
 /* Responsive stat grid — adapts on mobile */
 .sc-grid-resp{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:default}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden;cursor:default}
 .sc::after{content:'';position:absolute;top:-10px;right:-10px;width:55px;height:55px;border-radius:50%;opacity:.1}
 .sc.y::after{background:var(--accent)}.sc.g::after{background:var(--green)}.sc.b::after{background:var(--blue)}.sc.r::after{background:var(--red)}.sc.p::after{background:var(--purple)}.sc.o::after{background:var(--orange)}
-.sc-ico{font-size:18px;margin-bottom:10px;opacity:.7}
-.sc-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
-.sc-val{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700}
+.sc-ico{font-size:16px;margin-bottom:6px;opacity:.7}
+.sc-label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.sc-val{font-family:'Poppins',sans-serif;font-size:18px;font-weight:700}
+.sc-sub{font-size:9px;color:var(--text3);margin-top:2px}
 .sc.y .sc-val{color:var(--accent)}.sc.g .sc-val{color:var(--green)}.sc.b .sc-val{color:var(--blue)}.sc.r .sc-val{color:var(--red)}.sc.p .sc-val{color:var(--purple)}.sc.o .sc-val{color:var(--orange)}
 .sc-sub{font-size:10px;color:var(--text3);margin-top:3px}
 
@@ -306,7 +400,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .card-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
 .card-h h3{font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
-.card-b{padding:14px 16px}
+.card-b{padding:12px 14px}
 
 /* BUTTONS */
 .btn{padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:none;transition:all .12s;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:5px}
@@ -367,10 +461,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 .bc-l{font-size:9px;color:var(--text3)}
 
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .15s ease}
-.mo.open{display:flex;opacity:1}
-.mo-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:460px;max-width:95vw;max-height:88vh;overflow-y:auto;transform:translateY(10px);transition:transform .15s ease}
-.mo.open .mo-box{transform:translateY(0)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:none;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.mo-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .mo-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .mo-h h2{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700}
 .mo-b{padding:18px}
@@ -540,6 +633,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
   <div class="sb-section">
     <div class="sb-sec-label">Businesses</div>
     <div class="ni" id="ni-teashop" onclick="nav('teashop')"><span class="ico">☕</span>Tea & Coffee Shop</div>
+    <div class="ni" id="ni-tuition" onclick="nav('tuition')"><span class="ico">🎓</span>Tuition Management</div>
+    <div class="ni" id="ni-coursemanagement" onclick="nav('coursemanagement')"><span class="ico">📚</span>Course Management</div>
     <div class="ni" id="ni-advertisement" onclick="nav('advertisement')"><span class="ico">📢</span>Advertisement</div>
   </div>
   <div class="sb-section">
@@ -735,8 +830,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
-              <thead><tr><th>Customer</th><th>Phone</th><th style="color:var(--red)">Pending ₹</th><th>Days Since Sale</th><th>Actions</th></tr></thead>
-              <tbody id="dp-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
+              <thead><tr><th>Customer</th><th style="color:var(--red)">Pending ₹</th><th>Age</th><th>Actions</th></tr></thead>
+              <tbody id="dash-pending-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
             </table></div>
           </div>
         </div>
@@ -812,7 +907,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
               <span style="font-size:11px;font-weight:600;color:var(--text2)">PRODUCTS</span>
-              <button class="btn btn-y" style="font-size:10px;padding:4px 10px" onclick="addProductRow()">+ Add Product</button>
+              <button class="btn btn-y" style="font-size:12px;padding:8px 16px;min-height:38px" onclick="addProductRow()">➕ Add Product</button>
             </div>
             <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;margin-bottom:10px">
               <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">
@@ -879,8 +974,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <input type="hidden" id="s-final-total" value="0">
             </div>
             <div class="fg"><label class="fl">Est. Profit (₹)</label><div class="fi-ico"><input class="fi" id="s-eprofit" type="number" placeholder="0" readonly><span class="fi-ico-btn">₹</span></div></div>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
               <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-invoice" style="accent-color:var(--accent)"> Generate Invoice</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="s-auto-wa" style="accent-color:var(--green)" checked onchange="S.settings.autoWaReceipt=this.checked;autoSaveNow();toast(this.checked?'📱 WA Bill: ON':'📱 WA Bill: OFF')"> 📱 Auto Send WA Bill</label>
               <div class="fg" style="margin:0;flex:1">
                 <select class="fs" id="s-ad-source" style="font-size:11px;height:32px">
                   <option value="">📢 Ad Source (optional)</option>
@@ -930,7 +1026,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
-              <thead><tr><th>Date</th><th>Customer</th><th>Product</th><th>Total</th><th>Received</th><th>Pending ₹</th><th>Days</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Date</th><th>Customer</th><th>Products</th><th style="color:var(--red)">Pending ₹</th><th>Age</th><th>Actions</th></tr></thead>
               <tbody id="sales-pending-tbody"><tr><td colspan="8"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr></tbody>
             </table></div>
           </div>
@@ -1175,7 +1271,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="card">
           <div class="tbl-wrap"><table>
             <thead><tr><th>Cust No.</th><th>Name</th><th>Phone</th><th>Address</th><th>Last Product</th><th>Payment</th><th>Status</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
-            <tbody id="customers-tbody"><tr><td colspan="10"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr></tbody>
+            <tbody id="customers-tbody"><tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -1277,9 +1373,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <span class="tmpl-var">{date}</span> Date &nbsp;
           <span class="tmpl-var">{points}</span> Points &nbsp;
           <span class="tmpl-var">{value}</span> Redeem ₹ &nbsp;
-          <span class="tmpl-var">{expiry}</span> Expiry date &nbsp;
-          <span class="tmpl-var">{custnum}</span> Customer No &nbsp;
-          <span class="tmpl-var">{ordernum}</span> Order No
+          <span class="tmpl-var">{expiry}</span> Expiry date
         </div>
 
         <!-- Pending Payment -->
@@ -1364,50 +1458,59 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="card" style="margin-bottom:12px">
           <div class="card-h" style="background:rgba(88,166,255,.04);border-bottom:1px solid rgba(88,166,255,.15)">
             <h3>📦 Supplier Reorder Message</h3>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:10px;color:var(--text3)">Sent when ordering from supplier</span>
-              <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reorder')">👁 Preview</button>
-            </div>
+            <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-reorder')">👁 Preview</button>
           </div>
           <div class="card-b">
             <textarea class="fi" id="tmpl-reorder" rows="4" style="resize:vertical;font-size:12px"></textarea>
             <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> Product · <span class="tmpl-var">{amount}</span> Qty · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{date}</span></div>
           </div>
         </div>
+
+        <!-- 🎉 Promo / Offer Message -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>🎉 Promo / Offer Message</h3>
+          <div class="card-h" style="background:rgba(249,200,70,.04);border-bottom:1px solid rgba(249,200,70,.2)">
+            <h3>🎉 Promo / Offer Message</h3>
             <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-promo')">👁 Preview</button>
           </div>
           <div class="card-b">
-            <textarea class="fi" id="tmpl-promo" rows="4" style="resize:vertical;font-size:12px"></textarea>
-            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: {name} · {body} · {discount}% · {till} · {biz} · {phone}</div>
+            <textarea class="fi" id="tmpl-promo" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{body}</span> Offer text · <span class="tmpl-var">{discount}</span> % off · <span class="tmpl-var">{till}</span> Expiry · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{phone}</span></div>
           </div>
         </div>
+
+        <!-- 🔄 Exchange / Return Message -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>🔄 Exchange / Return Message</h3>
+          <div class="card-h" style="background:rgba(88,166,255,.04);border-bottom:1px solid rgba(88,166,255,.15)">
+            <h3>🔄 Exchange / Return Message</h3>
             <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-exchange')">👁 Preview</button>
           </div>
           <div class="card-b">
-            <textarea class="fi" id="tmpl-exchange" rows="4" style="resize:vertical;font-size:12px"></textarea>
-            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: {name} · {product} · {date} · {reason} · {biz} · {phone}</div>
+            <textarea class="fi" id="tmpl-exchange" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{product}</span> Item · <span class="tmpl-var">{date}</span> · <span class="tmpl-var">{reason}</span> · <span class="tmpl-var">{biz}</span> · <span class="tmpl-var">{phone}</span></div>
           </div>
         </div>
+
+        <!-- 🎂 Birthday Message -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>🎂 Birthday Wish</h3>
+          <div class="card-h" style="background:rgba(248,81,73,.04);border-bottom:1px solid rgba(248,81,73,.15)">
+            <h3>🎂 Birthday Wish Message</h3>
             <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-birthday')">👁 Preview</button>
           </div>
           <div class="card-b">
-            <textarea class="fi" id="tmpl-birthday" rows="4" style="resize:vertical;font-size:12px"></textarea>
-            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: {name} · {biz}</div>
+            <textarea class="fi" id="tmpl-birthday" rows="5" style="resize:vertical;font-size:12px"></textarea>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{biz}</span></div>
           </div>
         </div>
+
+        <!-- ✅ Payment Received Message -->
         <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>✅ Payment Received</h3>
+          <div class="card-h" style="background:rgba(63,185,80,.04);border-bottom:1px solid rgba(63,185,80,.2)">
+            <h3>✅ Payment Received Confirmation</h3>
             <button class="btn btn-o" style="font-size:10px" onclick="waPreview('tmpl-payment-received')">👁 Preview</button>
           </div>
           <div class="card-b">
             <textarea class="fi" id="tmpl-payment-received" rows="4" style="resize:vertical;font-size:12px"></textarea>
-            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: {name} · {amount} · {date} · {biz}</div>
+            <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Variables: <span class="tmpl-var">{name}</span> · <span class="tmpl-var">{amount}</span> Paid · <span class="tmpl-var">{date}</span> · <span class="tmpl-var">{biz}</span></div>
           </div>
         </div>
 
@@ -1584,6 +1687,127 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <thead><tr><th>Date</th><th>Cups</th><th>Income</th><th>Expenses</th><th>Profit</th><th>Notes</th></tr></thead>
             <tbody id="tea-history"><tr><td colspan="6"><div class="empty"><div class="ei">☕</div><p>No history yet</p></div></td></tr></tbody>
           </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TUITION ===== -->
+    <div class="page" id="p-tuition">
+      <div class="ph"><h1>🎓 Tuition Management</h1><p>Students, teachers, fees and salary tracking</p></div>
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc b"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="t-total">0</div></div>
+        <div class="sc g"><div class="sc-ico">₹</div><div class="sc-label">Total Fees</div><div class="sc-val" id="t-fees">₹0.00</div></div>
+        <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="t-pend">₹0.00</div></div>
+        <div class="sc p"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="t-staff">0</div></div>
+        <div class="sc o"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="t-saldue">₹0.00</div></div>
+      </div>
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="tuiTab(this,'tt-stu')">🎓 Students</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-add-stu');populateCourseDropdown()">➕ Add Student</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-due')">⏳ Due Fees</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-batch');renderBatchGroups()">📅 Batch-wise</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-staff')">👨‍🏫 Staff</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-add-staff')">➕ Add Staff</div>
+        <div class="sub-tab" onclick="tuiTab(this,'tt-class')">📋 Summary</div>
+      </div>
+      <div id="tt-stu">
+        <div class="search-wrap"><span class="search-ico">🔍</span><input class="fi" placeholder="Search students..."></div>
+        <div class="card">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Name</th><th>Course</th><th>Timing</th><th>Phone</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="students-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">🎓</div><p>No students yet. Add a student to begin.</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="tt-add-stu" style="display:none">
+        <div class="card" style="max-width:520px">
+          <div class="card-h"><h3>➕ Add Student</h3></div>
+          <div class="card-b">
+            <div class="fg"><label class="fl">Student Name <span style="color:var(--red)">*</span></label><input class="fi" id="stu-name" placeholder="Student name"></div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Phone</label><input class="fi" id="stu-phone" placeholder="+91 XXXXX XXXXX"></div>
+              <div class="fg"><label class="fl">Class/Grade</label><input class="fi" id="stu-class" placeholder="e.g. 10th Std"></div>
+            </div>
+            <!-- Course selection -->
+            <div class="fg">
+              <label class="fl">Select Course <span style="font-size:10px;color:var(--text3)">(auto-fills fees)</span></label>
+              <select class="fs" id="stu-course-sel" onchange="onStudentCourseSelect()">
+                <option value="">— No course / Custom —</option>
+              </select>
+            </div>
+            <!-- Auto-filled fields -->
+            <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📚 Course Details (auto-filled)</div>
+              <div class="fr3">
+                <div class="fg"><label class="fl" style="font-size:10px">Timing</label><input class="fi" id="stu-timing" placeholder="e.g. 5PM-6PM" style="font-size:12px"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Course Fees (₹)</label><input class="fi" id="stu-course-fees" type="number" placeholder="0" oninput="calcStudentTotal()" style="font-size:12px"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Book Fees (₹)</label><input class="fi" id="stu-book-fees" type="number" placeholder="0" oninput="calcStudentTotal()" style="font-size:12px"></div>
+              </div>
+              <!-- Fee selection checkboxes -->
+              <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--text2)">
+                  <input type="checkbox" id="stu-chk-course" checked style="accent-color:var(--accent);width:14px;height:14px" onchange="calcStudentTotal()">
+                  Include Course Fees
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--text2)">
+                  <input type="checkbox" id="stu-chk-book" checked style="accent-color:var(--accent);width:14px;height:14px" onchange="calcStudentTotal()">
+                  Include Book Fees
+                </label>
+              </div>
+            </div>
+            <!-- Total -->
+            <div class="fr2">
+              <div class="fg"><label class="fl">Total Fees (₹)</label><div class="fi-ico"><input class="fi" id="stu-fee" type="number" placeholder="0" readonly style="background:var(--surface3);color:var(--accent);font-weight:700"><span class="fi-ico-btn">₹</span></div></div>
+              <div class="fg"><label class="fl">Parent Name</label><input class="fi" id="stu-parent" placeholder="Parent / Guardian"></div>
+            </div>
+            <input type="hidden" id="stu-course-id" value="">
+            <button class="btn btn-y" onclick="addStudent()" style="width:100%;justify-content:center;margin-top:4px">➕ Add Student</button>
+          </div>
+        </div>
+      </div>
+      <!-- Due Fees Tab -->
+      <div id="tt-due" style="display:none">
+        <div class="card">
+          <div class="card-h"><h3>⏳ Students with Due Fees</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Name</th><th>Course</th><th>Total Fees</th><th>Paid</th><th>Balance</th><th>Action</th></tr></thead>
+              <tbody id="due-students-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">✅</div><p>No pending fees</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch-wise Tab -->
+      <div id="tt-batch" style="display:none">
+        <div id="batch-groups-container"><div class="empty"><div class="ei">📅</div><p>No students added yet</p></div></div>
+      </div>
+
+      <div id="tt-staff" style="display:none">
+        <div class="card">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Monthly Salary</th><th>Paid</th><th>Due</th><th>Actions</th></tr></thead>
+            <tbody id="staff-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">👨‍🏫</div><p>No staff members yet.</p></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="tt-add-staff" style="display:none">
+        <div class="card" style="max-width:460px">
+          <div class="card-h"><h3>➕ Add Staff</h3></div>
+          <div class="card-b">
+            <div class="fg"><label class="fl">Name</label><input class="fi" id="stf-name" placeholder="Staff name"></div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Role</label><input class="fi" id="stf-role" placeholder="e.g. Teacher"></div>
+              <div class="fg"><label class="fl">Phone</label><input class="fi" id="stf-phone" placeholder="+91 XXXXX XXXXX"></div>
+            </div>
+            <div class="fg"><label class="fl">Monthly Salary (₹)</label><input class="fi" id="stf-sal" type="number" placeholder="0"></div>
+            <button class="btn btn-y" onclick="addStaff()" style="width:100%;justify-content:center">➕ Add Staff</button>
+          </div>
+        </div>
+      </div>
+      <div id="tt-class" style="display:none">
+        <div class="card">
+          <div class="card-b"><div class="empty"><div class="ei">📋</div><p>Add students to see class summary</p></div></div>
         </div>
       </div>
     </div>
@@ -2133,7 +2357,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div>
-      <div id="sf-ins" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>Insights available after 7 days of sales</p></div></div></div></div>
+      <div id="sf-ins" style="display:none"><div class="empty" style="padding:30px"><div class="ei">💡</div><p>Loading insights...</p></div></div>
       <div id="sf-exp" style="display:none"><div class="card"><div class="card-b"><button class="btn btn-y" onclick="toast('📥 Exporting forecast...')">📥 Export Forecast CSV</button></div></div></div>
     </div>
 
@@ -2224,7 +2448,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Points Validity</div>
             <div style="display:flex;align-items:center;gap:4px;font-size:12px">
-              <input id="pts-validity" type="number" value="90" min="30" max="365" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--blue);font-weight:700;font-size:12px;text-align:center">
+              <input id="pts-validity" type="number" value="90" min="1" max="3650" oninput="savePtsSettings(true)" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--blue);font-weight:700;font-size:12px;text-align:center">
               <span style="color:var(--text3)">days</span>
             </div>
           </div>
@@ -2251,7 +2475,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap">
             <button class="btn btn-y" style="font-size:11px;padding:5px 12px" onclick="savePtsSettings()">💾 Save Rules</button>
-            <button class="btn btn-r" style="font-size:11px;padding:5px 12px" onclick="recalcAllLoyaltyPoints()">🔄 Recalc All</button>
+            <button class="btn btn-r" style="font-size:11px;padding:5px 12px" onclick="recalcAllLoyaltyPoints()" title="Recalculate all customer points with new rule">🔄 Recalc All</button>
             <span id="pts-save-status" style="font-size:10px;color:var(--green)"></span>
           </div>
         </div>
@@ -2290,7 +2514,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <!-- POINTS -->
       <div id="lt-pts" style="display:none">
         <div class="card">
-          <div class="card-h"><h3>⭐ Points Ledger</h3><button class="btn btn-y" style="font-size:10px" onclick="renderPointsLedger()">🔄 Refresh</button></div>
+          <div class="card-h"><h3>⭐ Points Ledger</h3><div style="display:flex;gap:6px"><button class="btn btn-y" style="font-size:10px" onclick="renderPointsLedger()">🔄 Refresh</button><button class="btn btn-r" style="font-size:10px" onclick="recalcAllLoyaltyPoints()" title="Fix incorrect point values">🔧 Recalculate All</button></div></div>
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
               <thead><tr><th>Customer</th><th>Phone</th><th>Points</th><th>Redeem Value</th><th>Expiry Date</th><th>Actions</th></tr></thead>
@@ -3037,7 +3261,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             <div class="fr2">
               <div class="fg"><label class="fl">Material Name</label><input class="fi" id="ps-name" placeholder="e.g. 100g Sticker, Poly Cover..."></div>
               <div class="fg"><label class="fl">Type</label>
-                <select class="fs" id="ps-type">
+                <select class="fs" id="ps-type" onchange="psTypeChange()">
                   <option>Sticker</option><option>Cover/Bag</option><option>Box</option>
                   <option>Label</option><option>Tape</option><option>Other</option>
                 </select>
@@ -3060,8 +3284,18 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               <div class="fg"><label class="fl">Lead Time (days)</label><input class="fi" id="ps-lead" type="number" value="3" min="1"></div>
             </div>
             <div class="fr2">
-              <div class="fg"><label class="fl">Buy Price per Unit (₹)</label><input class="fi" id="ps-price" type="number" placeholder="0"></div>
+              <div class="fg"><label class="fl">Buy Price per Unit (₹)</label><input class="fi" id="ps-price" type="number" placeholder="0" oninput="psCalcCost()"></div>
               <div class="fg"><label class="fl">Linked Products</label><input class="fi" id="ps-linked" placeholder="e.g. Tea 100g, Tea 250g"></div>
+            </div>
+            <!-- Sticker sheet details (shown when type = Sticker) -->
+            <div id="ps-sheet-wrap" style="background:rgba(249,200,70,.06);border:1px solid rgba(249,200,70,.2);border-radius:8px;padding:10px 12px;margin-bottom:10px;display:none">
+              <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🏷️ Sticker Sheet Details</div>
+              <div class="fr3">
+                <div class="fg"><label class="fl" style="font-size:10px">Stickers Per Sheet</label><input class="fi" id="ps-per-sheet" type="number" placeholder="e.g. 24" min="1" oninput="psCalcSheet()"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Sheets in Stock</label><input class="fi" id="ps-sheets-qty" type="number" placeholder="0" min="0" oninput="psCalcSheet()"></div>
+                <div class="fg"><label class="fl" style="font-size:10px">Price Per Sheet (₹)</label><input class="fi" id="ps-sheet-price" type="number" placeholder="0" oninput="psCalcSheet()"></div>
+              </div>
+              <div id="ps-sheet-calc" style="font-size:11.5px;color:var(--text2);margin-top:6px;padding:6px 8px;background:var(--surface2);border-radius:6px"></div>
             </div>
             <div id="ps-calc-hint" style="font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:8px"></div>
             <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="ps-notes" rows="2" placeholder="Any notes..."></textarea></div>
@@ -3101,6 +3335,52 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
 
   
+    <!-- ===== COURSE MANAGEMENT ===== -->
+    <div class="page" id="p-coursemanagement">
+      <div class="ph"><h1>📚 Course Management</h1><p>Manage tuition courses, fees and batch timings</p></div>
+      <div class="sc-grid sc-grid-resp">
+        <div class="sc b"><div class="sc-ico">📚</div><div class="sc-label">Total Courses</div><div class="sc-val" id="cm-total">0</div></div>
+        <div class="sc g"><div class="sc-ico">👥</div><div class="sc-label">Enrolled Students</div><div class="sc-val" id="cm-enrolled">0</div></div>
+        <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Course Income</div><div class="sc-val" id="cm-income">₹0</div></div>
+        <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Pending</div><div class="sc-val" id="cm-pending">₹0</div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active" onclick="cmTab(this,'cm-list')">📚 All Courses</div>
+        <div class="tab" onclick="cmTab(this,'cm-add')">➕ Add Course</div>
+        <div class="tab" onclick="cmTab(this,'cm-report');renderCourseReports()">📊 Reports</div>
+      </div>
+      <div id="cm-list">
+        <div id="courses-list-container"><div class="empty"><div class="ei">📚</div><p>No courses yet. Add your first course!</p></div></div>
+      </div>
+      <div id="cm-add" style="display:none">
+        <div class="card" style="max-width:540px">
+          <div class="card-h"><h3 id="cm-form-title">➕ Add New Course</h3></div>
+          <div class="card-b">
+            <div class="fr2">
+              <div class="fg"><label class="fl">Course Name <span style="color:var(--red)">*</span></label><input class="fi" id="cm-name" placeholder="e.g. 10th Standard"></div>
+              <div class="fg"><label class="fl">Subject</label><input class="fi" id="cm-subject" placeholder="e.g. Maths, All Subjects"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Timing <span style="color:var(--red)">*</span></label><input class="fi" id="cm-timing" placeholder="e.g. 5PM - 6PM"></div>
+              <div class="fg"><label class="fl">Duration</label><input class="fi" id="cm-duration" placeholder="e.g. 6 months, 1 year"></div>
+            </div>
+            <div class="fr2">
+              <div class="fg"><label class="fl">Course Fees (₹)</label><div class="fi-ico"><input class="fi" id="cm-cfees" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+              <div class="fg"><label class="fl">Book Fees (₹)</label><div class="fi-ico"><input class="fi" id="cm-bfees" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+            </div>
+            <div class="fg"><label class="fl">Notes</label><input class="fi" id="cm-notes" placeholder="Any notes about this course..."></div>
+            <input type="hidden" id="cm-edit-id" value="">
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-y" onclick="saveCourse()" style="flex:1;justify-content:center">💾 Save Course</button>
+              <button class="btn btn-o" onclick="clearCourseForm()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cm-report" style="display:none">
+        <div id="course-reports-container"><div class="empty"><div class="ei">📊</div><p>Add courses and students to see reports</p></div></div>
+      </div>
+    </div>
     <!-- ===== ADVERTISEMENT MANAGEMENT ===== -->
     <div class="page" id="p-advertisement">
       <div class="ph"><h1>📢 Advertisement Management</h1><p>Track campaigns, spend, ROI and what drives your sales</p></div>
@@ -3207,7 +3487,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
   <div class="bn-more-section">
     <div class="bn-more-label">Businesses</div>
     <div class="bn-more-grid">
-      <div class="bn-more-item" onclick="navMore('teashop')"><div class="bmi-ico">☕</div><div class="bmi-txt">Tea Shop</div></div><div class="bmi-txt">Tuition</div></div>
+      <div class="bn-more-item" onclick="navMore('teashop')"><div class="bmi-ico">☕</div><div class="bmi-txt">Tea Shop</div></div>
+      <div class="bn-more-item" onclick="navMore('tuition')"><div class="bmi-ico">🎓</div><div class="bmi-txt">Tuition</div></div>
       <div class="bn-more-item" onclick="navMore('orders')"><div class="bmi-ico">🚚</div><div class="bmi-txt">Orders</div></div>
       <div class="bn-more-item" onclick="navMore('whatsapp')"><div class="bmi-ico">💬</div><div class="bmi-txt">WhatsApp</div></div>
     </div>
@@ -3240,9 +3521,108 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 <!-- MODALS -->
-<!-- Student Partial Fee Payment Modal -->
-
+<!-- Customer Exchange / Return Modal -->
+<div class="mo" id="exchange-modal">
+  <div class="mo-box" style="max-width:480px">
+    <div class="mo-h" style="background:rgba(88,166,255,.06);border-bottom:1px solid rgba(88,166,255,.15)">
+      <h2>🔄 Exchange / Return</h2>
+      <button class="xbtn" onclick="closeModal('exchange-modal')">✕</button>
+    </div>
+    <div class="mo-b">
+      <input type="hidden" id="ex-sale-id">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)" id="ex-sale-info">—</div>
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fs" id="ex-type" onchange="exTypeChange()">
+          <option value="exchange">🔄 Exchange (swap product)</option>
+          <option value="return">↩️ Full Return / Refund</option>
+          <option value="partial_return">💰 Partial Return</option>
+        </select>
+      </div>
+      <div id="ex-exchange-wrap">
+        <div class="fr2">
+          <div class="fg"><label class="fl">Product Returned</label><input class="fi" id="ex-return-prod" placeholder="Product being returned"></div>
+          <div class="fg"><label class="fl">New Product Given</label><input class="fi" id="ex-new-prod" placeholder="Replacement product"></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Price Difference (₹)</label><div class="fi-ico"><input class="fi" id="ex-diff" type="number" placeholder="0" value="0"><span class="fi-ico-btn">₹</span></div></div>
+          <div class="fg"><label class="fl">Difference Settled By</label>
+            <select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">No Difference</option></select>
+          </div>
+        </div>
+      </div>
+      <div id="ex-return-wrap" style="display:none">
+        <div class="fr2">
+          <div class="fg"><label class="fl">Refund Amount (₹)</label><div class="fi-ico"><input class="fi" id="ex-refund-amt" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
+          <div class="fg"><label class="fl">Refund Mode</label>
+            <select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Reason <span style="color:var(--red)">*</span></label><input class="fi" id="ex-reason" placeholder="e.g. Wrong size, defective, customer changed mind..."></div>
+      <div class="fg"><label class="fl">Date</label><input class="fi" id="ex-date" type="date"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center" onclick="confirmExchange()">✅ Confirm</button>
+        <button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>
+<!-- Student Partial Fee Payment Modal -->
+<div class="mo" id="student-pay-modal">
+  <div class="mo-box" style="max-width:420px">
+    <div class="mo-h" style="background:rgba(63,185,80,.06);border-bottom:1px solid rgba(63,185,80,.2)">
+      <h2>💰 Record Fee Payment</h2>
+      <button class="xbtn" onclick="closeModal('student-pay-modal')">✕</button>
+    </div>
+    <div class="mo-b">
+      <input type="hidden" id="sp-stu-id">
+      <!-- Student info -->
+      <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)" id="sp-stu-name">—</div>
+        <div style="display:flex;gap:20px;margin-top:6px;font-size:12px">
+          <span>Total: <strong id="sp-stu-total" style="color:var(--accent)">₹0</strong></span>
+          <span>Paid: <strong id="sp-stu-paid" style="color:var(--green)">₹0</strong></span>
+          <span>Balance: <strong id="sp-stu-balance" style="color:var(--red)">₹0</strong></span>
+        </div>
+      </div>
+      <!-- Amount -->
+      <div class="fg">
+        <label class="fl">Amount Received (₹) <span style="color:var(--red)">*</span></label>
+        <div class="fi-ico">
+          <input class="fi" id="sp-pay-amt" type="number" placeholder="0" min="1"
+            oninput="spPayCalc()" style="font-size:15px;font-weight:700">
+          <span class="fi-ico-btn">₹</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-b" style="font-size:10px;padding:3px 8px" onclick="spPayFull()">Pay Full Balance</button>
+          <button class="btn btn-o" style="font-size:10px;padding:3px 8px" onclick="spPayHalf()">Pay Half</button>
+        </div>
+      </div>
+      <!-- Payment mode -->
+      <div class="fg">
+        <label class="fl">Payment Mode</label>
+        <select class="fs" id="sp-pay-mode">
+          <option>Cash</option><option>UPI</option><option>Bank Transfer</option><option>Cheque</option>
+        </select>
+      </div>
+      <!-- Notes -->
+      <div class="fg">
+        <label class="fl">Notes <span style="font-size:10px;color:var(--text3)">(optional)</span></label>
+        <input class="fi" id="sp-pay-notes" placeholder="e.g. Month of March, partial payment...">
+      </div>
+      <!-- After payment preview -->
+      <div id="sp-pay-preview" style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:10px 12px;margin-bottom:12px;display:none">
+        <div style="font-size:11.5px;color:var(--text2)" id="sp-pay-preview-text"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-y" style="flex:1;justify-content:center;font-weight:700" onclick="confirmStudentPayment()">✅ Record Payment</button>
+        <button class="btn btn-o" onclick="closeModal('student-pay-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NPA Write-off Modal -->
 <div class="mo" id="npa-modal">
   <div class="mo-box" style="max-width:460px">
     <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
@@ -3293,12 +3673,11 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 </div>
-</div>
 
 <!-- Edit Customer Modal -->
 <div class="mo" id="edit-customer-modal">
   <div class="mo-box" style="max-width:480px">
-    <div class="mo-h"><h2>✏️ Edit Customer</h2><button class="xbtn" onclick="closeModal('edit-customer-modal')">✕</button></div>
+    <div class="mo-h"><h3 id="ec-modal-title" style="font-size:13px;color:var(--accent);font-family:monospace"></h3><h2>✏️ Edit Customer</h2><button class="xbtn" onclick="closeModal('edit-customer-modal')">✕</button></div>
     <div class="mo-b">
       <input type="hidden" id="ec-id">
       <div class="fg"><label class="fl">Full Name <span style="color:var(--red)">*</span></label><input class="fi" id="ec-name" placeholder="Customer name"></div>
@@ -3399,7 +3778,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 const S = {
   sales:[],
   products:[],
-  customers:[], orders:[], teaEntries:[], suppliers:[],
+  customers:[], orders:[], students:[], staff:[], teaEntries:[], suppliers:[],
   orderCounter:1, editProdId:null,
   settings:{bizName:'Meenatchi Traders',owner:'',logo:'',waTmpl:{},pts:{},autoWaReceipt:true},
   gs:{scriptUrl:'',sheetUrl:'',tabs:'DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report',connected:false,lastSync:''},
@@ -3408,7 +3787,8 @@ const S = {
   // ── Smart Reorder & Packaging ──
   supplierOrders:[], repackLog:[], packMaterials:[],
   packUsageHistory:[], reorderSettings:{}, stockCorrections:[],
-  // ── Course & Advertisement Management ──        // tuition courses
+  // ── Course & Advertisement Management ──
+  courses:[],        // tuition courses
   advertisements:[], // ad campaigns
   // ── Smart Repack Split Engine ──
   splitLog:[],       // split repack history
@@ -3498,7 +3878,7 @@ function refreshAllFull(){
 
 // ── Local date helper — always returns YYYY-MM-DD in DEVICE timezone ──
 // new Date().toISOString() uses UTC time → shows yesterday in India before 5:30AM IST
-// Always use localDate() instead of localDate()
+// Always use localDate() instead of new Date().toISOString().slice(0,10)
 function localDate(d){
   const dt = d ? new Date(d) : new Date();
   const y  = dt.getFullYear();
@@ -3534,87 +3914,6 @@ function nextOrderNum(){
     .map(n=>parseInt(n.replace(prefix,''))||0);
   const next = existing.length > 0 ? Math.max(...existing)+1 : 1;
   return prefix + String(next).padStart(3,'0');
-}
-
-function saveTeaEntry(){
-  const cups=+document.getElementById('tc-cup-qty').value||0;
-  if(!cups){toast('⚠️ Enter cups sold');return;}
-  const custName = document.getElementById('tc-cust')?.value.trim()||'';
-  const custPhone= document.getElementById('tc-phone')?.value.trim()||'';
-  const income   = +document.getElementById('tc-total-inc').value||0;
-  const entry={
-    date:document.getElementById('tc-date').value,
-    cups, income,
-    expense:(+document.getElementById('tc-gas').value||0)+(+document.getElementById('tc-other').value||0),
-    profit:+document.getElementById('tc-daily-profit').value||0,
-    notes:document.getElementById('tc-notes').value,
-    customer:custName,
-    phone:custPhone,
-    time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})
-  };
-  S.teaEntries.push(entry);
-
-  // ── Tea Loyalty Points: ₹500 = 1 point ─────────────────────
-  if(custName && income > 0){
-    let c = S.customers.find(x=>x.name.toLowerCase()===custName.toLowerCase());
-    if(!c){
-      c = {id:Date.now(),name:custName,phone:custPhone,addr:'',paid:0,pending:0,
-           lastProd:'Tea/Coffee',mode:'Cash',points:0,bday:'',referredBy:'',pointsHistory:[]};
-      S.customers.push(c);
-    }
-    if(custPhone && !c.phone) c.phone = custPhone;
-    c.paid = (c.paid||0) + income;
-    // ₹500 = 1 point for tea shop (special rate)
-    const teaPts = Math.floor(income / 500);
-    if(teaPts > 0){
-      c.points = (c.points||0) + teaPts;
-      c.pointsHistory = c.pointsHistory||[];
-      c.pointsHistory.push({
-        date: entry.date,
-        earned: teaPts,
-        reason: `Tea Shop: ₹${income.toFixed(0)} → ${teaPts} pt${teaPts>1?'s':''}`,
-        balance: c.points
-      });
-      toast(`✅ Tea entry saved! ⭐ +${teaPts} point${teaPts>1?'s':''} for ${custName}`);
-    } else {
-      toast(`✅ Tea entry saved! (₹${income.toFixed(0)} — needs ₹500 for 1 point)`);
-    }
-  } else {
-    toast('✅ Tea entry saved!');
-  }
-
-  document.getElementById('tc-cups').textContent=S.teaEntries.reduce((a,e)=>a+e.cups,0);
-  const totInc=S.teaEntries.reduce((a,e)=>a+e.income,0);
-  const totExp=S.teaEntries.reduce((a,e)=>a+e.expense,0);
-  const totProf=S.teaEntries.reduce((a,e)=>a+e.profit,0);
-  document.getElementById('tc-income').textContent='₹'+totInc.toFixed(2);
-  document.getElementById('tc-expense').textContent='₹'+totExp.toFixed(2);
-  document.getElementById('tc-profit').textContent='₹'+totProf.toFixed(2);
-  document.getElementById('d-tea').textContent='₹'+totInc.toFixed(2);
-  const tb=document.getElementById('tea-tbody');
-  if(tb) tb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.time}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer||e.notes||'—'}</td></tr>`).join('');
-  const htb=document.getElementById('tea-history');
-  if(htb) htb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.date}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.expense.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer?'<strong>'+e.customer+'</strong> ':''} ${e.notes||''}</td></tr>`).join('');
-  autoSave();
-  clearTeaForm();
-}
-
-function tcAutoFill(){
-  const name = document.getElementById('tc-cust')?.value.trim();
-  if(!name) return;
-  const c = S.customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
-  if(!c) return;
-  const ph = document.getElementById('tc-phone');
-  if(ph && !ph.value) ph.value = c.phone||'';
-  // Show current points
-  const ps = getPtsSettings();
-  const bal = isPointsExpired(c)?0:(c.points||0);
-  const val = ((bal/100)*ps.redeemVal).toFixed(0);
-  const info = document.getElementById('tc-pts-info');
-  if(info){
-    info.style.display = 'block';
-    info.innerHTML = `⭐ Current points: <strong style="color:var(--accent)">${bal}</strong> = ₹${val} redeem value`;
-  }
 }
 
 function persistState(){
@@ -3663,8 +3962,8 @@ function loadPersistedState(){
 
 // Auto-save after every important action (call this at end of save functions)
 // ===== NAVIGATION =====
-const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
-const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
+const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',coursemanagement:'📚',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
+const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
 
 function nav(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -3685,6 +3984,7 @@ function nav(page){
   }
   if(page==='customers'){ renderCustomers(); renderPendingCust(); }
   if(page==='whatsapp'){ renderWA(); }
+  if(page==='tuition'){ renderStudents(); renderStaffTable(); populateCourseDropdown(); }
   if(page==='inventory'){ renderInventory(); }
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
@@ -3705,6 +4005,7 @@ function nav(page){
     renderTarget();
   }
   if(page==='loyalty'){ renderLoyalty(); loadPtsSettings(); }
+  if(page==='coursemanagement'){ renderCourses(); renderCourseReports(); }
   if(page==='advertisement'){ renderAds(); renderAdCharts(); }
   if(page==='reminders'){ renderRemindersStats(); renderRemindersToday(); populateReminderDataLists(); }
   if(page==='bulkwa'){ renderBwStats(); renderBwPending(); }
@@ -3836,22 +4137,22 @@ const WA_TMPL_DEFAULTS = {
     `Hi {name}! 🔔 It's time to reorder *{product}*.\n\nYou usually order every few weeks — don't run out!\n\nContact {biz} to place your order 😊\n📞 {phone}`,
 
   'order-pending':
-    `🏪 *{biz}*\nHi {name}, your order has been received and is now *Pending* confirmation.\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n📅 Date: {date}\n\nWe'll update you soon! Thank you 🙏`,
+    `🏪 *{biz}*\nHi {name}, your order has been received and is now *Pending* confirmation.\n\n📦 Order: {product}\n📅 Date: {date}\n\nWe'll update you soon! Thank you 🙏`,
 
   'order-processing':
-    `🏪 *{biz}*\nHi {name}, great news! Your order is now being *Processed*. 🔄\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n📅 Date: {date}\n\nWe'll notify you when it's ready!`,
+    `🏪 *{biz}*\nHi {name}, great news! Your order is now being *Processed*. 🔄\n\n📦 Order: {product}\n📅 Date: {date}\n\nWe'll notify you when it's ready!`,
 
   'order-ready':
-    `🏪 *{biz}*\nHi {name}, your order is *Ready* for pickup/delivery! ✅📦\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n\nPlease contact us to arrange delivery.\n📞 {phone}`,
+    `🏪 *{biz}*\nHi {name}, your order is *Ready* for pickup/delivery! ✅📦\n\n📦 Order: {product}\n\nPlease contact us to arrange delivery.\n📞 {phone}`,
 
   'order-delivered':
-    `🏪 *{biz}*\nHi {name}, your order has been *Delivered* successfully! 🎉\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n\nThank you for shopping with us! 🙏\nWe hope to see you again soon.`,
+    `🏪 *{biz}*\nHi {name}, your order has been *Delivered* successfully! 🎉\n\n📦 Order: {product}\n\nThank you for shopping with us! 🙏\nWe hope to see you again soon.`,
 
   'order-cancelled':
-    `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n\nFor any queries please call us: 📞 {phone}`,
+    `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `🏪 *{biz}* — Bill Receipt\n\nHi {name}! ✅ Thank you for your purchase.\n\n🔖 *Customer No:* {custnum}\n📋 *Order No:* {ordernum}\n\n📦 *Products:* {product}\n💰 *Total:* ₹{amount}\n💳 *Mode:* {mode}\n📅 *Date:* {date}\n\n⭐ Loyalty points earned on this purchase!\n\nThank you for shopping with us 🙏`,
+    `🏪 *{biz}* — Bill Receipt\n\nHi {name}! ✅ Thank you for your purchase.\n\n📦 *Products:* {product}\n💰 *Total:* ₹{amount}\n💳 *Mode:* {mode}\n📅 *Date:* {date}\n\nYour bill is attached above.\n⭐ Loyalty points earned on this purchase!\n\nThank you for shopping with us 🙏`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
@@ -3956,9 +4257,7 @@ function getWATmpl(key, vars){
     .replace(/\{reason\}/g,   vars.reason    || '')
     .replace(/\{points\}/g,   vars.points    || '')
     .replace(/\{value\}/g,    vars.value     || '')
-    .replace(/\{expiry\}/g,   vars.expiry    || '')
-    .replace(/\{custnum\}/g,  vars.custnum   || '')
-    .replace(/\{ordernum\}/g, vars.ordernum  || '');
+    .replace(/\{expiry\}/g,   vars.expiry    || '');
 }
 
 function waPreview(tmplId){
@@ -4954,44 +5253,96 @@ function spAutoFill(){
 }
 
 function spCalc(){
-  // Calculate from source rows
-  const sources = getSourceRows();
-  const totalInputG = sources.reduce((a,r)=>a+(r.sizeG*r.qty), 0);
-  const packSize   = +document.getElementById('sp-pack-size')?.value||1;
-  const outputQty  = +document.getElementById('sp-output-qty')?.value||0;
-  const neededG    = outputQty * packSize;
-  const balanceG   = totalInputG - neededG;
+  const inputQty = +document.getElementById('sp-input-qty')?.value||0;
+  const unit     = document.getElementById('sp-unit')?.value||'g';
+  const sticker  = +document.getElementById('sp-sticker')?.value||1;
+  const cover    = +document.getElementById('sp-cover')?.value||1;
+  const leftoverMode = document.getElementById('sp-leftover-mode')?.value||'carryforward';
 
-  // Update source row totals
-  sources.forEach(r=>{
-    const el = document.getElementById('sp-src-total-'+document.querySelector('.sp-source-row[data-id]')?.dataset?.id);
-    // Update each row's total display
-  });
-  document.querySelectorAll('.sp-source-row').forEach(row=>{
-    const id = row.dataset.id;
-    const sizeG = +document.getElementById('sp-src-size-'+id)?.value||0;
-    const qty   = +document.getElementById('sp-src-qty-'+id)?.value||0;
-    const prod  = document.getElementById('sp-src-prod-'+id)?.value;
-    const p     = S.products.find(x=>x.name===prod);
-    const totEl = document.getElementById('sp-src-total-'+id);
-    if(totEl) totEl.textContent = 'Total: '+(sizeG*qty)+'g | In stock: '+(p?p.stock||0:' — ')+' packs';
+  // Collect child rows
+  const rows=document.querySelectorAll('.sp-child-row');
+  let totalUsed=0, totalPacks=0;
+  const breakdown=[];
+
+  rows.forEach(row=>{
+    const idPart=row.id.replace('sp-row-','');
+    const size=+document.getElementById('sp-child-size-'+idPart)?.value||0;
+    const qty =+document.getElementById('sp-child-qty-'+idPart)?.value||0;
+    const rowTotal=size*qty;
+    const totEl=document.getElementById('sp-child-total-'+idPart);
+    if(totEl) totEl.textContent=rowTotal>0?rowTotal+'g':'—';
+    if(size>0&&qty>0){ totalUsed+=rowTotal; totalPacks+=qty; breakdown.push({size,qty,total:rowTotal}); }
   });
 
-  // Update summary
-  const sumEl = document.getElementById('sp-calc-summary');
-  if(sumEl){
-    const balColor = balanceG<0?'var(--red)':balanceG===0?'var(--green)':'var(--accent)';
-    sumEl.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
-        <div class="sc g"><div class="sc-label">Total Input</div><div class="sc-val">${totalInputG}g</div></div>
-        <div class="sc b"><div class="sc-label">Needed</div><div class="sc-val">${neededG}g</div></div>
-        <div class="sc" style="border-color:${balColor}"><div class="sc-label">Balance</div>
-          <div class="sc-val" style="color:${balColor}">${balanceG>=0?'+':''}${balanceG}g</div></div>
+  const leftover=inputQty-totalUsed;
+  const valid=inputQty>0&&breakdown.length>0;
+
+  // Render output preview
+  const prev=document.getElementById('sp-preview');
+  if(prev&&valid){
+    const leftoverColor=Math.abs(leftover)<0.01?'var(--green)':leftover>0?'var(--accent)':'var(--red)';
+    const leftoverLabel=Math.abs(leftover)<0.01?'✅ Perfect match':leftover>0?`⚠️ ${leftover}${unit} leftover`:
+      `❌ Over by ${Math.abs(leftover)}${unit} — reduce quantities`;
+    prev.innerHTML=`
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">📦 Output Packs:</div>
+        ${breakdown.map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.3);font-size:12px">
+          <span>${b.size}${unit} pack</span>
+          <span style="color:var(--accent);font-weight:700">× ${b.qty}</span>
+          <span style="color:var(--text3)">${b.total}${unit}</span>
+        </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12px;font-weight:700">
+          <span>Total Packs</span><span style="color:var(--green)">${totalPacks}</span>
+          <span>${totalUsed}${unit} used</span>
+        </div>
+        <div style="padding:6px 10px;border-radius:6px;background:rgba(0,0,0,.2);font-size:11.5px;font-weight:600;color:${leftoverColor}">
+          ${leftoverLabel}
+          ${leftover>0&&leftoverMode==='carryforward'?'<br><span style="font-size:10px;color:var(--text3)">Will be carried forward to next batch</span>':''}
+          ${leftover>0&&leftoverMode==='waste'?'<br><span style="font-size:10px;color:var(--red)">Will be recorded as waste</span>':''}
+        </div>
       </div>
-      ${balanceG<0?'<div style="color:var(--red);font-size:11px;margin-top:6px">❌ Not enough input! Add more source products.</div>':''}
-      ${balanceG>0?'<div style="color:var(--accent);font-size:11px;margin-top:6px">⚠️ '+balanceG+'g balance — choose carry-forward or loss below.</div>':''}
-    `;
-    sumEl.style.display = 'block';
+      <div style="font-size:11px;font-weight:700;color:var(--text2)">📊 Summary</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px">
+        <span>Input: <strong>${inputQty}${unit}</strong></span>
+        <span>Used: <strong style="color:var(--accent)">${totalUsed}${unit}</strong></span>
+        <span>Leftover: <strong style="color:${leftoverColor}">${leftover}${unit}</strong></span>
+      </div>`;
+  } else if(prev){
+    prev.innerHTML='<div class="empty"><div class="ei">✂️</div><p>Enter input qty and child pack sizes to see preview</p></div>';
+  }
+
+  // Packaging summary
+  const pkg=document.getElementById('sp-pkg-summary');
+  if(pkg&&valid&&totalPacks>0){
+    const totalStickers=totalPacks*sticker;
+    const totalCovers  =totalPacks*cover;
+    // Get current stock
+    const stickerMat=S.packMaterials.find(m=>m.type==='sticker');
+    const coverMat  =S.packMaterials.find(m=>m.type==='cover');
+    const stkStock  =stickerMat?stickerMat.qty:0;
+    const cvrStock  =coverMat  ?coverMat.qty  :0;
+    const stkAfter  =stkStock-totalStickers;
+    const cvrAfter  =cvrStock -totalCovers;
+    pkg.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:var(--text3)">Stickers Needed</div>
+          <div style="font-weight:700;font-size:17px;color:var(--accent)">${totalStickers}</div>
+          <div style="font-size:10px;color:${stkAfter<0?'var(--red)':'var(--green)'}">Stock after: ${stkAfter}</div>
+          ${stkAfter<0?'<div style="font-size:10px;color:var(--red)">⚠️ Shortage!</div>':''}
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px">
+          <div style="font-size:9px;color:var(--text3)">Covers Needed</div>
+          <div style="font-weight:700;font-size:17px;color:var(--blue)">${totalCovers}</div>
+          <div style="font-size:10px;color:${cvrAfter<0?'var(--red)':'var(--green)'}">Stock after: ${cvrAfter}</div>
+          ${cvrAfter<0?'<div style="font-size:10px;color:var(--red)">⚠️ Shortage!</div>':''}
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:8px;text-align:center">
+        ${sticker} sticker${sticker!==1?'s':''} + ${cover} cover${cover!==1?'s':''} per pack × ${totalPacks} packs
+      </div>`;
+  } else if(pkg){
+    pkg.innerHTML='<div class="empty"><div class="ei">🏷️</div><p>Packaging calc will show here</p></div>';
   }
 }
 
@@ -5036,160 +5387,57 @@ function getChildRows(){
 }
 
 function saveSplitSession(){
-  const outputProd = document.getElementById('sp-prod')?.value.trim();
-  const outputQty  = +document.getElementById('sp-output-qty')?.value||0;
-  const unit       = document.getElementById('sp-unit')?.value||'g';
-  const lossMode   = document.getElementById('sp-loss-mode')?.checked; // true=add to stock, false=loss
-  const date       = document.getElementById('sp-date')?.value||localDate();
-  const notes      = document.getElementById('sp-notes')?.value||'';
+  const prod    =document.getElementById('sp-prod')?.value.trim();
+  const inputQty=+document.getElementById('sp-input-qty')?.value||0;
+  const unit    =document.getElementById('sp-unit')?.value||'g';
+  const sticker =+document.getElementById('sp-sticker')?.value||1;
+  const cover   =+document.getElementById('sp-cover')?.value||1;
+  const lMode   =document.getElementById('sp-leftover-mode')?.value||'carryforward';
+  const date    =document.getElementById('sp-date')?.value||localDate();
+  const notes   =document.getElementById('sp-notes')?.value||'';
 
-  if(!outputProd){ toast('⚠️ Select output product'); return; }
-  if(!outputQty){ toast('⚠️ Enter output quantity (how many packets to make)'); return; }
+  if(!prod){toast('⚠️ Select a product');return;}
+  if(!inputQty){toast('⚠️ Enter input quantity');return;}
 
-  // Collect source rows (multiple input products)
-  const sourceRows = getSourceRows();
-  if(!sourceRows.length){ toast('⚠️ Add at least one source product'); return; }
+  const children=getChildRows();
+  if(!children.length){toast('⚠️ Add at least one child pack size');return;}
 
-  // Calculate totals
-  const totalInputGrams = sourceRows.reduce((a,r)=>a+(r.sizeG*r.qty),0);
-  const neededGrams     = outputQty * (+document.getElementById('sp-pack-size')?.value||1);
-  const balanceGrams    = totalInputGrams - neededGrams;
+  const totalUsed=children.reduce((a,c)=>a+c.total,0);
+  const leftover =inputQty-totalUsed;
+  const totalPacks=children.reduce((a,c)=>a+c.qty,0);
 
-  if(balanceGrams < 0){
-    toast('❌ Not enough input! Need '+neededGrams+'g but only have '+totalInputGrams+'g'); return;
+  // Validate
+  if(leftover<0){
+    toast('❌ Child packs exceed input quantity! Reduce quantities.');return;
   }
 
-  // Confirm if there's a balance
-  if(balanceGrams > 0){
-    const action = lossMode ? 'added back to stock as '+balanceGrams+unit+' carry-forward' : 'recorded as loss';
-    if(!confirm('⚠️ '+balanceGrams+unit+' balance will be '+action+'.\n\nProceed?')) return;
+  // Warn on leftover
+  if(leftover>0){
+    const proceed=confirm(`⚠️ ${leftover}${unit} leftover.\n${lMode==='carryforward'?'Will be carried forward to next batch.':lMode==='waste'?'Will be recorded as waste.':'Will try to create a small pack.'}\n\nProceed?`);
+    if(!proceed) return;
   }
 
-  // Deduct each source product from stock
-  const stockErrors = [];
-  sourceRows.forEach(r=>{
-    const p = S.products.find(x=>x.name===r.product);
-    if(!p){ stockErrors.push(r.product+' not found'); return; }
-    if((p.stock||0) < r.qty){
-      stockErrors.push(r.product+': need '+r.qty+' but only '+p.stock+' in stock');
-    }
-  });
-  if(stockErrors.length){
-    if(!confirm('⚠️ Stock warning:\n'+stockErrors.join('\n')+'\n\nProceed anyway?')) return;
-  }
-
-  // Apply stock deductions
-  sourceRows.forEach(r=>{
-    const p = S.products.find(x=>x.name===r.product);
-    if(p){
-      const before = p.stock||0;
-      p.stock = Math.max(before - r.qty, 0);
-      p.sold  = (p.sold||0) + r.qty;
-      logStockCorrection(p.name, -r.qty, 'Split: used '+r.qty+' packs for making '+outputQty+' × '+outputProd);
-    }
-  });
-
-  // Add output product to stock
-  const outProd = S.products.find(x=>x.name===outputProd);
-  if(outProd){
-    const before = outProd.stock||0;
-    outProd.stock = before + outputQty;
-    logStockCorrection(outProd.name, +outputQty, 'Split: +'+outputQty+' packs created');
-  }
-
-  // Handle balance
-  let balanceNote = '';
-  if(balanceGrams > 0){
-    if(lossMode){
-      // Add balance back as carry-forward stock (find a matching small pack or create note)
-      balanceNote = balanceGrams+unit+' carried forward to next batch';
-    } else {
-      balanceNote = balanceGrams+unit+' recorded as loss';
-    }
-  }
-
-  // Save session log
-  const session = {
-    id: Date.now(), date, outputProd, outputQty,
-    packSize: +document.getElementById('sp-pack-size')?.value||1,
-    unit, sourceRows, totalInputGrams, neededGrams,
-    balanceGrams, balanceMode: lossMode?'carry':'loss',
-    balanceNote, notes
+  const session={
+    id:Date.now(), date, product:prod, inputQty, unit,
+    children, totalUsed, leftover, leftoverMode:lMode,
+    totalPacks, sticker, cover,
+    totalStickers:totalPacks*sticker, totalCovers:totalPacks*cover,
+    notes, createdAt:new Date().toISOString()
   };
-  S.splitLog = S.splitLog||[];
+  S.splitLog=S.splitLog||[];
   S.splitLog.push(session);
+
+  // Deduct packaging stock
+  const stickerMat=S.packMaterials.find(m=>m.type==='sticker');
+  const coverMat  =S.packMaterials.find(m=>m.type==='cover');
+  if(stickerMat) stickerMat.qty=Math.max(0,stickerMat.qty-session.totalStickers);
+  if(coverMat  ) coverMat.qty  =Math.max(0,coverMat.qty  -session.totalCovers);
 
   autoSave();
   clearSplitForm();
   renderSplitHistory();
   renderSplitStats();
-  renderPackStock();
-  renderInventory();
-
-  const lossInfo = balanceGrams>0 ? (' | '+balanceGrams+unit+(lossMode?' carried fwd':' lost')) : '';
-  toast('✅ Split done! '+outputQty+' packs of '+outputProd+' created'+lossInfo);
-}
-
-// Get all source product rows from the split form
-function getSourceRows(){
-  const rows = document.querySelectorAll('.sp-source-row');
-  const result = [];
-  rows.forEach(row=>{
-    const id    = row.dataset.id;
-    const prod  = document.getElementById('sp-src-prod-'+id)?.value.trim();
-    const sizeG = +document.getElementById('sp-src-size-'+id)?.value||0;
-    const qty   = +document.getElementById('sp-src-qty-'+id)?.value||0;
-    if(prod && qty>0) result.push({product:prod, sizeG, qty, total:sizeG*qty});
-  });
-  return result;
-}
-
-// Add a source product row to split form
-let _srcRowCount=0;
-function addSourceRow(){
-  _srcRowCount++;
-  const id = _srcRowCount;
-  const opts = S.products.map(p=>`<option value="${p.name}" data-size="${p.packSize||0}">${p.name}</option>`).join('');
-  const row  = document.createElement('div');
-  row.className = 'sp-source-row';
-  row.dataset.id = id;
-  row.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px';
-  row.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase">Source ${id}</span>
-      <button onclick="this.closest('.sp-source-row').remove();spCalc()" style="background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.25);color:var(--red);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px">✕</button>
-    </div>
-    <div class="fr2" style="gap:8px">
-      <div class="fg" style="margin:0">
-        <label class="fl">Source Product</label>
-        <select class="fs" id="sp-src-prod-${id}" onchange="spSrcFill(${id});spCalc()">
-          <option value="">Select product…</option>${opts}
-        </select>
-      </div>
-      <div class="fr2" style="gap:8px;margin:0">
-        <div class="fg" style="margin:0">
-          <label class="fl">Pack Size (g)</label>
-          <input class="fi" type="number" id="sp-src-size-${id}" placeholder="e.g. 100" min="1" oninput="spCalc()">
-        </div>
-        <div class="fg" style="margin:0">
-          <label class="fl">Qty (packs)</label>
-          <input class="fi" type="number" id="sp-src-qty-${id}" placeholder="e.g. 2" min="1" value="1" oninput="spCalc()">
-        </div>
-      </div>
-    </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:4px" id="sp-src-total-${id}">Total: 0g | In stock: —</div>`;
-  document.getElementById('sp-source-rows').appendChild(row);
-}
-
-function spSrcFill(id){
-  const sel = document.getElementById('sp-src-prod-'+id);
-  const prod = S.products.find(p=>p.name===sel.value);
-  if(prod){
-    const sizeEl = document.getElementById('sp-src-size-'+id);
-    if(sizeEl && !sizeEl.value) sizeEl.value = prod.packSize||'';
-    const totEl = document.getElementById('sp-src-total-'+id);
-    if(totEl) totEl.textContent = 'Total: 0g | In stock: '+(prod.stock||0)+' packs';
-  }
+  toast(`✅ Split recorded! ${totalPacks} packs from ${inputQty}${unit}${leftover>0?' · '+leftover+unit+' leftover':''}`);
 }
 
 function clearSplitForm(){
@@ -5474,33 +5722,272 @@ function cmTab(el, id){
   if(id==='cm-report') renderCourseReports();
 }
 
+function saveCourse(){
+  const name   = document.getElementById('cm-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter course name'); return; }
+  const editId = +document.getElementById('cm-edit-id')?.value||0;
+  const course = {
+    id:       editId || Date.now(),
+    name,
+    subject:  document.getElementById('cm-subject')?.value.trim()||'',
+    timing:   document.getElementById('cm-timing')?.value.trim()||'',
+    duration: document.getElementById('cm-duration')?.value.trim()||'',
+    courseFees: +document.getElementById('cm-cfees')?.value||0,
+    bookFees:   +document.getElementById('cm-bfees')?.value||0,
+    notes:    document.getElementById('cm-notes')?.value.trim()||'',
+  };
+  if(editId){
+    const idx = S.courses.findIndex(c=>c.id===editId);
+    if(idx>=0) S.courses[idx]=course;
+    toast('✅ Course updated!');
+  } else {
+    S.courses.push(course);
+    toast('✅ Course added!');
+  }
+  clearCourseForm();
+  renderCourses();
+  renderCourseStats();
+  autoSave();
+  // Go back to list
+  cmTab(document.querySelector('#p-coursemanagement .tab-bar .tab'),'cm-list');
+}
 
+function clearCourseForm(){
+  ['cm-name','cm-subject','cm-timing','cm-duration','cm-cfees','cm-bfees','cm-notes'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+  const editId=document.getElementById('cm-edit-id'); if(editId) editId.value='';
+  const title=document.getElementById('cm-form-title'); if(title) title.textContent='➕ Add New Course';
+}
 
+function editCourse(id){
+  const course=S.courses.find(c=>c.id===id); if(!course) return;
+  document.getElementById('cm-name').value    = course.name;
+  document.getElementById('cm-subject').value = course.subject||'';
+  document.getElementById('cm-timing').value  = course.timing||'';
+  document.getElementById('cm-duration').value= course.duration||'';
+  document.getElementById('cm-cfees').value   = course.courseFees||0;
+  document.getElementById('cm-bfees').value   = course.bookFees||0;
+  document.getElementById('cm-notes').value   = course.notes||'';
+  document.getElementById('cm-edit-id').value = id;
+  const title=document.getElementById('cm-form-title'); if(title) title.textContent='✏️ Edit Course';
+  cmTab(document.querySelectorAll('#p-coursemanagement .tab-bar .tab')[1],'cm-add');
+}
 
+function deleteCourse(id){
+  if(!confirm('Delete this course? Students enrolled will keep their data.')) return;
+  S.courses=S.courses.filter(c=>c.id!==id);
+  renderCourses(); renderCourseStats(); autoSave(); toast('🗑️ Course deleted');
+}
 
+function renderCourses(){
+  const el=document.getElementById('courses-list-container'); if(!el) return;
+  renderCourseStats();
+  if(!S.courses.length){
+    el.innerHTML='<div class="empty"><div class="ei">📚</div><p>No courses yet. Add your first course!</p></div>';
+    return;
+  }
+  el.innerHTML=S.courses.map(course=>{
+    const enrolled=S.students.filter(s=>s.courseId===course.id).length;
+    const income  =S.students.filter(s=>s.courseId===course.id).reduce((a,s)=>a+(s.paid||0),0);
+    const pending =S.students.filter(s=>s.courseId===course.id).reduce((a,s)=>a+(s.balance||0),0);
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-h" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h3 style="margin-bottom:2px">📚 ${course.name}${course.subject?' <span style="font-size:11px;color:var(--text3)">— '+course.subject+'</span>':''}</h3>
+          <div style="font-size:11px;color:var(--text3)">⏰ ${course.timing||'—'} ${course.duration?'· '+course.duration:''}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button class="btn btn-y" style="font-size:10px;padding:3px 8px" onclick="editCourse(${course.id})">✏️ Edit</button>
+          <button class="btn btn-r" style="font-size:10px;padding:3px 8px" onclick="deleteCourse(${course.id})">🗑️</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px">
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Course Fees</div>
+            <div style="font-weight:700;color:var(--accent)">₹${course.courseFees||0}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Book Fees</div>
+            <div style="font-weight:700;color:var(--blue)">₹${course.bookFees||0}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Students</div>
+            <div style="font-weight:700;color:var(--green)">${enrolled}</div>
+          </div>
+          <div style="text-align:center;background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3)">Collected</div>
+            <div style="font-weight:700;color:var(--green)">₹${income.toFixed(0)}</div>
+          </div>
+        </div>
+        ${course.notes?`<div style="font-size:11px;color:var(--text3);font-style:italic">📝 ${course.notes}</div>`:''}
+        ${pending>0?`<div style="font-size:11px;color:var(--red);margin-top:4px">⏳ ₹${pending.toFixed(0)} pending from ${enrolled} student${enrolled!==1?'s':''}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
+function renderCourseStats(){
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('cm-total',   S.courses.length);
+  setEl('cm-enrolled', S.students.filter(s=>s.courseId).length);
+  setEl('cm-income',  '₹'+S.students.reduce((a,s)=>a+(s.paid||0),0).toFixed(0));
+  setEl('cm-pending', '₹'+S.students.reduce((a,s)=>a+(s.balance||0),0).toFixed(0));
+}
 
-
-
-
-
-
-
-
+function renderCourseReports(){
+  const el=document.getElementById('course-reports-container'); if(!el) return;
+  if(!S.courses.length){
+    el.innerHTML='<div class="empty"><div class="ei">📊</div><p>Add courses to see reports</p></div>';
+    return;
+  }
+  el.innerHTML=S.courses.map(course=>{
+    const studs=S.students.filter(s=>s.courseId===course.id);
+    const totalFees=studs.reduce((a,s)=>a+(s.totalFees||0),0);
+    const collected=studs.reduce((a,s)=>a+(s.paid||0),0);
+    const pending  =studs.reduce((a,s)=>a+(s.balance||0),0);
+    const pct=totalFees>0?Math.min((collected/totalFees)*100,100):0;
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-h"><h3>📚 ${course.name} — ${course.timing||'—'}</h3><span style="font-size:11px;color:var(--text3)">${studs.length} students</span></div>
+      <div class="card-b">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+          <span>Total Billed: <strong style="color:var(--accent)">₹${totalFees.toFixed(0)}</strong></span>
+          <span>Collected: <strong style="color:var(--green)">₹${collected.toFixed(0)}</strong></span>
+          <span>Pending: <strong style="color:var(--red)">₹${pending.toFixed(0)}</strong></span>
+        </div>
+        <div style="background:var(--surface3);border-radius:4px;height:8px;overflow:hidden;margin-bottom:8px">
+          <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px"></div>
+        </div>
+        ${studs.length?`<div style="font-size:11px;color:var(--text3)">${studs.map(s=>`<span style="margin-right:8px">👤 ${s.name} — ${s.balance>0?'<span style="color:var(--red)">₹'+s.balance.toFixed(0)+' due</span>':'<span style="color:var(--green)">Paid</span>'}</span>`).join('')}</div>`:'<div style="font-size:11px;color:var(--text3)">No students enrolled yet</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
 
 // Populate course dropdown in Add Student form
-
+function populateCourseDropdown(){
+  const sel=document.getElementById('stu-course-sel'); if(!sel) return;
+  sel.innerHTML='<option value="">— No course / Custom —</option>'+
+    S.courses.map(c=>`<option value="${c.id}">${c.name}${c.subject?' ('+c.subject+')':''} — ${c.timing}</option>`).join('');
+}
 
 // Auto-fill student fees when course selected
-
+function onStudentCourseSelect(){
+  const sel   =document.getElementById('stu-course-sel');
+  const courseId=+sel?.value||0;
+  const course =S.courses.find(c=>c.id===courseId);
+  const idEl  =document.getElementById('stu-course-id');
+  if(idEl) idEl.value=courseId||'';
+  if(course){
+    const cf=document.getElementById('stu-course-fees');
+    const bf=document.getElementById('stu-book-fees');
+    const tm=document.getElementById('stu-timing');
+    if(cf) cf.value=course.courseFees||0;
+    if(bf) bf.value=course.bookFees||0;
+    if(tm) tm.value=course.timing||'';
+    // Auto-check both boxes
+    const cc=document.getElementById('stu-chk-course');
+    const bc=document.getElementById('stu-chk-book');
+    if(cc) cc.checked=true;
+    if(bc) bc.checked=(course.bookFees>0);
+    calcStudentTotal();
+  } else {
+    calcStudentTotal();
+  }
+}
 
 // Calculate total based on checked fee boxes
-
+function calcStudentTotal(){
+  const cf = +document.getElementById('stu-course-fees')?.value||0;
+  const bf = +document.getElementById('stu-book-fees')?.value||0;
+  const cc = document.getElementById('stu-chk-course')?.checked;
+  const bc = document.getElementById('stu-chk-book')?.checked;
+  const total=(cc?cf:0)+(bc?bf:0);
+  const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value=total;
+}
 
 // Updated addStudent with course support
+function addStudent(){
+  const name=document.getElementById('stu-name')?.value.trim();
+  if(!name){ toast('⚠️ Enter student name'); return; }
+  const courseId=+document.getElementById('stu-course-id')?.value||0;
+  const course  =S.courses.find(c=>c.id===courseId);
+  const cf=+document.getElementById('stu-course-fees')?.value||0;
+  const bf=+document.getElementById('stu-book-fees')?.value||0;
+  const cc=document.getElementById('stu-chk-course')?.checked;
+  const bc=document.getElementById('stu-chk-book')?.checked;
+  const totalFees=+document.getElementById('stu-fee')?.value||0;
+  const student={
+    id:Date.now(), name,
+    cls:document.getElementById('stu-class')?.value||'',
+    phone:document.getElementById('stu-phone')?.value||'',
+    parent:document.getElementById('stu-parent')?.value||'',
+    courseId:courseId||null,
+    courseName:course?course.name:'',
+    timing:document.getElementById('stu-timing')?.value||'',
+    courseFees:cf, bookFees:bf,
+    selectedFees:{course:!!cc, book:!!bc},
+    fee:totalFees, totalFees,
+    paid:0, pending:totalFees, balance:totalFees
+  };
+  S.students.push(student);
+  ['stu-name','stu-class','stu-phone','stu-parent','stu-timing','stu-course-fees','stu-book-fees'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.value='';
+  });
+  const sel=document.getElementById('stu-course-sel'); if(sel) sel.value='';
+  const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value='';
+  const cidEl=document.getElementById('stu-course-id'); if(cidEl) cidEl.value='';
+  const cc2=document.getElementById('stu-chk-course'); if(cc2) cc2.checked=true;
+  const bc2=document.getElementById('stu-chk-book'); if(bc2) bc2.checked=true;
+  renderStudents(); renderCourseStats(); autoSave();
+  toast('✅ Student added!'+(course?' ('+course.name+')':''));
+}
 
-
-
+function renderStudents(){
+  document.getElementById('t-total').textContent=S.students.length;
+  const fees=S.students.reduce((a,s)=>a+(s.paid||0),0);
+  const pend=S.students.reduce((a,s)=>a+(s.balance||0),0);
+  document.getElementById('t-fees').textContent='₹'+fees.toFixed(2);
+  document.getElementById('t-pend').textContent='₹'+pend.toFixed(2);
+  document.getElementById('d-stu').textContent=S.students.length;
+  // Staff dashboard stats
+  const staffDom=document.getElementById('t-staff');if(staffDom)staffDom.textContent=S.staff.length;
+  const salDue2=S.staff.reduce((a,s)=>a+(s.sal-s.paid),0);
+  const salDueEl=document.getElementById('t-saldue');if(salDueEl)salDueEl.textContent='₹'+Math.max(salDue2,0).toFixed(2);
+  const dStaff=document.getElementById('d-staff');if(dStaff)dStaff.textContent=S.staff.length;
+  const dSal=document.getElementById('d-sal');if(dSal)dSal.textContent='₹'+Math.max(salDue2,0).toFixed(2);
+  const dtf=document.getElementById('d-tfees');if(dtf)dtf.textContent='₹'+(S.students.reduce((a,s)=>a+(s.paid||0),0)).toFixed(2);
+  const dtp=document.getElementById('d-tpend');if(dtp)dtp.textContent='₹'+(S.students.reduce((a,s)=>a+(s.balance||s.pending||0),0)).toFixed(2);
+  const tb=document.getElementById('students-tbody');
+  if(!S.students.length){
+    tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">🎓</div><p>No students yet.</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML=S.students.map(s=>{
+    const bal=s.balance||s.pending||0;
+    const paid=s.paid||0;
+    const total=s.totalFees||s.fee||0;
+    const badge=bal>0
+      ?'<span class="badge br" style="font-size:9px">⏳ Due</span>'
+      :'<span class="badge bg" style="font-size:9px">✅ Paid</span>';
+    return `<tr>
+      <td><strong>${s.name}</strong>${s.parent?'<div style="font-size:10px;color:var(--text3)">'+s.parent+'</div>':''}</td>
+      <td>${s.courseName||s.cls||'—'}</td>
+      <td style="font-size:11px">${s.timing||'—'}</td>
+      <td>${s.phone||'—'}</td>
+      <td style="color:var(--accent);font-weight:700">₹${total.toFixed(0)}</td>
+      <td style="color:var(--green)">₹${paid.toFixed(0)}</td>
+      <td style="color:${bal>0?'var(--red)':'var(--text3)'}">₹${bal.toFixed(0)}</td>
+      <td>${badge}</td>
+      <td style="display:flex;gap:3px;flex-wrap:wrap">
+        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="openStudentPayModal(${s.id})">💰 Pay</button>
+        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delStudent(${s.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+  renderDueFees();
+}
 
 function renderDueFees(){
   const tb=document.getElementById('due-students-tbody'); if(!tb) return;
@@ -5555,11 +6042,37 @@ function renderBatchGroups(){
 }
 
 // ── Student Fee Payment Modal ──────────────────────────────────
+function openStudentPayModal(id){
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const bal=s.balance||s.pending||0;
+  if(bal<=0){ toast('✅ '+s.name+' has no pending balance!'); return; }
+  document.getElementById('sp-stu-id').value = id;
+  document.getElementById('sp-stu-name').textContent = '👤 '+s.name+(s.courseName?' — '+s.courseName:'');
+  document.getElementById('sp-stu-total').textContent = '₹'+(s.totalFees||s.fee||0).toFixed(0);
+  document.getElementById('sp-stu-paid').textContent  = '₹'+(s.paid||0).toFixed(0);
+  document.getElementById('sp-stu-balance').textContent='₹'+bal.toFixed(0);
+  document.getElementById('sp-pay-amt').value = '';
+  document.getElementById('sp-pay-mode').value= 'Cash';
+  document.getElementById('sp-pay-notes').value='';
+  document.getElementById('sp-pay-preview').style.display='none';
+  openModal('student-pay-modal');
+  setTimeout(()=>document.getElementById('sp-pay-amt').focus(), 150);
+}
 
+function spPayFull(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  document.getElementById('sp-pay-amt').value=(s.balance||s.pending||0).toFixed(0);
+  spPayCalc();
+}
 
-
-
-
+function spPayHalf(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const half=Math.ceil((s.balance||s.pending||0)/2);
+  document.getElementById('sp-pay-amt').value=half;
+  spPayCalc();
+}
 
 function spPayCalc(){
   const id=+document.getElementById('sp-stu-id').value;
@@ -5578,7 +6091,49 @@ function spPayCalc(){
     : `After payment: Paid <strong style="color:var(--green)">₹${((s.paid||0)+Math.min(amt,bal)).toFixed(0)}</strong> · Balance <strong style="color:${newBal>0?'var(--red)':'var(--green)'}">${newBal>0?'₹'+newBal.toFixed(0):'Fully Cleared ✅'}</strong>`;
 }
 
+function confirmStudentPayment(){
+  const id=+document.getElementById('sp-stu-id').value;
+  const s=S.students.find(x=>x.id===id); if(!s) return;
+  const enteredAmt=+document.getElementById('sp-pay-amt').value||0;
+  if(!enteredAmt||enteredAmt<=0){ toast('⚠️ Enter payment amount'); return; }
+  const bal=s.balance||s.pending||0;
+  const amt=Math.min(enteredAmt, bal); // cap at balance
+  const mode=document.getElementById('sp-pay-mode').value;
+  const notes=document.getElementById('sp-pay-notes').value.trim();
 
+  // Update student record
+  s.paid=(s.paid||0)+amt;
+  s.balance=Math.max(bal-amt,0);
+  s.pending=s.balance;
+
+  // Log payment in student history
+  s.payHistory=s.payHistory||[];
+  s.payHistory.push({
+    date:localDate(),
+    amount:amt, mode, notes,
+    balanceAfter:s.balance
+  });
+
+  closeModal('student-pay-modal');
+  renderStudents();
+  autoSave();
+
+  const msg=s.balance<=0
+    ? `✅ Fee fully cleared for ${s.name}! ₹${amt.toFixed(0)} received. 🎉`
+    : `✅ ₹${amt.toFixed(0)} received from ${s.name}. Balance: ₹${s.balance.toFixed(0)}`;
+  toast(msg);
+
+  // WA receipt option if phone available
+  if(s.phone){
+    const biz=S.settings.bizName||'Meenatchi Traders';
+    const waMsg=getWATmpl('receipt',{
+      name:s.name, product:s.courseName||s.cls||'Tuition Fee',
+      amount:amt.toFixed(0), mode,
+      date:localDate(), biz
+    })+'\n📚 Course: '+(s.courseName||s.cls||'—')+'\n✅ Balance: ₹'+s.balance.toFixed(0);
+    setTimeout(()=>showWAPrompt(s.phone, waMsg, s.name+' fee receipt'), 400);
+  }
+}
 
 // Keep old markFeePaid as full-pay shortcut (used in some places)
 function markFeePaid(id){
@@ -5586,7 +6141,7 @@ function markFeePaid(id){
   if(!s){ toast('Student not found'); return; }
   openStudentPayModal(id);
 }
-
+function delStudent(id){S.students=S.students.filter(s=>s.id!==id);renderStudents();renderCourseStats();autoSave();toast('🗑️ Student removed');}
 
 // ═══════════════════════════════════════════════════════════════
 //  ADVERTISEMENT MANAGEMENT SYSTEM
@@ -6970,9 +7525,7 @@ function saveSale(){
     name: cust, product: products.map(p=>p.name).join(', '),
     amount: finalTotal.toFixed(2), mode: sale.mode,
     date: sale.date, biz: S.settings.bizName||'Meenatchi Traders',
-    phone: S.settings.phone||'',
-    custnum:  c.custNum||'',
-    ordernum: _newOrderNum||''
+    phone: S.settings.phone||''
   });
   toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts');
   // Capture phone/msg before clearSale resets the form
@@ -7198,16 +7751,13 @@ function resendBillWA(saleId){
   const phone = s.phone || S.customers.find(x=>x.name===s.customer)?.phone || '';
   if(!phone){ toast('⚠️ No phone number for '+s.customer+'. Edit customer to add phone.'); return; }
   const prodNames = (s.products||[]).map(p=>p.name).join(', ');
-  const _rc = S.customers.find(x=>x.name===s.customer);
   const msg = getWATmpl('receipt',{
     name:    s.customer,
     product: prodNames,
     amount:  s.total.toFixed(2),
     mode:    s.mode,
     date:    s.date,
-    biz:     S.settings.bizName||'Meenatchi Traders',
-    custnum:  _rc?.custNum||'',
-    ordernum: s.orderNum||''
+    biz:     S.settings.bizName||'Meenatchi Traders'
   });
   openWA(phone, msg);
 }
@@ -7480,13 +8030,10 @@ function updateOrderStatus(id,status){
     const orderCust = S.customers.find(x=>x.name===o.customer);
     const waPhone   = (orderCust?.phone || o.phone || '').trim();
     if(waPhone){
-      const _ordCust = S.customers.find(x=>x.name===o.customer);
       const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
         name:    o.customer,
         product: o.product,
-        amount:  '₹'+(o.amount||0).toFixed(0),
-        custnum:  _ordCust?.custNum||'',
-        ordernum: o.orderNum||''
+        amount:  '₹'+(o.amount||0).toFixed(0)
       });
       openWA(waPhone, orderMsg);
     } else {
@@ -7563,7 +8110,7 @@ function showWAConfirm(phone, msg, customerName){
   bar.id = 'wa-confirm-bar';
   bar.style.cssText = [
     'position:fixed',
-    'bottom:calc(80px + env(safe-area-inset-bottom,0px))','left:8px','right:8px',
+    'bottom:0','left:0','right:0',
     'background:var(--surface)',
     'border-top:2px solid rgba(63,185,80,.6)',
     'border-radius:16px 16px 0 0',
@@ -7680,9 +8227,86 @@ function calcTea(){
   document.getElementById('tc-daily-profit').value=dailyProfit.toFixed(2);
 }
 
+function tcAutoFill(){
+  const name = document.getElementById('tc-cust')?.value.trim();
+  if(!name) return;
+  const c = S.customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!c) return;
+  const ph = document.getElementById('tc-phone');
+  if(ph && !ph.value) ph.value = c.phone||'';
+  // Show current points
+  const ps = getPtsSettings();
+  const bal = isPointsExpired(c)?0:(c.points||0);
+  const val = ((bal/100)*ps.redeemVal).toFixed(0);
+  const info = document.getElementById('tc-pts-info');
+  if(info){
+    info.style.display = 'block';
+    info.innerHTML = `⭐ Current points: <strong style="color:var(--accent)">${bal}</strong> = ₹${val} redeem value`;
+  }
+}
 
+function saveTeaEntry(){
+  const cups=+document.getElementById('tc-cup-qty').value||0;
+  if(!cups){toast('⚠️ Enter cups sold');return;}
+  const custName = document.getElementById('tc-cust')?.value.trim()||'';
+  const custPhone= document.getElementById('tc-phone')?.value.trim()||'';
+  const income   = +document.getElementById('tc-total-inc').value||0;
+  const entry={
+    date:document.getElementById('tc-date').value,
+    cups, income,
+    expense:(+document.getElementById('tc-gas').value||0)+(+document.getElementById('tc-other').value||0),
+    profit:+document.getElementById('tc-daily-profit').value||0,
+    notes:document.getElementById('tc-notes').value,
+    customer:custName,
+    phone:custPhone,
+    time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})
+  };
+  S.teaEntries.push(entry);
 
+  // ── Tea Loyalty Points: ₹500 = 1 point ─────────────────────
+  if(custName && income > 0){
+    let c = S.customers.find(x=>x.name.toLowerCase()===custName.toLowerCase());
+    if(!c){
+      c = {id:Date.now(),name:custName,phone:custPhone,addr:'',paid:0,pending:0,
+           lastProd:'Tea/Coffee',mode:'Cash',points:0,bday:'',referredBy:'',pointsHistory:[]};
+      S.customers.push(c);
+    }
+    if(custPhone && !c.phone) c.phone = custPhone;
+    c.paid = (c.paid||0) + income;
+    // ₹500 = 1 point for tea shop (special rate)
+    const teaPts = Math.floor(income / 500);
+    if(teaPts > 0){
+      c.points = (c.points||0) + teaPts;
+      c.pointsHistory = c.pointsHistory||[];
+      c.pointsHistory.push({
+        date: entry.date,
+        earned: teaPts,
+        reason: `Tea Shop: ₹${income.toFixed(0)} → ${teaPts} pt${teaPts>1?'s':''}`,
+        balance: c.points
+      });
+      toast(`✅ Tea entry saved! ⭐ +${teaPts} point${teaPts>1?'s':''} for ${custName}`);
+    } else {
+      toast(`✅ Tea entry saved! (₹${income.toFixed(0)} — needs ₹500 for 1 point)`);
+    }
+  } else {
+    toast('✅ Tea entry saved!');
+  }
 
+  document.getElementById('tc-cups').textContent=S.teaEntries.reduce((a,e)=>a+e.cups,0);
+  const totInc=S.teaEntries.reduce((a,e)=>a+e.income,0);
+  const totExp=S.teaEntries.reduce((a,e)=>a+e.expense,0);
+  const totProf=S.teaEntries.reduce((a,e)=>a+e.profit,0);
+  document.getElementById('tc-income').textContent='₹'+totInc.toFixed(2);
+  document.getElementById('tc-expense').textContent='₹'+totExp.toFixed(2);
+  document.getElementById('tc-profit').textContent='₹'+totProf.toFixed(2);
+  document.getElementById('d-tea').textContent='₹'+totInc.toFixed(2);
+  const tb=document.getElementById('tea-tbody');
+  if(tb) tb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.time}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer||e.notes||'—'}</td></tr>`).join('');
+  const htb=document.getElementById('tea-history');
+  if(htb) htb.innerHTML=S.teaEntries.slice().reverse().map(e=>`<tr><td>${e.date}</td><td>${e.cups}</td><td>₹${e.income.toFixed(2)}</td><td>₹${e.expense.toFixed(2)}</td><td>₹${e.profit.toFixed(2)}</td><td>${e.customer?'<strong>'+e.customer+'</strong> ':''} ${e.notes||''}</td></tr>`).join('');
+  autoSave();
+  clearTeaForm();
+}
 
 function clearTeaForm(){
   ['tc-cup-qty','tc-sell','tc-milk','tc-sugar','tc-powder','tc-gas','tc-other',
@@ -7694,9 +8318,19 @@ function clearTeaForm(){
 }
 
 // ===== TUITION =====
+function addStaff(){
+  const name=document.getElementById('stf-name').value.trim();
+  if(!name){toast('⚠️ Enter name');return;}
+  S.staff.push({id:Date.now(),name,role:document.getElementById('stf-role').value,phone:document.getElementById('stf-phone').value,sal:+document.getElementById('stf-sal').value||0,paid:0});
+  ['stf-name','stf-role','stf-phone','stf-sal'].forEach(id=>document.getElementById(id).value='');
+  renderStaffTable();renderStudents();autoSave();toast('✅ Staff added!');
+}
 
-
-
+function renderStaffTable(){
+  const tb=document.getElementById('staff-tbody');
+  if(!S.staff.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">👨‍🏫</div><p>No staff yet.</p></div></td></tr>';return;}
+  tb.innerHTML=S.staff.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.role||'—'}</td><td>${s.phone||'—'}</td><td>₹${s.sal.toFixed(2)}</td><td style="color:var(--green)">₹${s.paid.toFixed(2)}</td><td style="color:var(--red)">₹${Math.max(s.sal-s.paid,0).toFixed(2)}</td><td><button class="btn btn-g" style="font-size:10px;padding:3px 8px">Pay Salary</button></td></tr>`).join('');
+}
 
 // ===== INVENTORY =====
 function renderInventory(){
@@ -8062,105 +8696,69 @@ function renderLoyaltyImpact(){
 //  customer per product, generates consolidated WA reminder
 // ════════════════════════════════════════════════════════════════
 function calcSmartReminders(){
-  // ── Stock-Accumulation Reminder Logic ─────────────────────────
-  // Each purchase adds N days of stock. When a mid-cycle purchase
-  // happens, remaining days from old stock + new stock are combined.
-  //
-  // Example:
-  //   Jan 1  → buys 500g (25-day rule) → stock = 25 days → due Jan 26
-  //   Jan 15 → buys another 500g       → 11 days left + 25 new = 36
-  //                                       → new due = Jan 15 + 36 = Feb 20
-  // ──────────────────────────────────────────────────────────────
-  const reminders = [];
-  const today     = new Date();
-  today.setHours(0,0,0,0);
-
+  const reminders=[];
+  const today=new Date();
   S.customers.forEach(cust=>{
-    if(!cust.phone) return;
-
-    // Group all purchases by product, sorted oldest→newest
-    const byProd = {};
+    if(!cust.phone) return; // skip if no phone
+    // Group purchases by product
+    const byProd={};
     (cust.purchaseHistory||[]).forEach(ph=>{
-      if(!byProd[ph.product]) byProd[ph.product] = [];
-      byProd[ph.product].push({
-        date: ph.date,
-        qty:  ph.qty||1
-      });
+      if(!byProd[ph.product]) byProd[ph.product]=[];
+      byProd[ph.product].push({date:ph.date, qty:ph.qty||1});
     });
-
-    const prodReminders = [];
-
+    const prodReminders=[];
     Object.entries(byProd).forEach(([prodName, purchases])=>{
       purchases.sort((a,b)=>new Date(a.date)-new Date(b.date));
-
-      // Get per-day duration from productRules (days per 1 qty)
-      const rule      = (S.productRules||[]).find(r=>r.product===prodName);
-      const daysPerQty= rule ? rule.days : 30; // default 30 days
-
-      // ── Core accumulation algorithm ──────────────────────────
-      // Simulate stock consumption day by day using purchase events
-      let stockDaysLeft = 0;   // remaining stock days at current point
-      let lastPurchaseDate = null;
-
-      purchases.forEach(p=>{
-        const pDate = new Date(p.date+'T00:00:00');
-
-        if(lastPurchaseDate){
-          // Days elapsed since last purchase
-          const elapsed = Math.floor((pDate - lastPurchaseDate)/86400000);
-          // Consume stock for elapsed days
-          stockDaysLeft = Math.max(stockDaysLeft - elapsed, 0);
+      if(purchases.length<1) return;
+      // Calculate average days between purchases
+      let avgInterval=30; // default 30 days
+      if(purchases.length>=2){
+        const intervals=[];
+        for(let i=1;i<purchases.length;i++){
+          const diff=Math.floor((new Date(purchases[i].date)-new Date(purchases[i-1].date))/86400000);
+          if(diff>0) intervals.push(diff);
         }
-
-        // Add new purchase stock
-        stockDaysLeft += p.qty * daysPerQty;
-        lastPurchaseDate = pDate;
-      });
-
-      if(!lastPurchaseDate) return;
-
-      // Days elapsed since LAST purchase
-      const daysSinceLast = Math.floor((today - lastPurchaseDate)/86400000);
-      // Consume for days since last purchase
-      const currentStockDays = Math.max(stockDaysLeft - daysSinceLast, 0);
-      // Reminder due date = today + remaining stock days
-      const dueDateMs   = today.getTime() + currentStockDays*86400000;
-      const dueDate     = localDate(new Date(dueDateMs));
-      // Days until reminder
-      const daysUntilDue = currentStockDays;
-      const isOverdue    = currentStockDays <= 0;
-      const isDueSoon    = daysUntilDue <= 3;
-
-      if(isOverdue || isDueSoon){
+        if(intervals.length>0){
+          avgInterval=Math.round(intervals.reduce((a,v)=>a+v,0)/intervals.length);
+        }
+      } else {
+        // Only 1 purchase — estimate based on qty (e.g. 2×500g @ 15g/day = 66 days)
+        // Use 30 days default but could be enhanced with product consumption data
+        avgInterval=30;
+      }
+      // Last purchase date
+      const lastBuy=new Date(purchases[purchases.length-1].date+'T00:00:00');
+      const daysSince=Math.floor((today-lastBuy)/86400000);
+      const daysUntilReminder=avgInterval;
+      const shouldRemind=daysSince>=daysUntilReminder;
+      const daysOverdue=daysSince-daysUntilReminder;
+      if(shouldRemind||daysSince>=(daysUntilReminder-3)){
+        // Include if due now or due within 3 days
         prodReminders.push({
-          product:       prodName,
-          lastBuy:       localDate(lastPurchaseDate),
-          qty:           purchases[purchases.length-1].qty,
-          daysPerQty,
-          stockDaysLeft: currentStockDays,
-          dueDate,
-          daysUntilDue,
-          daysOverdue:   isOverdue ? Math.abs(daysUntilDue) : 0,
-          due:           isOverdue
+          product:prodName,
+          lastBuy:purchases[purchases.length-1].date,
+          qty:purchases[purchases.length-1].qty,
+          avgInterval,
+          daysSince,
+          daysOverdue,
+          due:shouldRemind
         });
       }
     });
-
     if(prodReminders.length>0){
       reminders.push({
-        custName: cust.name,
-        phone:    cust.phone,
-        products: prodReminders,
-        anyDue:   prodReminders.some(r=>r.due)
+        custName:cust.name,
+        phone:cust.phone,
+        products:prodReminders,
+        anyDue:prodReminders.some(r=>r.due)
       });
     }
   });
-
-  // Sort: most overdue first
+  // Sort: overdue first
   return reminders.sort((a,b)=>{
-    const aMax = Math.max(...a.products.map(r=>r.daysOverdue||0));
-    const bMax = Math.max(...b.products.map(r=>r.daysOverdue||0));
-    return bMax - aMax;
+    const aMax=Math.max(...a.products.map(r=>r.daysOverdue||0));
+    const bMax=Math.max(...b.products.map(r=>r.daysOverdue||0));
+    return bMax-aMax;
   });
 }
 
@@ -8184,27 +8782,17 @@ function sendSmartReminderWA(custName){
 }
 
 function renderSmartReminders(){
-  const el = document.getElementById('sf-ins');
+  const el=document.getElementById('sf-ins');
   if(!el) return;
-  const reminders = calcSmartReminders();
-
+  const reminders=calcSmartReminders();
   if(!reminders.length){
-    el.innerHTML = `<div class="card"><div class="card-b">
-      <div class="empty"><div class="ei">💡</div>
-      <p>No buying reminders due yet.<br>
-      <small style="color:var(--text3)">Reminders appear when a customer's estimated stock runs out.<br>
-      Set reminder intervals in <strong>Customer Reminders → ⚙️ Rules</strong> page.</small></p>
-      </div></div></div>`;
+    el.innerHTML='<div class="card"><div class="card-b"><div class="empty"><div class="ei">💡</div><p>No buying reminders due yet. Reminders appear when customers are due for reorder based on their purchase history.</p></div></div></div>';
     return;
   }
-
-  el.innerHTML = `
-    <div style="background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:8px;
-                padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
-      💡 <strong>Stock-Accumulation Reminders</strong> — Calculates remaining stock days based on
-      each purchase. Mid-cycle purchases extend the due date automatically.
-      Set days-per-quantity in <a onclick="nav('reminders')"
-      style="color:var(--blue);cursor:pointer">Customer Reminders → Rules</a>.
+  const today=localDate();
+  el.innerHTML=`
+    <div style="background:rgba(88,166,255,.05);border:1px solid rgba(88,166,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2)">
+      💡 <strong>Smart Buying Reminders</strong> — Based on each customer's purchase history, the app calculates when they're likely to need to reorder. One combined WhatsApp message per customer.
     </div>
     <div class="card">
       <div class="card-h">
@@ -8213,30 +8801,18 @@ function renderSmartReminders(){
       </div>
       <div class="card-b" style="padding:0">
         <div class="tbl-wrap"><table>
-          <thead><tr>
-            <th>Customer</th><th>Product</th><th>Last Bought</th>
-            <th>Stock Left</th><th>Due Date</th><th>Status</th><th>Action</th>
-          </tr></thead>
+          <thead><tr><th>Customer</th><th>Products Due</th><th>Last Bought</th><th>Avg Interval</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
-            ${reminders.map(r=>r.products.map(p=>`<tr>
-              <td>
-                <strong>${r.custName}</strong>
-                <div style="font-size:10px;color:var(--text3)">${r.phone}</div>
-              </td>
-              <td style="font-size:11px">📦 ${p.product}
-                <div style="font-size:9px;color:var(--text3)">${p.qty} unit × ${p.daysPerQty}d = ${p.qty*p.daysPerQty}d stock</div>
-              </td>
-              <td style="font-size:11px">${p.lastBuy}</td>
-              <td style="font-weight:700;color:${p.stockDaysLeft<=0?'var(--red)':p.daysUntilDue<=3?'var(--orange)':'var(--green)'}">
-                ${p.stockDaysLeft<=0?'<span style="color:var(--red)">🔴 OUT</span>':p.daysUntilDue+'d left'}
-              </td>
-              <td style="font-size:11px">${p.dueDate}</td>
-              <td>${p.due
-                ? '<span class="badge br">🔴 Overdue</span>'
-                : '<span class="badge by">🟡 Due Soon</span>'}</td>
-              <td><button class="btn btn-g" style="font-size:10px;padding:3px 8px"
-                onclick="sendSmartReminderWA('${r.custName.replace(/'/g,"\\'")}')">📱 Send</button></td>
-            </tr>`).join('')).join('')}
+            ${reminders.map(r=>`<tr>
+              <td><strong>${r.custName}</strong><div style="font-size:10px;color:var(--text3)">${r.phone}</div></td>
+              <td style="font-size:11px">${r.products.map(p=>`<div style="margin-bottom:2px">📦 ${p.product} <span style="color:var(--text3)">(qty:${p.qty})</span></div>`).join('')}</td>
+              <td style="font-size:11px">${r.products[0]?.lastBuy||'—'}</td>
+              <td style="font-size:11px">${r.products[0]?.avgInterval||30}d avg</td>
+              <td>${r.anyDue
+                ?'<span class="badge br">🔴 Overdue</span>'
+                :'<span class="badge by">🟡 Due Soon</span>'}</td>
+              <td><button class="btn btn-g" style="font-size:10px;padding:3px 8px" onclick="sendSmartReminderWA('${r.custName.replace(/'/g,"\''")}')">📱 Send</button></td>
+            </tr>`).join('')}
           </tbody>
         </table></div>
       </div>
@@ -8448,22 +9024,19 @@ function updateDashStats(){
     cust.pending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
   });
   const today=localDate();
-  const thisMonth=today.slice(0,7); // YYYY-MM
   const todaySales=S.sales.filter(s=>s.date===today);
-  const monthSales=S.sales.filter(s=>s.date&&s.date.slice(0,7)===thisMonth);
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
-  const mTotal=monthSales.reduce((a,s)=>a+s.total,0); // current month only
+  const mTotal=S.sales.reduce((a,s)=>a+s.total,0);
   const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
   const loyDisc=S.sales.reduce((a,s)=>a+(s.redeemDisc||0),0);
   const npaTotal=(S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
-  document.getElementById('d-profit').textContent='₹'+monthSales.reduce((a,s)=>a+s.profit,0).toFixed(2);
+  document.getElementById('d-profit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
   document.getElementById('d-today').textContent='₹'+tTotal.toFixed(2);
   document.getElementById('d-monthly').textContent='₹'+mTotal.toFixed(2);
-  const teaThisMonth=S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth).reduce((a,e)=>a+e.income,0);
-  document.getElementById('d-ctotal').textContent='₹'+(mTotal+teaThisMonth).toFixed(2);
-  document.getElementById('d-cprofit').textContent='₹'+monthSales.reduce((a,s)=>a+s.profit,0).toFixed(2);
+  document.getElementById('d-ctotal').textContent='₹'+(mTotal+S.teaEntries.reduce((a,e)=>a+e.income,0)).toFixed(2);
+  document.getElementById('d-cprofit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
   const ldEl=document.getElementById('d-loyalty-disc');
   if(ldEl) ldEl.textContent='₹'+loyDisc.toFixed(0);
   // NPA loss on dashboard
@@ -8875,10 +9448,8 @@ function delSup(id){S.suppliers=S.suppliers.filter(s=>s.id!==id);renderSuppliers
 // ===== PROFIT TARGET =====
 function saveTarget(){
   S.target={sales:+document.getElementById('tgt-sales').value||0,profit:+document.getElementById('tgt-profit').value||0,orders:+document.getElementById('tgt-orders').value||0,set:true};
-  const _tm=localDate().slice(0,7);
-  const _ms=S.sales.filter(s=>s.date&&s.date.slice(0,7)===_tm);
-  const mSales=_ms.reduce((a,s)=>a+s.total,0);
-  const mProfit=_ms.reduce((a,s)=>a+s.profit,0);
+  const mSales=S.sales.reduce((a,s)=>a+s.total,0);
+  const mProfit=S.sales.reduce((a,s)=>a+s.profit,0);
   const salesPct=S.target.sales>0?Math.min(Math.round((mSales/S.target.sales)*100),100):0;
   const profPct=S.target.profit>0?Math.min(Math.round((mProfit/S.target.profit)*100),100):0;
   const el=document.getElementById('tgt-progress');
@@ -9146,61 +9717,6 @@ ${qrSection}
     window.onload = function(){ setTimeout(()=>window.print(), 800); };
   }
 <\/script>
-
-<div class="mo" id="exchange-modal">
-  <div class="mo-box" style="max-width:500px">
-    <div class="mo-h">
-      <h2>🔄 Exchange / Return</h2>
-      <button class="xbtn" onclick="closeModal('exchange-modal')">✕</button>
-    </div>
-    <div class="mo-b">
-      <input type="hidden" id="ex-sale-id">
-      <div id="ex-sale-info" style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px"></div>
-      <div class="fr2">
-        <div class="fg">
-          <label class="fl">Type</label>
-          <select class="fs" id="ex-type" onchange="exTypeChange()">
-            <option value="exchange">🔄 Exchange for Another Product</option>
-            <option value="return">↩️ Full Return / Refund</option>
-            <option value="partial_return">💰 Partial Return</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Date</label>
-          <input class="fi" id="ex-date" type="date">
-        </div>
-      </div>
-      <div id="ex-exchange-wrap">
-        <div class="fr2">
-          <div class="fg"><label class="fl">Product Returned</label><input class="fi" id="ex-return-prod" placeholder="Product being returned"></div>
-          <div class="fg"><label class="fl">New Product Given</label><input class="fi" id="ex-new-prod" placeholder="Replacement product"></div>
-        </div>
-        <div class="fr2">
-          <div class="fg"><label class="fl">Price Difference (₹)</label><div class="fi-ico"><input class="fi" id="ex-diff" type="number" placeholder="0" value="0"><span class="fi-ico-btn">₹</span></div></div>
-          <div class="fg"><label class="fl">Difference Settled By</label>
-            <select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">No Difference</option></select>
-          </div>
-        </div>
-      </div>
-      <div id="ex-return-wrap" style="display:none">
-        <div class="fr2">
-          <div class="fg"><label class="fl">Refund Amount (₹)</label><div class="fi-ico"><input class="fi" id="ex-refund-amt" type="number" placeholder="0"><span class="fi-ico-btn">₹</span></div></div>
-          <div class="fg"><label class="fl">Refund Mode</label>
-            <select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select>
-          </div>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="fl">Reason</label>
-        <input class="fi" id="ex-reason" placeholder="e.g. Damaged, Wrong item, Customer request">
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-y" style="flex:1;justify-content:center" onclick="confirmExchange()">✅ Confirm</button>
-        <button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button>
-      </div>
-    </div>
-  </div>
-</div>
 </body></html>`;
 
   const blob = new Blob([html],{type:'text/html'});
@@ -11208,6 +11724,8 @@ async function gsSyncAll(){
       customers:    S.customers,
       orders:       S.orders,
       teaEntries:   S.teaEntries,
+      students:     S.students,
+      staff:        S.staff,
       suppliers:    S.suppliers,
       reminders:    S.reminders||[],
       productRules: S.productRules||[],
@@ -11435,7 +11953,7 @@ function toggleAutoBackup(cb){
 
 function clearAllData(){
   if(!confirm('⚠️ This will delete ALL data including localStorage. Are you sure?'))return;
-  S.sales=[];S.customers=[];S.orders=[];
+  S.sales=[];S.customers=[];S.orders=[];S.students=[];S.staff=[];
   S.teaEntries=[];S.suppliers=[];S.orderCounter=1;
   S.reminders=[];S.productRules=[];S.bdayGifts=[];S.referrals=[];
   S.target={sales:0,profit:0,orders:0,set:false};
