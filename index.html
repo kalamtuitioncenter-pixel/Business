@@ -2546,23 +2546,135 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <!-- ===== REPORTS & ANALYTICS ===== -->
     <div class="page" id="p-reports">
       <div class="ph"><h1>📋 Reports & Analytics</h1><p>Business performance insights</p></div>
-      <div class="tab-bar">
+
+      <!-- Tab bar -->
+      <div class="tab-bar" style="margin-bottom:14px">
         <div class="tab active" onclick="repTab(this,'rep-daily')">📅 Daily</div>
         <div class="tab" onclick="repTab(this,'rep-weekly')">📊 Weekly</div>
         <div class="tab" onclick="repTab(this,'rep-monthly')">📆 Monthly</div>
-        <div class="tab" onclick="repTab(this,'rep-prod')">📦 Product Profit</div>
-        <div class="tab" onclick="repTab(this,'rep-cust')">👥 Customer Pending</div>
-        
+        <div class="tab" onclick="repTab(this,'rep-prod')">📦 Products</div>
+        <div class="tab" onclick="repTab(this,'rep-cust')">👥 Pending</div>
       </div>
+
+      <!-- ── DAILY ── -->
       <div id="rep-daily">
-        <div class="fg" style="max-width:200px;margin-bottom:14px"><label class="fl">Select Date</label><input class="fi" type="date" id="rep-filter-date"></div>
-        <div class="card"><div class="card-b"><div class="empty"><div class="ei">📅</div><p>Select a date to view daily report</p></div></div></div>
+        <div class="fr2" style="margin-bottom:14px;align-items:flex-end">
+          <div class="fg" style="margin:0">
+            <label class="fl">Select Date</label>
+            <input class="fi" type="date" id="rep-date" onchange="genReport()">
+          </div>
+          <button class="btn btn-b" style="width:100%" onclick="genReport()">🔍 Generate</button>
+        </div>
+        <div id="rep-title" style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px"></div>
+        <div id="rep-gen-time" style="font-size:10px;color:var(--text3);margin-bottom:12px"></div>
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Sales Revenue</div><div class="sc-val" id="rep-sales">₹0</div><div class="sc-sub" id="rep-orders-sub">0 orders</div></div>
+          <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Profit</div><div class="sc-val" id="rep-profit">₹0</div><div class="sc-sub" id="rep-margin-sub">0% margin</div></div>
+          <div class="sc b"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop</div><div class="sc-val" id="rep-tea">₹0</div><div class="sc-sub" id="rep-tea-sub">0 entries</div></div>
+          <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Total Pending</div><div class="sc-val" id="rep-pend">₹0</div><div class="sc-sub">All customers</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>📝 Sales Detail</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Pending</th><th>Status</th></tr></thead>
+              <tbody id="rep-sales-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">📅</div><p>Select a date to view sales</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+        <div id="rep-msg" style="display:none;text-align:center;padding:20px;color:var(--text3)"></div>
       </div>
-      <div id="rep-weekly" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📊</div><p>Weekly report will appear here</p></div></div></div></div>
-      <div id="rep-monthly" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📆</div><p>Monthly report will appear here</p></div></div></div></div>
-      <div id="rep-prod" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📦</div><p>Product profit report</p></div></div></div></div>
-      <div id="rep-cust" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">👥</div><p>Customer pending report</p></div></div></div></div>
+
+      <!-- ── WEEKLY ── -->
+      <div id="rep-weekly" style="display:none">
+        <div class="fr2" style="margin-bottom:14px;align-items:flex-end">
+          <div class="fg" style="margin:0">
+            <label class="fl">Week containing date</label>
+            <input class="fi" type="date" id="rep-week-date" onchange="renderWeeklyReport()">
+          </div>
+          <button class="btn btn-b" style="width:100%" onclick="renderWeeklyReport()">🔍 Generate</button>
+        </div>
+        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+          <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Week Revenue</div><div class="sc-val" id="wk-rev">₹0</div><div class="sc-sub" id="wk-orders">0 orders</div></div>
+          <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Week Profit</div><div class="sc-val" id="wk-profit">₹0</div><div class="sc-sub" id="wk-margin">0% margin</div></div>
+          <div class="sc b"><div class="sc-ico">📦</div><div class="sc-label">Best Day</div><div class="sc-val" id="wk-best-day" style="font-size:12px">—</div><div class="sc-sub" id="wk-best-amt">₹0</div></div>
+          <div class="sc r"><div class="sc-ico">📉</div><div class="sc-label">Worst Day</div><div class="sc-val" id="wk-worst-day" style="font-size:12px">—</div><div class="sc-sub" id="wk-worst-amt">₹0</div></div>
+        </div>
+        <!-- Day-by-day bar chart -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-h"><h3>📊 Day-by-Day Revenue</h3></div>
+          <div class="card-b" id="wk-bar-chart" style="min-height:100px"><div class="empty"><div class="ei">📊</div><p>Select a week to see chart</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>📋 Daily Breakdown</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Day</th><th>Date</th><th>Orders</th><th>Revenue</th><th>Profit</th></tr></thead>
+              <tbody id="wk-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">📊</div><p>Select a week to view</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
       </div>
+
+      <!-- ── MONTHLY ── -->
+      <div id="rep-monthly" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-b" style="font-size:11px" onclick="renderBaMonthly()">🔄 Refresh</button>
+        </div>
+        <div class="fr2" style="margin-bottom:14px">
+          <div class="card">
+            <div class="card-h"><h3>📊 Monthly Revenue</h3></div>
+            <div class="card-b" id="ba-rev-chart" style="min-height:120px"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>📈 Monthly Profit</h3></div>
+            <div class="card-b" id="ba-prof-chart" style="min-height:120px"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>📆 Month-wise Summary</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Collected</th><th>Pending</th><th>Profit</th><th>vs Last</th></tr></thead>
+              <tbody id="ba-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📆</div><p>No data yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCT PROFIT ── -->
+      <div id="rep-prod" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+          <button class="btn btn-b" style="font-size:11px" onclick="renderProductReport()">🔄 Refresh</button>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>📦 Product-wise Profit</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Product</th><th>Category</th><th>Sold Qty</th><th>Revenue</th><th>Profit</th><th>Margin</th><th>Stock Left</th></tr></thead>
+              <tbody id="prod-report-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>No sales data yet</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CUSTOMER PENDING ── -->
+      <div id="rep-cust" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:12px;color:var(--text3)">Customers with outstanding dues</div>
+          <button class="btn btn-g" style="font-size:11px" onclick="bulkRemindPending()">📢 Remind All</button>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>👥 Pending Payments</h3></div>
+          <div class="card-b" style="padding:0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Pending</th><th>Age</th><th>Action</th></tr></thead>
+              <tbody id="pending-cust-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ===== SETTINGS ===== -->
@@ -3706,6 +3818,122 @@ function tcAutoFill(){
     info.style.display = 'block';
     info.innerHTML = `⭐ Current points: <strong style="color:var(--accent)">${bal}</strong> = ₹${val} redeem value`;
   }
+}
+
+function renderWeeklyReport(){
+  const dateVal = document.getElementById('rep-week-date')?.value || localDate();
+  const base    = new Date(dateVal+'T00:00:00');
+  // Monday of that week
+  const day     = base.getDay(); // 0=Sun
+  const monday  = new Date(base); monday.setDate(base.getDate() - (day===0?6:day-1));
+  const days    = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dates   = days.map((_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return localDate(d); });
+
+  // Aggregate sales per day
+  const byDay = dates.map(dt=>{
+    const ds = S.sales.filter(s=>s.date===dt);
+    return {
+      date:  dt,
+      day:   days[dates.indexOf(dt)],
+      orders: ds.length,
+      rev:   ds.reduce((a,s)=>a+s.total,0),
+      profit:ds.reduce((a,s)=>a+s.profit,0)
+    };
+  });
+
+  const totalRev    = byDay.reduce((a,d)=>a+d.rev,0);
+  const totalProfit = byDay.reduce((a,d)=>a+d.profit,0);
+  const totalOrders = byDay.reduce((a,d)=>a+d.orders,0);
+  const margin      = totalRev>0?((totalProfit/totalRev)*100).toFixed(0):0;
+  const best        = [...byDay].sort((a,b)=>b.rev-a.rev)[0];
+  const worst       = [...byDay].sort((a,b)=>a.rev-b.rev)[0];
+
+  // Update stat cards
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('wk-rev',    '₹'+totalRev.toFixed(0));
+  set('wk-orders', totalOrders+' orders');
+  set('wk-profit', '₹'+totalProfit.toFixed(0));
+  set('wk-margin', margin+'% margin');
+  set('wk-best-day',  best.day);
+  set('wk-best-amt',  '₹'+best.rev.toFixed(0));
+  set('wk-worst-day', worst.day);
+  set('wk-worst-amt', '₹'+worst.rev.toFixed(0));
+
+  // Bar chart
+  const maxRev = Math.max(...byDay.map(d=>d.rev), 1);
+  const chart  = document.getElementById('wk-bar-chart');
+  if(chart){
+    chart.innerHTML = '<div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding:8px 0">' +
+      byDay.map(d=>{
+        const pct = (d.rev/maxRev*100).toFixed(0);
+        const isToday = d.date===localDate();
+        return '<div style="display:flex;flex-direction:column;align-items:center;flex:1">' +
+          '<div style="font-size:8px;color:var(--accent);font-weight:700;margin-bottom:2px">' + (d.rev>0?'₹'+d.rev.toFixed(0):'') + '</div>' +
+          '<div style="background:'+(isToday?'var(--accent)':'var(--blue)')+';width:100%;height:'+Math.max(pct,d.rev>0?4:1)+'%;border-radius:4px 4px 0 0;min-height:'+(d.rev>0?'4':'1')+'px"></div>' +
+          '<div style="font-size:9px;color:var(--text3);margin-top:3px">'+d.day+'</div>' +
+          '<div style="font-size:8px;color:var(--text3)">'+d.date.slice(5)+'</div>' +
+        '</div>';
+      }).join('') + '</div>';
+  }
+
+  // Table
+  const tb = document.getElementById('wk-tbody');
+  if(tb){
+    if(!totalOrders){
+      tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">📊</div><p>No sales this week</p></div></td></tr>';
+      return;
+    }
+    tb.innerHTML = byDay.map(d=>`<tr>
+      <td style="font-weight:${d.orders?'700':'400'};color:${d.orders?'var(--text)':'var(--text3)'}">${d.day}</td>
+      <td style="font-size:11px;color:var(--text3)">${d.date}</td>
+      <td style="color:${d.orders?'var(--accent)':'var(--text3)'}">${d.orders}</td>
+      <td style="color:var(--green);font-weight:${d.rev?'700':'400'}">₹${d.rev.toFixed(0)}</td>
+      <td style="color:${d.profit>=0?'var(--blue)':'var(--red)'}">₹${d.profit.toFixed(0)}</td>
+    </tr>`).join('');
+  }
+}
+
+function renderProductReport(){
+  const tb = document.getElementById('prod-report-tbody');
+  if(!tb) return;
+
+  // Aggregate per product from sales
+  const prodMap = {};
+  S.sales.forEach(sale=>{
+    (sale.products||[{name:sale.product,qty:sale.qty||1,price:sale.price||0,cost:sale.cost||0}]).forEach(p=>{
+      if(!p.name) return;
+      if(!prodMap[p.name]) prodMap[p.name]={name:p.name,soldQty:0,revenue:0,profit:0};
+      const qty     = p.qty||1;
+      const revenue = qty*(+p.price||0);
+      const cost    = qty*(+p.cost||0);
+      prodMap[p.name].soldQty  += qty;
+      prodMap[p.name].revenue  += revenue;
+      prodMap[p.name].profit   += (revenue-cost);
+    });
+  });
+
+  // Enrich with product data
+  const rows = Object.values(prodMap).map(r=>{
+    const prod = S.products.find(p=>p.name===r.name)||{};
+    r.category  = prod.cat||'—';
+    r.stockLeft = prod.stock||0;
+    r.margin    = r.revenue>0?((r.profit/r.revenue)*100).toFixed(0)+'%':'—';
+    return r;
+  }).sort((a,b)=>b.revenue-a.revenue);
+
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>No sales data yet</p></div></td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(r=>`<tr>
+    <td><strong>${r.name}</strong></td>
+    <td style="font-size:10px;color:var(--text3)">${r.category}</td>
+    <td style="color:var(--accent)">${r.soldQty}</td>
+    <td style="color:var(--green);font-weight:700">₹${r.revenue.toFixed(0)}</td>
+    <td style="color:${r.profit>=0?'var(--blue)':'var(--red)'};font-weight:700">₹${r.profit.toFixed(0)}</td>
+    <td style="color:${parseFloat(r.margin)>20?'var(--green)':parseFloat(r.margin)>0?'var(--accent)':'var(--red)'}">${r.margin}</td>
+    <td style="color:${r.stockLeft<5?'var(--red)':'var(--text2)'}">${r.stockLeft}</td>
+  </tr>`).join('');
 }
 
 function persistState(){
@@ -5920,7 +6148,7 @@ function baTab(el,id){
   if(id==='ba-peak')   renderBaPeakHours();
   if(id==='ba-seasonal') renderBaSeasonal();
 }
-function repTab(el,id){tabSwitch(el,id,['rep-daily','rep-weekly','rep-monthly','rep-prod','rep-cust']); if(id==='rep-monthly') renderBaMonthly(); if(id==='rep-prod') renderProductReport(); if(id==='rep-cust') renderPendingCust(); }
+function repTab(el,id){tabSwitch(el,id,['rep-daily','rep-weekly','rep-monthly','rep-prod','rep-cust']); if(id==='rep-weekly') renderWeeklyReport(); if(id==='rep-monthly') renderBaMonthly(); if(id==='rep-prod') renderProductReport(); if(id==='rep-cust') renderPendingCust(); }
 function tabSwitch(el,id,ids){
   el.closest('.tab-bar').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
@@ -9005,6 +9233,19 @@ function genReport(){
   document.getElementById('rep-pend').textContent='₹'+pending.toFixed(2);
   document.getElementById('rep-msg').textContent=daySales.length?'':'No sales recorded for this date';
   toast('📊 Report generated!');
+
+  // Populate daily sales detail table
+  const sTb = document.getElementById('rep-sales-tbody');
+  if(sTb){
+    if(!daySales.length){
+      sTb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">📅</div><p>No sales on this date</p></div></td></tr>';
+    } else {
+      sTb.innerHTML = daySales.map(s=>{
+        const prods = (s.products||[{name:s.product,qty:s.qty}]).map(p=>p.name+'×'+p.qty).join(', ');
+        return '<tr><td><strong>'+s.customer+'</strong></td><td style="font-size:10px">'+prods+'</td><td>'+((s.products||[]).reduce((a,p)=>a+(p.qty||1),0)||s.qty||1)+'</td><td style="color:var(--green);font-weight:700">₹'+(s.total||0).toFixed(0)+'</td><td style="color:var(--red)">₹'+(s.pending||0).toFixed(0)+'</td><td><span class="badge '+(s.status==='Delivered'?'bg':s.status==='Processing'?'by':'')+'">'+s.status+'</span></td></tr>';
+      }).join('');
+    }
+  }
 }
 
 // ===== EDIT SALE =====
