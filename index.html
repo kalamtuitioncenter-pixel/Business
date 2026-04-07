@@ -970,7 +970,13 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                   <option value="">📢 Ad Source (optional)</option>
                 </select>
               </div>
-              <button class="btn btn-y" style="margin-left:auto" onclick="saveSale()">💾 Save Sale</button>
+              <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end">
+                <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;white-space:nowrap">
+                  <input type="checkbox" id="s-auto-wa" checked style="accent-color:var(--green);width:14px;height:14px">
+                  📱 Send Bill via WA
+                </label>
+                <button class="btn btn-y" onclick="saveSale()">💾 Save Sale</button>
+              </div>
               <button class="btn btn-o" onclick="clearSale()">Clear</button>
             </div>
           </div>
@@ -4173,7 +4179,20 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `🏪 *{biz}* — Bill Receipt\n\nHi {name}! ✅ Thank you for your purchase.\n\n🔖 *Customer No:* {custnum}\n📋 *Order No:* {ordernum}\n\n📦 *Products:* {product}\n💰 *Total:* ₹{amount}\n💳 *Mode:* {mode}\n📅 *Date:* {date}\n\n⭐ Loyalty points earned on this purchase!\n\nThank you for shopping with us 🙏`,
+    `🏪 *{biz}*\n` +
+    `Customer: {name}\n` +
+    `Cust No: {custnum}\n` +
+    `Invoice No: {ordernum}\n` +
+    `Date: {date}\n` +
+    `--------------------------------\n` +
+    `Items:\n{items}` +
+    `--------------------------------\n` +
+    `Subtotal: ₹{subtotal}\n` +
+    `Discount: -₹{discount}\n` +
+    `Total: ₹{amount}\n` +
+    `Payment: {mode}\n` +
+    `--------------------------------\n` +
+    `Thank you for your purchase! 🙏`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
@@ -4280,7 +4299,9 @@ function getWATmpl(key, vars){
     .replace(/\{value\}/g,    vars.value     || '')
     .replace(/\{expiry\}/g,   vars.expiry    || '')
     .replace(/\{custnum\}/g,  vars.custnum   || '')
-    .replace(/\{ordernum\}/g, vars.ordernum  || '');
+    .replace(/\{ordernum\}/g, vars.ordernum  || '')
+    .replace(/\{items\}/g,    vars.items     || '')
+    .replace(/\{subtotal\}/g, vars.subtotal  || '0');
 }
 
 function waPreview(tmplId){
@@ -4293,7 +4314,7 @@ function waPreview(tmplId){
     .replace(/\{biz\}/g,     biz)
     .replace(/\{phone\}/g,   phone)
     .replace(/\{date\}/g,    date)
-    .replace(/\{name\}/g,    'Ravi Kumar')
+.replace(/\{name\}/g,    'Ravi Kumar')
     .replace(/\{amount\}/g,  '₹450')
     .replace(/\{product\}/g, 'Tea n31 – 100g x2')
     .replace(/\{mode\}/g,    'UPI');
@@ -7288,13 +7309,29 @@ function saveSale(){
   gsMaybeSync('addSale', sale);
   autoSaveNow(); // immediate save — sales must never be debounced
   refreshCustDatalist();
+  // Build itemised bill text
+  const _billItems = products.map((p,i)=>{
+    const linePrice = (+p.price||0);
+    const lineDisc  = (+p.disc||0);
+    const lineTotal = p.qty*(linePrice-lineDisc);
+    const discStr   = lineDisc>0?' (disc -₹'+lineDisc.toFixed(2)+')':'';
+    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ ₹'+linePrice.toFixed(2)+discStr+' = ₹'+lineTotal.toFixed(2);
+  }).join('\n')+'\n';
+  const _billSubtotal = products.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
+  const _billDiscount = products.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
   const receiptMsg = getWATmpl('receipt',{
-    name: cust, product: products.map(p=>p.name).join(', '),
-    amount: finalTotal.toFixed(2), mode: sale.mode,
-    date: sale.date, biz: S.settings.bizName||'Meenatchi Traders',
-    phone: S.settings.phone||'',
-    custnum:  c.custNum||'',
-    ordernum: _newOrderNum||''
+    name: cust,
+    product: products.map(p=>p.name).join(', '),
+    items:    _billItems,
+    subtotal: _billSubtotal.toFixed(2),
+    discount: _billDiscount.toFixed(2),
+    amount:   finalTotal.toFixed(2),
+    mode:     sale.mode,
+    date:     sale.date,
+    biz:      S.settings.bizName||'Meenatchi Traders',
+    phone:    S.settings.phone||'',
+    custnum:  c.custNum||'—',
+    ordernum: _newOrderNum||'—'
   });
   toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts');
   // Capture phone/msg before clearSale resets the form
@@ -7521,15 +7558,26 @@ function resendBillWA(saleId){
   if(!phone){ toast('⚠️ No phone number for '+s.customer+'. Edit customer to add phone.'); return; }
   const prodNames = (s.products||[]).map(p=>p.name).join(', ');
   const _rc = S.customers.find(x=>x.name===s.customer);
+  // Build itemised bill for resend
+  const _rItems = (s.products||[{name:s.product,qty:s.qty||1,price:s.price||0,disc:s.disc||0}]);
+  const _rBillItems = _rItems.map((p,i)=>{
+    const lp=+p.price||0; const ld=+p.disc||0; const lt=p.qty*(lp-ld);
+    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ ₹'+lp.toFixed(2)+(ld>0?' (disc -₹'+ld.toFixed(2)+')':'')+' = ₹'+lt.toFixed(2);
+  }).join('\n')+'\n';
+  const _rSub  = _rItems.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
+  const _rDisc = _rItems.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
   const msg = getWATmpl('receipt',{
     name:    s.customer,
     product: prodNames,
+    items:   _rBillItems,
+    subtotal: _rSub.toFixed(2),
+    discount: _rDisc.toFixed(2),
     amount:  s.total.toFixed(2),
     mode:    s.mode,
     date:    s.date,
     biz:     S.settings.bizName||'Meenatchi Traders',
-    custnum:  _rc?.custNum||'',
-    ordernum: s.orderNum||''
+    custnum:  _rc?.custNum||'—',
+    ordernum: s.orderNum||'—'
   });
   openWA(phone, msg);
 }
@@ -9341,7 +9389,9 @@ function generateInvoice(id){
   const addr  = S.settings.addr     || '';
   const gstin = S.settings.gstin    || '';
   const upi   = S.settings.upi      || '';
-  const invNo = 'INV-'+String(id).slice(-6);
+  const _custObj = S.customers.find(x=>x.name===s.customer)||{};
+  const invNo = s.orderNum ? 'MT-'+s.orderNum.replace(/\D/g,'').slice(-4) : 'MT-'+String(id).slice(-4);
+  const custNo = _custObj.custNum || s.custNum || '—';
   const payAmt= s.pending > 0 ? s.pending : s.total;
 
   // ── UPI QR Code (Google Charts API — no library needed) ──────────────
@@ -9435,12 +9485,14 @@ function generateInvoice(id){
     <div class="val" style="font-size:16px;color:#f9c846">#${invNo}</div>
     <div style="margin-top:8px"><div class="label">Date</div><div class="val">${s.date}</div></div>
     <div style="margin-top:8px"><div class="label">Payment Mode</div><div class="val">${s.mode||'Cash'}</div></div>
+    <div style="margin-top:8px"><div class="label">Order No</div><div class="val">${s.orderNum||'—'}</div></div>
     <div style="margin-top:8px"><div class="label">Status</div><span class="status-badge">${s.pending>0?'⏳ Partial':'✅ Paid'}</span></div>
   </div>
   <div class="right">
     <div class="label">Bill To</div>
     <div class="val" style="font-size:15px">${s.customer}</div>
     ${s.phone?`<div style="color:#555;font-size:12px;margin-top:3px">📞 ${s.phone}</div>`:''}
+    <div style="margin-top:6px"><div class="label">Customer No</div><div class="val" style="color:#f9c846">${custNo}</div></div>
   </div>
 </div>
 
