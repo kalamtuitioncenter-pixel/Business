@@ -22,7 +22,7 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:13px;overflow:auto}
 
 /* SIDEBAR */
-#sb{width:var(--sw);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:300;overflow-y:auto;overflow-x:hidden;transition:transform .25s cubic-bezier(.4,0,.2,1);-webkit-overflow-scrolling:touch}
+#sb{width:var(--sw);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:200;overflow-y:auto;overflow-x:hidden;transition:transform .25s cubic-bezier(.4,0,.2,1)}
 #sb::-webkit-scrollbar{width:3px}
 #sb::-webkit-scrollbar-thumb{background:var(--border)}
 .sb-logo{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;cursor:pointer}
@@ -47,7 +47,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
 /* TOPBAR */
-#topbar{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;position:sticky;top:0;z-index:350;flex-shrink:0}
+#topbar{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;position:sticky;top:0;z-index:50;flex-shrink:0}
 .tb-icon{font-size:16px}
 .tb-title{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
@@ -74,7 +74,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;cursor:pointer;color:var(--text3);transition:all .12s;font-size:9px;font-weight:500}
 .bn-item.active{color:var(--accent)}
 .bn-item .bn-ico{font-size:18px;line-height:1}
-.bn-more-menu{display:none;position:fixed;bottom:calc(56px + env(safe-area-inset-bottom,0px));left:0;right:0;background:var(--surface);border-top:2px solid var(--border);z-index:101;max-height:70vh;overflow-y:auto;padding:8px 8px 16px}
+.bn-more-menu{display:none;position:fixed;bottom:56px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:101;max-height:65vh;overflow-y:auto;padding:8px}
 .bn-more-menu.open{display:block}
 .bn-more-section{margin-bottom:8px}
 .bn-more-label{font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--text3);text-transform:uppercase;padding:6px 10px 4px}
@@ -106,16 +106,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   #bottom-nav{ display:block; }
 
   /* ── Topbar ── */
-  #topbar{ padding:0 8px; gap:6px; height:48px; }
-  .tb-title{ font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100vw - 140px); font-weight:600; }
+  #topbar{ padding:0 10px; gap:8px; height:50px; }
+  .tb-title{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:calc(100vw - 130px); }
   .date-chip{ display:none; }
-  .tb-icon{ font-size:16px; flex-shrink:0; }
 
   /* ── Content ── */
-  #content{ padding:8px 10px 10px 10px; }
+  #content{ padding:10px; }
 
   /* ── Page header ── */
-  .ph{ margin-bottom:8px; }
+  .ph{ margin-bottom:12px; }
   .ph h1{ font-size:16px; flex-wrap:wrap; }
   .ph p{ font-size:11px; }
 
@@ -260,122 +259,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   body{ overflow-x:hidden; }
   #main{ overflow-x:hidden; }
   #content{ overflow-x:hidden; }
-
-  /* ══ MOBILE SIZE CONSTRAINTS ══════════════════════════════ */
-
-  /* Tables: fit phone screen */
-  table{ min-width:300px !important; font-size:11px; }
-  th,td{ padding:6px 8px !important; font-size:10.5px !important; white-space:nowrap; }
-
-  /* All cards full width */
-  .card{ margin-bottom:10px !important; }
-  .card-b{ padding:10px !important; }
-  .card-h{ padding:8px 12px !important; }
-  .card-h h3{ font-size:12px !important; }
-
-  /* Form inputs comfortable */
-  .fi,.fs{ font-size:14px !important; padding:9px 11px !important; min-height:42px; }
-  .fl{ font-size:11px !important; margin-bottom:3px !important; }
-  .fg{ margin-bottom:10px !important; }
-
-  /* Buttons always tappable */
-  .btn{ min-height:36px !important; font-size:11px !important; padding:6px 10px !important; }
-  button[style*="width:100%"]{ min-height:44px !important; }
-
-  /* Stat cards compact */
-  .sc{ padding:8px 10px !important; overflow:hidden; }
-  .sc-val{ font-size:15px !important; }
-  .sc::after{ width:36px !important; height:36px !important; top:-6px !important; right:-6px !important; }
-  .sc-label{ font-size:8px !important; }
-  .sc-ico{ font-size:16px !important; margin-bottom:2px; }
-  .sc-grid{ gap:8px !important; }
-
-  /* Page headers compact */
-  .ph h1{ font-size:16px !important; margin-bottom:2px; }
-  .ph p{ font-size:11px !important; }
-  .ph{ margin-bottom:10px !important; }
-
-  /* Tab bars */
-  .tab{ font-size:10px !important; padding:5px 9px !important; white-space:nowrap; flex-shrink:0; }
-
-  /* All grids single column */
-  .fr2,.fr3{ grid-template-columns:1fr !important; gap:8px !important; }
-  .two-col,.two-col-eq{ grid-template-columns:1fr !important; gap:10px !important; }
-  [style*="grid-template-columns:repeat(4"]{ grid-template-columns:repeat(2,1fr) !important; }
-  [style*="grid-template-columns:repeat(3"]{ grid-template-columns:repeat(2,1fr) !important; }
-  [style*="grid-template-columns:1fr 360px"]{ grid-template-columns:1fr !important; }
-  [style*="grid-template-columns:1fr 380px"]{ grid-template-columns:1fr !important; }
-  [style*="grid-template-columns:420px"]{ grid-template-columns:1fr !important; }
-  [style*="grid-template-columns:2fr 1fr"]{ grid-template-columns:1fr !important; }
-
-  /* Inline widths → full width */
-  input[style*="width:"]{ width:100% !important; max-width:100% !important; }
-  select[style*="width:"]{ width:100% !important; max-width:100% !important; }
-
-  /* Product rows: stacked cards */
-  #product-rows > div{ margin-bottom:10px !important; }
-
-  /* Action buttons in tables wrap */
-  td[style*="display:flex"]{ flex-wrap:wrap !important; gap:3px !important; }
-  td[style*="display:flex"] .btn{ font-size:9px !important; padding:3px 6px !important; min-height:28px !important; }
-
-  /* Modals: full-width bottom sheet */
-  .mo{ align-items:flex-end !important; }
-  .mo-box{
-    width:100% !important; max-width:100% !important;
-    border-radius:16px 16px 0 0 !important;
-    max-height:90vh; overflow-y:auto;
-  }
-
-  /* Bottom nav */
-  #main{ padding-bottom:80px !important; }
-  .bn-item span{ font-size:9px !important; }
-  .bn-ico{ font-size:20px !important; }
-
-  /* More menu grid 3 cols on mobile */
-  .bn-more-grid{ grid-template-columns:repeat(3,1fr) !important; gap:6px; }
-  .bmi-ico{ font-size:20px !important; }
-  .bmi-txt{ font-size:9px !important; }
-
-  /* WA prompt bar full width */
-  #wa-prompt-bar{
-    bottom:calc(85px + env(safe-area-inset-bottom,0px)) !important;
-    left:6px !important; right:6px !important;
-  }
-
-  /* Loyalty settings grid */
-  #pts-settings-grid{ grid-template-columns:repeat(2,1fr) !important; }
-
-  /* Hide non-essential table columns on very small screens */
-  .hide-mobile{ display:none !important; }
-
-  /* Charts: horizontal scroll */
-  .daily-chart,.dc-col-wrap{ overflow-x:auto; }
-
-  /* Sidebar nav items */
-  .ni{ font-size:13px !important; padding:9px 12px !important; }
-  .ico{ font-size:16px !important; }
-
-  /* ── Page header - compact on mobile ── */
-  .ph{ margin-bottom:6px !important; margin-top:0 !important; }
-  .ph h1{ font-size:15px !important; line-height:1.2; margin:0; }
-  .ph p{ font-size:10px !important; margin:2px 0 0; display:none; }
-  #content{ padding:8px !important; }
-  .page.active{ padding-top:0 !important; }
-  .card{ margin-bottom:8px !important; }
-  .card-h{ padding:8px 12px !important; }
-  .card-h h3{ font-size:12px !important; }
-  .sc-grid{ margin-bottom:8px !important; }
-
-  /* ── Compact page spacing ── */
-  .ph{ margin-bottom:6px !important; margin-top:0 !important; }
-  .ph h1{ font-size:15px !important; margin:0 0 0; }
-  .ph p{ font-size:10px !important; margin:2px 0 0; }
-  #content{ padding:8px !important; }
-  .card{ margin-bottom:8px !important; }
-  .card-h{ padding:8px 12px !important; }
-  .sc-grid{ margin-bottom:8px !important; }
-  .tab-bar{ margin-bottom:8px !important; }
 }
 
 /* ════════════════════════════════
@@ -405,7 +288,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* Responsive stat grid — adapts on mobile */
 .sc-grid-resp{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:default}
-.sc::after{content:'';position:absolute;top:-8px;right:-8px;width:44px;height:44px;border-radius:50%;opacity:.12;pointer-events:none}
+.sc::after{content:'';position:absolute;top:-10px;right:-10px;width:55px;height:55px;border-radius:50%;opacity:.1}
 .sc.y::after{background:var(--accent)}.sc.g::after{background:var(--green)}.sc.b::after{background:var(--blue)}.sc.r::after{background:var(--red)}.sc.p::after{background:var(--purple)}.sc.o::after{background:var(--orange)}
 .sc-ico{font-size:18px;margin-bottom:10px;opacity:.7}
 .sc-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
@@ -643,6 +526,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <div class="sb-sec-label">Main</div>
     <div class="ni active" id="ni-dashboard" onclick="nav('dashboard')"><span class="ico">📊</span>Dashboard</div>
     <div class="ni" id="ni-sales" onclick="nav('sales')"><span class="ico">🧾</span>Sales Entry</div>
+    <div class="ni" id="ni-invoices" onclick="nav('invoices')"><span class="ico">&#x1F9FE;</span>Invoices</div>
   </div>
   <div class="sb-section">
     <div class="sb-sec-label">Stock & Products</div>
@@ -682,7 +566,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <div class="ni" id="ni-loyalty" onclick="nav('loyalty')"><span class="ico">⭐</span>Loyalty & Referrals</div>
     <div class="ni" id="ni-bizanalytics" onclick="nav('bizanalytics')"><span class="ico">📊</span>Business Analytics</div>
     <div class="ni" id="ni-reports" onclick="nav('reports')"><span class="ico">📋</span>Reports & Analytics</div>
-    
   </div>
   <div class="sb-section">
     <div class="sb-sec-label">Settings</div>
@@ -736,6 +619,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
       <div class="tab-bar" style="margin-bottom:14px">
         <div class="tab active" onclick="dTab(this,'dt-biz')"><span class="t-ico">💼</span>Business</div>
+        <div class="tab" onclick="dTab(this,'dt-tui')"><span class="t-ico">🎓</span>Tuition</div>
+        <div class="tab" onclick="dTab(this,'dt-com')"><span class="t-ico">📊</span>Combined</div>
         <div class="tab" id="dt-tab-target" onclick="dTab(this,'dt-target')"><span class="t-ico">🎯</span>Target</div>
         <div class="tab" id="dt-tab-pending" onclick="dTab(this,'dt-pending')"><span class="t-ico">⏳</span>Pending</div>
       </div>
@@ -758,6 +643,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-h" style="padding:10px 14px"><h3>⚡ Quick Actions</h3></div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 14px">
             <div class="qa-btn" onclick="nav('sales')"><span class="qa-ico">🧾</span><span class="qa-lbl">New Sale</span></div>
+            <div class="qa-btn" onclick="nav('invoices')"><span class="qa-ico">&#x1F9FE;</span><span class="qa-lbl">Invoices</span></div>
             <div class="qa-btn" onclick="nav('customers')"><span class="qa-ico">👥</span><span class="qa-lbl">Customers</span></div>
             <div class="qa-btn" onclick="nav('products')"><span class="qa-ico">📦</span><span class="qa-lbl">Stock</span></div>
             <div class="qa-btn" onclick="nav('orders')"><span class="qa-ico">🚚</span><span class="qa-lbl">Orders</span></div>
@@ -795,8 +681,24 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
       </div>
 
+      <!-- ── Tuition Tab ── -->
+      <div id="dt-tui" style="display:none">
+        <div class="sc-grid">
+          <div class="sc p nav-card" onclick="nav('tuition')"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="d-stu">0</div><div class="sc-sub">Tap to manage ›</div></div>
+          <div class="sc g nav-card" onclick="nav('tuition')"><div class="sc-ico">💰</div><div class="sc-label">Total Fees</div><div class="sc-val" id="d-tfees">₹0.00</div><div class="sc-sub">Collected ›</div></div>
+          <div class="sc r nav-card" onclick="nav('tuition')"><div class="sc-ico">⚠️</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="d-tpend">₹0.00</div><div class="sc-sub">Tap to collect ›</div></div>
+          <div class="sc b nav-card" onclick="nav('tuition')"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="d-staff">0</div><div class="sc-sub">Members ›</div></div>
+          <div class="sc o nav-card" onclick="nav('tuition')"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="d-sal">₹0.00</div><div class="sc-sub">Tap to pay ›</div></div>
+        </div>
+      </div>
+
       <!-- ── Combined Tab ── -->
-      
+      <div id="dt-com" style="display:none">
+        <div class="sc-grid">
+          <div class="sc y nav-card" onclick="nav('reports')"><div class="sc-ico">🏦</div><div class="sc-label">Total Income</div><div class="sc-val" id="d-ctotal">₹0.00</div><div class="sc-sub">All businesses ›</div></div>
+          <div class="sc g nav-card" onclick="nav('smartprofit')"><div class="sc-ico">💎</div><div class="sc-label">Net Profit</div><div class="sc-val" id="d-cprofit">₹0.00</div><div class="sc-sub">Combined ›</div></div>
+        </div>
+      </div>
 
       <!-- ── 🎯 TARGET TAB ── -->
       <div id="dt-target" style="display:none">
@@ -836,7 +738,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <div class="card-b" style="padding:0">
             <div class="tbl-wrap"><table>
               <thead><tr><th>Customer</th><th>Phone</th><th style="color:var(--red)">Pending ₹</th><th>Days Since Sale</th><th>Actions</th></tr></thead>
-              <tbody id="dash-pending-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
+              <tbody id="dp-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear.</p></div></td></tr></tbody>
             </table></div>
           </div>
         </div>
@@ -877,7 +779,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="tab" onclick="salesTab(this,'st-history')">📜 Sales History</div>
         <div class="tab" onclick="salesTab(this,'st-pending');renderSalesPending()">⏳ Pending Payments</div>
         <div class="tab" onclick="salesTab(this,'st-partial');renderSalesPartial()">💰 Record Payment</div>
-        <div class="tab" onclick="salesTab(this,'st-invoice');renderInvoiceList()">🧾 Invoices</div>
       </div>
 
       <!-- New Sale -->
@@ -987,13 +888,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                   <option value="">📢 Ad Source (optional)</option>
                 </select>
               </div>
-              <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end">
-                <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;white-space:nowrap">
-                  <input type="checkbox" id="s-auto-wa" checked style="accent-color:var(--green);width:14px;height:14px">
-                  📱 Send Bill via WA
-                </label>
-                <button class="btn btn-y" onclick="saveSale()">💾 Save Sale</button>
-              </div>
+              <button class="btn btn-y" style="margin-left:auto" onclick="saveSale()">💾 Save Sale</button>
               <button class="btn btn-o" onclick="clearSale()">Clear</button>
             </div>
           </div>
@@ -1084,29 +979,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
         </div>
       </div><!-- end st-partial -->
-      <!-- Invoice Tab -->
-      <div id="st-invoice" style="display:none">
-        <div class="card" style="margin-bottom:12px">
-          <div class="card-h">
-            <h3>🧾 All Invoices</h3>
-            <div style="display:flex;gap:8px;align-items:center;flex:1;max-width:280px;margin-left:auto">
-              <input class="fi" type="text" id="inv-search" placeholder="Search customer, invoice no…"
-                oninput="renderInvoiceList()" style="font-size:12px;height:32px">
-            </div>
-          </div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr>
-                <th>Invoice</th><th>Customer</th><th>Date</th><th>Items</th>
-                <th>Total</th><th>Status</th><th>Actions</th>
-              </tr></thead>
-              <tbody id="invoice-list-tbody">
-                <tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><p>Tap to load invoices</p></div></td></tr>
-              </tbody>
-            </table></div>
-          </div>
-        </div>
-      </div>
 
     </div><!-- end p-sales -->
 
@@ -1280,7 +1152,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="card-b">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Order No.</th><th>Date</th><th>Customer</th><th>Phone</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Update</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Phone</th><th>Product</th><th>Qty</th><th>Amount</th><th>Status</th><th>Update</th><th>Actions</th></tr></thead>
             <tbody id="orders-tbody"><tr><td colspan="10"><div class="empty"><div class="ei">🚚</div><p>No orders yet</p></div></td></tr></tbody>
           </table></div>
         </div>
@@ -1304,8 +1176,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="card">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Cust No.</th><th>Name</th><th>Phone</th><th>Address</th><th>Last Product</th><th>Payment</th><th>Status</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
-            <tbody id="customers-tbody"><tr><td colspan="10"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr></tbody>
+            <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Last Product</th><th>Payment</th><th>Status</th><th>Paid</th><th>Pending</th><th>Actions</th></tr></thead>
+            <tbody id="customers-tbody"><tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -1407,9 +1279,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           <span class="tmpl-var">{date}</span> Date &nbsp;
           <span class="tmpl-var">{points}</span> Points &nbsp;
           <span class="tmpl-var">{value}</span> Redeem ₹ &nbsp;
-          <span class="tmpl-var">{expiry}</span> Expiry date &nbsp;
-          <span class="tmpl-var">{custnum}</span> Customer No &nbsp;
-          <span class="tmpl-var">{ordernum}</span> Order No
+          <span class="tmpl-var">{expiry}</span> Expiry date
         </div>
 
         <!-- Pending Payment -->
@@ -1847,7 +1717,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div class="card-b" style="padding:0">
           <div class="tbl-wrap"><table>
             <thead><tr><th>Product</th><th>Today</th><th>This Week (WoW%)</th><th>This Month (MoM%)</th><th>Next 7d Forecast</th><th>Stock Days Left</th><th>Status</th></tr></thead>
-            <tbody id="dash-pending-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>Add sales data to see demand predictions</p></div></td></tr></tbody>
+            <tbody id="dp-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>Add sales data to see demand predictions</p></div></td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -2592,138 +2462,64 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <!-- ===== REPORTS & ANALYTICS ===== -->
     <div class="page" id="p-reports">
       <div class="ph"><h1>📋 Reports & Analytics</h1><p>Business performance insights</p></div>
-
-      <!-- Tab bar -->
-      <div class="tab-bar" style="margin-bottom:14px">
+      <div class="tab-bar">
         <div class="tab active" onclick="repTab(this,'rep-daily')">📅 Daily</div>
         <div class="tab" onclick="repTab(this,'rep-weekly')">📊 Weekly</div>
         <div class="tab" onclick="repTab(this,'rep-monthly')">📆 Monthly</div>
-        <div class="tab" onclick="repTab(this,'rep-prod')">📦 Products</div>
-        <div class="tab" onclick="repTab(this,'rep-cust')">👥 Pending</div>
+        <div class="tab" onclick="repTab(this,'rep-prod')">📦 Product Profit</div>
+        <div class="tab" onclick="repTab(this,'rep-cust')">👥 Customer Pending</div>
+        <div class="tab" onclick="repTab(this,'rep-tui')">🎓 Tuition Income</div>
       </div>
-
-      <!-- ── DAILY ── -->
       <div id="rep-daily">
-        <div class="fr2" style="margin-bottom:14px;align-items:flex-end">
-          <div class="fg" style="margin:0">
-            <label class="fl">Select Date</label>
-            <input class="fi" type="date" id="rep-date" onchange="genReport()">
-          </div>
-          <button class="btn btn-b" style="width:100%" onclick="genReport()">🔍 Generate</button>
-        </div>
-        <div id="rep-title" style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px"></div>
-        <div id="rep-gen-time" style="font-size:10px;color:var(--text3);margin-bottom:12px"></div>
-        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
-          <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Sales Revenue</div><div class="sc-val" id="rep-sales">₹0</div><div class="sc-sub" id="rep-orders-sub">0 orders</div></div>
-          <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Profit</div><div class="sc-val" id="rep-profit">₹0</div><div class="sc-sub" id="rep-margin-sub">0% margin</div></div>
-          <div class="sc b"><div class="sc-ico">☕</div><div class="sc-label">Tea Shop</div><div class="sc-val" id="rep-tea">₹0</div><div class="sc-sub" id="rep-tea-sub">0 entries</div></div>
-          <div class="sc r"><div class="sc-ico">⏳</div><div class="sc-label">Total Pending</div><div class="sc-val" id="rep-pend">₹0</div><div class="sc-sub">All customers</div></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>📝 Sales Detail</h3></div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Pending</th><th>Status</th></tr></thead>
-              <tbody id="rep-sales-tbody"><tr><td colspan="6"><div class="empty"><div class="ei">📅</div><p>Select a date to view sales</p></div></td></tr></tbody>
-            </table></div>
-          </div>
-        </div>
-        <div id="rep-msg" style="display:none;text-align:center;padding:20px;color:var(--text3)"></div>
+        <div class="fg" style="max-width:200px;margin-bottom:14px"><label class="fl">Select Date</label><input class="fi" type="date" id="rep-filter-date"></div>
+        <div class="card"><div class="card-b"><div class="empty"><div class="ei">📅</div><p>Select a date to view daily report</p></div></div></div>
       </div>
-
-      <!-- ── WEEKLY ── -->
-      <div id="rep-weekly" style="display:none">
-        <div class="fr2" style="margin-bottom:14px;align-items:flex-end">
-          <div class="fg" style="margin:0">
-            <label class="fl">Week containing date</label>
-            <input class="fi" type="date" id="rep-week-date" onchange="renderWeeklyReport()">
-          </div>
-          <button class="btn btn-b" style="width:100%" onclick="renderWeeklyReport()">🔍 Generate</button>
-        </div>
-        <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
-          <div class="sc y"><div class="sc-ico">₹</div><div class="sc-label">Week Revenue</div><div class="sc-val" id="wk-rev">₹0</div><div class="sc-sub" id="wk-orders">0 orders</div></div>
-          <div class="sc g"><div class="sc-ico">📈</div><div class="sc-label">Week Profit</div><div class="sc-val" id="wk-profit">₹0</div><div class="sc-sub" id="wk-margin">0% margin</div></div>
-          <div class="sc b"><div class="sc-ico">📦</div><div class="sc-label">Best Day</div><div class="sc-val" id="wk-best-day" style="font-size:12px">—</div><div class="sc-sub" id="wk-best-amt">₹0</div></div>
-          <div class="sc r"><div class="sc-ico">📉</div><div class="sc-label">Worst Day</div><div class="sc-val" id="wk-worst-day" style="font-size:12px">—</div><div class="sc-sub" id="wk-worst-amt">₹0</div></div>
-        </div>
-        <!-- Day-by-day bar chart -->
-        <div class="card" style="margin-bottom:12px">
-          <div class="card-h"><h3>📊 Day-by-Day Revenue</h3></div>
-          <div class="card-b" id="wk-bar-chart" style="min-height:100px"><div class="empty"><div class="ei">📊</div><p>Select a week to see chart</p></div></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>📋 Daily Breakdown</h3></div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Day</th><th>Date</th><th>Orders</th><th>Revenue</th><th>Profit</th></tr></thead>
-              <tbody id="wk-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">📊</div><p>Select a week to view</p></div></td></tr></tbody>
-            </table></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── MONTHLY ── -->
-      <div id="rep-monthly" style="display:none">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-          <button class="btn btn-b" style="font-size:11px" onclick="renderBaMonthly()">🔄 Refresh</button>
-        </div>
-        <div class="fr2" style="margin-bottom:14px">
-          <div class="card">
-            <div class="card-h"><h3>📊 Monthly Revenue</h3></div>
-            <div class="card-b" id="ba-rev-chart" style="min-height:120px"></div>
-          </div>
-          <div class="card">
-            <div class="card-h"><h3>📈 Monthly Profit</h3></div>
-            <div class="card-b" id="ba-prof-chart" style="min-height:120px"></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>📆 Month-wise Summary</h3></div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Collected</th><th>Pending</th><th>Profit</th><th>vs Last</th></tr></thead>
-              <tbody id="ba-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📆</div><p>No data yet</p></div></td></tr></tbody>
-            </table></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── PRODUCT PROFIT ── -->
-      <div id="rep-prod" style="display:none">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-          <button class="btn btn-b" style="font-size:11px" onclick="renderProductReport()">🔄 Refresh</button>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>📦 Product-wise Profit</h3></div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Product</th><th>Category</th><th>Sold Qty</th><th>Revenue</th><th>Profit</th><th>Margin</th><th>Stock Left</th></tr></thead>
-              <tbody id="prod-report-tbody"><tr><td colspan="7"><div class="empty"><div class="ei">📦</div><p>No sales data yet</p></div></td></tr></tbody>
-            </table></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── CUSTOMER PENDING ── -->
-      <div id="rep-cust" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-          <div style="font-size:12px;color:var(--text3)">Customers with outstanding dues</div>
-          <button class="btn btn-g" style="font-size:11px" onclick="bulkRemindPending()">📢 Remind All</button>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>👥 Pending Payments</h3></div>
-          <div class="card-b" style="padding:0">
-            <div class="tbl-wrap"><table>
-              <thead><tr><th>Customer</th><th>Phone</th><th>Pending</th><th>Age</th><th>Action</th></tr></thead>
-              <tbody id="pending-cust-tbody"><tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr></tbody>
-            </table></div>
-          </div>
-        </div>
-      </div>
-
+      <div id="rep-weekly" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📊</div><p>Weekly report will appear here</p></div></div></div></div>
+      <div id="rep-monthly" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📆</div><p>Monthly report will appear here</p></div></div></div></div>
+      <div id="rep-prod" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📦</div><p>Product profit report</p></div></div></div></div>
+      <div id="rep-cust" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">👥</div><p>Customer pending report</p></div></div></div></div>
+      <div id="rep-tui" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">🎓</div><p>Tuition income report</p></div></div></div></div>
     </div>
 
     
+    <!-- ===== INVOICES ===== -->
+    <div class="page" id="p-invoices">
+      <div class="ph"><h1>&#x1F9FE; Invoices</h1><p>View, print and send all invoices</p></div>
+      <div class="sc-grid sc-grid-resp" style="margin-bottom:14px">
+        <div class="sc y"><div class="sc-label">Total Sales</div><div class="sc-val" id="inv-total-count">0</div></div>
+        <div class="sc g"><div class="sc-label">Revenue</div><div class="sc-val" id="inv-total-rev">&#x20b9;0</div></div>
+        <div class="sc r"><div class="sc-label">Pending</div><div class="sc-val" id="inv-total-pend">&#x20b9;0</div></div>
+        <div class="sc b"><div class="sc-label">Paid</div><div class="sc-val" id="inv-total-paid">0</div></div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-h" style="flex-wrap:wrap;gap:8px">
+          <h3>&#x1F50D; Search Invoices</h3>
+          <div style="display:flex;gap:8px;flex:1;min-width:200px;flex-wrap:wrap">
+            <input class="fi" type="text" id="inv-pg-search" placeholder="Customer, invoice no, date..."
+              oninput="renderInvoicePage()" style="flex:1;min-width:140px;font-size:12px;height:34px">
+            <select class="fs" id="inv-pg-filter" onchange="renderInvoicePage()"
+              style="font-size:12px;height:34px;width:105px">
+              <option value="all">All</option>
+              <option value="paid">&#x2705; Paid</option>
+              <option value="pending">&#x23F3; Pending</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-b" style="padding:0">
+          <div class="tbl-wrap"><table>
+            <thead><tr>
+              <th>Invoice</th><th>Customer</th><th>Date</th>
+              <th>Items</th><th>Total</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="inv-pg-tbody">
+              <tr><td colspan="7"><div class="empty"><div class="ei">&#x1F9FE;</div><p>Loading...</p></div></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== SETTINGS ===== -->
     <div class="page" id="p-settings">
@@ -2754,7 +2550,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
           </div>
           <div class="fg">
             <label class="fl">Sheet Tab Names (comma separated)</label>
-            <input class="fi" id="gs-tabs" value="DAILY SALES,Products,Customers,Orders,Tea Shop,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report" oninput="saveGsSettings()">
+            <input class="fi" id="gs-tabs" value="DAILY SALES,Products,Customers,Orders,Tea Shop,Tuition,Staff,Suppliers,Reminders,Product Rules,Loyalty Points,Birthday Gifts,Referrals,Daily Report" oninput="saveGsSettings()">
           </div>
 
           <!-- Last sync time -->
@@ -3451,7 +3247,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
   <div class="bn-more-section">
     <div class="bn-more-label">Businesses</div>
     <div class="bn-more-grid">
-      <div class="bn-more-item" onclick="navMore('teashop')"><div class="bmi-ico">☕</div><div class="bmi-txt">Tea Shop</div></div>
+      <div class="bn-more-item" onclick="navMore('teashop')"><div class="bmi-ico">☕</div><div class="bmi-txt">Tea Shop</div></div><div class="bmi-txt">Tuition</div></div>
       <div class="bn-more-item" onclick="navMore('orders')"><div class="bmi-ico">🚚</div><div class="bmi-txt">Orders</div></div>
       <div class="bn-more-item" onclick="navMore('whatsapp')"><div class="bmi-ico">💬</div><div class="bmi-txt">WhatsApp</div></div>
     </div>
@@ -3481,21 +3277,12 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="bn-more-item" onclick="navMore('supplier')"><div class="bmi-ico">🚛</div><div class="bmi-txt">Suppliers</div></div>
       <div class="bn-more-item" onclick="navMore('bizanalytics')"><div class="bmi-ico">📊</div><div class="bmi-txt">Analytics</div></div>
       <div class="bn-more-item" onclick="navMore('settings')"><div class="bmi-ico">⚙️</div><div class="bmi-txt">Settings</div></div>
-      <div class="bn-more-item" onclick="navMore('reorder')"><div class="bmi-ico">🧠</div><div class="bmi-txt">Reorder</div></div>
-      <div class="bn-more-item" onclick="navMore('repacktrack')"><div class="bmi-ico">📦</div><div class="bmi-txt">Repack</div></div>
-      <div class="bn-more-item" onclick="navMore('packstock')"><div class="bmi-ico">🎁</div><div class="bmi-txt">Pack Stock</div></div>
-      <div class="bn-more-item" onclick="navMore('advertisement')"><div class="bmi-ico">📢</div><div class="bmi-txt">Ads</div></div>
-      <div class="bn-more-item" onclick="navMore('reports')"><div class="bmi-ico">📋</div>
-      <div class="bn-more-item" onclick="navMore('invoices')"><div class="bmi-ico">🧾</div><div class="bmi-txt">Invoices</div></div><div class="bmi-txt">Reports</div></div>
     </div>
   </div>
-</div><!-- /bn-more-menu -->
-
 <!-- MODALS -->
 <!-- Student Partial Fee Payment Modal -->
 
 </div>
-<div class="mo" id="npa-modal">
   <div class="mo-box" style="max-width:460px">
     <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
       <h2>🚫 Mark as NPA — Write Off</h2>
@@ -3544,7 +3331,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <!-- Edit Customer Modal -->
@@ -3630,9 +3416,24 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="fr2" style="margin-top:6px">
           <div class="fg"><label class="fl">Sticker Cost (₹)</label><input class="fi" id="ep-sticker" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+          <div class="fg"><label class="fl">Cover/Bag Cost (₹)</label><input class="fi" id="ep-cover" type="number" placeholder="0" oninput="epCalcProfit()"></div>
+        </div>
+      </div>
+
+      <!-- Stock history note -->
+      <div id="ep-history-note" style="font-size:11px;color:var(--text3);padding:4px 0"></div>
+    </div>
+    <div class="mo-f" style="display:flex;gap:8px">
+      <button class="btn btn-o" onclick="closeModal('edit-product-modal')">Cancel</button>
+      <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveEditProduct()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div class="mo" id="exchange-modal"><div class="mo-box" style="max-width:500px"><div class="mo-h"><h2>Exchange / Return</h2><button class="xbtn" onclick="closeModal('exchange-modal')">X</button></div><div class="mo-b"><input type="hidden" id="ex-sale-id"><div id="ex-sale-info"></div><div class="fr2"><div class="fg"><label class="fl">Type</label><select class="fs" id="ex-type" onchange="exTypeChange()"><option value="exchange">Exchange</option><option value="return">Return</option><option value="partial_return">Partial Return</option></select></div><div class="fg"><label class="fl">Date</label><input class="fi" id="ex-date" type="date"></div></div><div id="ex-exchange-wrap"><div class="fr2"><div class="fg"><label class="fl">Returned</label><input class="fi" id="ex-return-prod"></div><div class="fg"><label class="fl">New Product</label><input class="fi" id="ex-new-prod"></div></div><div class="fr2"><div class="fg"><label class="fl">Price Diff (Rs)</label><input class="fi" id="ex-diff" type="number" value="0"></div><div class="fg"><label class="fl">Settled By</label><select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">None</option></select></div></div></div><div id="ex-return-wrap" style="display:none"><div class="fr2"><div class="fg"><label class="fl">Refund (Rs)</label><input class="fi" id="ex-refund-amt" type="number" placeholder="0"></div><div class="fg"><label class="fl">Mode</label><select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select></div></div></div><div class="fg"><label class="fl">Reason</label><input class="fi" id="ex-reason" placeholder="Damaged, Wrong item..."></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-y" style="flex:1" onclick="confirmExchange()">Confirm</button><button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button></div></div></div></div>
 
 <script>
-
 function localDate(d){const dt=d?new Date(d):new Date();return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");}
 
 
@@ -3979,85 +3780,68 @@ function exTypeChange(){
 }
 
 
-function deleteCourse(id){toast("Course management removed");}
-
+function deleteCourse(){toast("Feature removed");}
 
 function renderInvoicePage(){
-  var today=localDate(),thisMonth=today.slice(0,7);
-  var all=S.sales,ms=all.filter(function(s){return s.date&&s.date.slice(0,7)===thisMonth;});
+  var allSales = S.sales;
+  var totalRev  = allSales.reduce(function(a,s){return a+(s.total||0);},0);
+  var totalPend = allSales.reduce(function(a,s){return a+(s.pending||0);},0);
+  var paidCount = allSales.filter(function(s){return (s.pending||0)===0;}).length;
   var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
-  set('inv-stat-total','Rs.'+all.reduce(function(a,s){return a+(s.total||0);},0).toFixed(0));
-  set('inv-stat-count',all.length+' invoice'+(all.length!==1?'s':''));
-  set('inv-stat-recv','Rs.'+all.reduce(function(a,s){return a+(s.recv||0);},0).toFixed(0));
-  set('inv-stat-pend','Rs.'+all.reduce(function(a,s){return a+(s.pending||0);},0).toFixed(0));
-  set('inv-stat-month','Rs.'+ms.reduce(function(a,s){return a+(s.total||0);},0).toFixed(0));
-  set('inv-stat-month-sub',ms.length+' bills this month');
-  var tb=document.getElementById('inv-pg-tbody');if(!tb)return;
-  var q=(document.getElementById('inv-pg-search')?document.getElementById('inv-pg-search').value||'':'').toLowerCase().trim();
-  var filter=document.getElementById('inv-pg-filter')?document.getElementById('inv-pg-filter').value||'all':'all';
-  var list=all.slice().sort(function(a,b){return b.date>a.date?1:-1;});
-  if(q)list=list.filter(function(s){return (s.customer||'').toLowerCase().indexOf(q)>=0||(s.orderNum||'').toLowerCase().indexOf(q)>=0||(s.date||'').indexOf(q)>=0;});
-  if(filter==='paid')list=list.filter(function(s){return (s.pending||0)===0;});
-  if(filter==='pending')list=list.filter(function(s){return (s.pending||0)>0;});
-  if(filter==='month')list=list.filter(function(s){return s.date&&s.date.slice(0,7)===thisMonth;});
-  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">\uD83E\uDDFE</div><p>'+(q||filter!=='all'?'No results':'No invoices yet')+'</p></div></td></tr>';return;}
-  var rows=list.map(function(sale){
-    var co=S.customers.find(function(x){return x.name===sale.customer;})||{};
-    var inv=sale.orderNum?'MT-'+sale.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(sale.id).slice(-4);
-    var ph=sale.phone||co.phone||'';
-    var pr=(sale.products||[]).map(function(p){return p.name+'x'+p.qty;}).join(', ');
-    var paid=(sale.pending||0)===0;
-    var st=paid?'<span class="badge bg" style="font-size:10px">Paid</span>':'<span class="badge br" style="font-size:10px">Rs.'+sale.pending.toFixed(0)+' due</span>';
-    var acts='<button class="btn btn-b" style="font-size:10px;padding:3px 7px" onclick="generateInvoice('+sale.id+')">PDF</button>';
-    if(ph)acts+=' <button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="resendBillWA('+sale.id+')">WA</button>';
-    if(!paid)acts+=' <button class="btn btn-y" style="font-size:10px;padding:3px 7px" onclick="quickCollectFromInvoice('+sale.id+')">Collect</button>';
-    return '<tr>'+
-      '<td style="font-weight:700;font-family:monospace;color:var(--accent);font-size:12px">'+inv+'</td>'+
-      '<td><div style="font-weight:700;font-size:12px">'+sale.customer+'</div>'+
-      '<div style="font-size:9px;color:var(--text3)">'+(co.custNum||'')+' '+(ph?'\u00b7 '+ph:'')+'</div></td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+sale.date+'</td>'+
-      '<td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+pr.slice(0,25)+(pr.length>25?'\u2026':'')+'</td>'+
-      '<td style="font-weight:700;color:var(--green)">Rs.'+(sale.total||0).toFixed(0)+'</td>'+
-      '<td>'+st+'</td>'+
-      '<td style="min-width:130px">'+acts+'</td></tr>';
-  });
-  tb.innerHTML=rows.join('');
-}
+  set('inv-total-count', allSales.length);
+  set('inv-total-rev',   '\u20b9'+totalRev.toFixed(0));
+  set('inv-total-pend',  '\u20b9'+totalPend.toFixed(0));
+  set('inv-total-paid',  paidCount);
 
-function quickCollectFromInvoice(saleId){
-  var sale=S.sales.find(function(x){return x.id===saleId;});
-  if(!sale||!sale.pending)return;
-  var input=prompt('Collect amount (pending: Rs.'+sale.pending.toFixed(0)+')',sale.pending.toFixed(0));
-  if(!input)return;
-  var amt=+input;if(isNaN(amt)||amt<=0)return;
-  var collected=Math.min(amt,sale.pending);
-  sale.recv=(sale.recv||0)+collected;
-  sale.pending=Math.max(sale.pending-collected,0);
-  if(sale.pending===0)sale.status='Delivered';
-  var cust=S.customers.find(function(x){return x.name===sale.customer;});
-  if(cust)cust.pending=S.sales.filter(function(s){return s.customer===cust.name;}).reduce(function(a,s){return a+(s.pending||0);},0);
-  autoSave();
-  toast('Collected Rs.'+collected.toFixed(0)+' from '+sale.customer);
-  renderInvoicePage();
-  updateDashStats();
-}
+  var tb = document.getElementById('inv-pg-tbody');
+  if(!tb) return;
 
-function exportInvoiceCSV(){
-  var rows=[['Invoice No','Customer','Cust No','Date','Products','Total','Received','Pending','Status']];
-  S.sales.slice().sort(function(a,b){return b.date>a.date?1:-1;}).forEach(function(s){
-    var co=S.customers.find(function(x){return x.name===s.customer;})||{};
-    var inv=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
-    var pr=(s.products||[]).map(function(p){return p.name+'x'+p.qty;}).join('; ');
-    rows.push([inv,s.customer||'',co.custNum||'',s.date||'',pr,(s.total||0).toFixed(2),(s.recv||0).toFixed(2),(s.pending||0).toFixed(2),s.pending>0?'Pending':'Paid']);
+  var q      = (document.getElementById('inv-pg-search')?document.getElementById('inv-pg-search').value||'':'').toLowerCase();
+  var filter = document.getElementById('inv-pg-filter')?document.getElementById('inv-pg-filter').value||'all':'all';
+
+  var list = allSales.slice().sort(function(a,b){return b.date>a.date?1:-1;});
+  if(q) list = list.filter(function(s){
+    return (s.customer||'').toLowerCase().indexOf(q)>=0||
+           (s.orderNum||'').toLowerCase().indexOf(q)>=0||
+           (s.date||'').indexOf(q)>=0;
   });
-  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
-  var blob=new Blob([csv],{type:'text/csv'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='invoices_'+localDate()+'.csv';
-  a.click();
-  setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
-  toast(S.sales.length+' invoices exported');
+  if(filter==='paid')    list = list.filter(function(s){return (s.pending||0)===0;});
+  if(filter==='pending') list = list.filter(function(s){return (s.pending||0)>0;});
+
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">\uD83E\uDDFE</div><p>'+(q||filter!=='all'?'No results found':'No sales yet')+'</p></div></td></tr>';
+    return;
+  }
+
+  var rows = list.map(function(sv){
+    var co  = S.customers.find(function(x){return x.name===sv.customer;})||{};
+    var inv = sv.orderNum?'MT-'+sv.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(sv.id).slice(-4);
+    var ph  = sv.phone||co.phone||'';
+    var pr  = (sv.products||[]).map(function(p){return p.name+'x'+p.qty;}).join(', ');
+    var isPaid = (sv.pending||0)===0;
+    var statusStyle = isPaid?'color:var(--green)':'color:var(--red)';
+    var statusText  = isPaid?'\u2705 Paid':'\u20b9'+sv.pending.toFixed(0)+' due';
+    var row = '<tr>';
+    row += '<td style="font-family:monospace;font-size:11px;color:var(--accent);font-weight:700">'+inv+'</td>';
+    row += '<td>';
+    row += '<div style="font-weight:700;font-size:12px">'+(sv.customer||'\u2014')+'</div>';
+    if(co.custNum||ph) row += '<div style="font-size:9px;color:var(--text3)">'+(co.custNum||'')+(ph?' \u00b7 '+ph:'')+'</div>';
+    row += '</td>';
+    row += '<td style="font-size:11px;color:var(--text3);white-space:nowrap">'+sv.date+'</td>';
+    row += '<td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+pr.slice(0,30)+(pr.length>30?'\u2026':'')+'</td>';
+    row += '<td style="font-weight:700;color:var(--green);">\u20b9'+(sv.total||0).toFixed(0)+'</td>';
+    row += '<td style="'+statusStyle+';font-weight:700;font-size:11px">'+statusText+'</td>';
+    row += '<td><div style="display:flex;gap:4px;flex-wrap:wrap">';
+    row += '<button class="btn btn-b" style="font-size:10px;padding:2px 7px" onclick="generateInvoice('+sv.id+')">\uD83D\uDDA8\uFE0F PDF</button>';
+    if(ph) row += '<button class="btn btn-g" style="font-size:10px;padding:2px 7px" onclick="resendBillWA('+sv.id+')">\uD83D\uDCF1 WA</button>';
+    if(!isPaid){
+      var safeName = sv.customer.replace(/\\/g,'\\\\').replace(/"/g,'&quot;');
+      row += '<button class="btn btn-y" style="font-size:10px;padding:2px 7px" onclick="quickCollect(\''+safeName+'\')">\uD83D\uDCB0 Collect</button>';
+    }
+    row += '</div></td></tr>';
+    return row;
+  });
+  tb.innerHTML = rows.join('');
 }
 
 
@@ -4104,8 +3888,8 @@ function loadPersistedState(){
 
 // Auto-save after every important action (call this at end of save functions)
 // ===== NAVIGATION =====
-const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',coursemanagement:'📚',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
-const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
+const PAGES = {invoices:'\uD83E\uDDFE',dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',customers:'👥',whatsapp:'💬',teashop:'☕',tuition:'🎓',coursemanagement:'📚',advertisement:'📢',inventory:'🔍',smartprofit:'✅',demand:'📈',autoreport:'🤖',reminders:'🔔',bulkwa:'📢',target:'🎯',salesforecast:'🧠',supplier:'🚛',loyalty:'⭐',bizanalytics:'📊',reports:'📋',settings:'⚙️',reorder:'🧠',repacktrack:'📦',packstock:'🎁'};
+const TITLES = {invoices:'Invoices',dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
 
 function nav(page){
   if(window.innerWidth<=768) closeSidebar();
@@ -4127,7 +3911,7 @@ function nav(page){
   }
   if(page==='customers'){ renderCustomers(); renderPendingCust(); }
   if(page==='whatsapp'){ renderWA(); }
-  if(page==='inventory'){ renderInventory(); }
+  if(page==='tuition'){ renderStudents(); renderStaffTable(); }  if(page==='inventory'){ renderInventory(); }
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
   if(page==='bizanalytics'){ renderBaMonthly(); }
@@ -4136,8 +3920,8 @@ function nav(page){
   if(page==='packstock'){   renderPackStock(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=localDate(); genReport(); }
-  if(page==='reports'){ genReport(); setTimeout(()=>renderBaMonthly(),100); }
   if(page==='invoices'){ renderInvoicePage(); }
+  if(page==='reports'){ genReport(); setTimeout(()=>renderBaMonthly(),100); }
   if(page==='target'){
     // Load saved targets into form inputs on every visit
     if(S.target.set){
@@ -4864,7 +4648,7 @@ function getPtsSettings(){
   };
 }
 function savePtsSettings(silent){
-  const earnRateChanged=true; // rate check
+  var earnRateChanged=true;
   // Read from DOM (this is the ONLY place that reads from DOM inputs for pts settings)
   const ps = {
     perRupee:  +document.getElementById('pts-per-rupee')?.value  || 1,
@@ -4910,7 +4694,7 @@ function getPointsExpiry(c){
   if(!lastEarnDate) return null;
   const ps = getPtsSettings();
   const expDate = new Date(new Date(lastEarnDate).getTime() + ps.validity*86400000);
-  return expDate;
+  return expDate.toISOString().slice(0,10);
 }
 function isPointsExpired(c){
   const exp = getPointsExpiry(c);
@@ -4991,7 +4775,7 @@ function renderWeeklyPoints(){
   const ps = getPtsSettings();
   const today = new Date();
   const weekStart = new Date(today); weekStart.setDate(today.getDate()-7);
-  const wStr = weekStart;
+  const wStr = weekStart.toISOString().slice(0,10);
   const list = S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
   if(!list.length){
     tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📅</div><p>No points data yet</p></div></td></tr>';
@@ -7487,7 +7271,7 @@ function renderSalesTable(){
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
-  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="resendBillWA(${s.id})">📱</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
+  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
   tb.innerHTML=todaySales.length?todaySales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales today</p></div></td></tr>';
   htb.innerHTML=S.sales.length?S.sales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales history</p></div></td></tr>';
   // Update summary stats
@@ -7991,9 +7775,9 @@ function renderInventory(){
   const days     = +document.getElementById('inv-period')?.value || 30;
   const now      = new Date();
   const cutoff   = new Date(); cutoff.setDate(cutoff.getDate()-days);
-  const cutStr   = cutoff;
+  const cutStr   = cutoff.toISOString().slice(0,10);
   const prevCut  = new Date(); prevCut.setDate(prevCut.getDate()-(days*2));
-  const prevStr  = prevCut;
+  const prevStr  = prevCut.toISOString().slice(0,10);
 
   // Compute analytics per product
   const products = S.products.map(p=>{
@@ -8232,7 +8016,7 @@ function renderProductPerformance(days){
   if(!S.products.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">💡</div><p>No products</p></div></td></tr>';return;}
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate()-days);
-  const cutStr = cutoff;
+  const cutStr = cutoff.toISOString().slice(0,10);
   const periodSales = S.sales.filter(s=>s.date>=cutStr);
   const soldMap={};
   periodSales.forEach(s=>s.products?.forEach(p=>{soldMap[p.name]=(soldMap[p.name]||0)+p.qty;}));
@@ -8463,11 +8247,11 @@ function renderDemand(){
   if(!S.products.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>Add products first</p></div></td></tr>';return;}
 
   const now    = new Date();
-  const today  = now;
-  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week;
-  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month;
-  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7;
-  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30;
+  const today  = now.toISOString().slice(0,10);
+  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week.toISOString().slice(0,10);
+  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month.toISOString().slice(0,10);
+  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7.toISOString().slice(0,10);
+  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30.toISOString().slice(0,10);
 
   tb.innerHTML=S.products.map(p=>{
     // Sales qty helper
@@ -8528,22 +8312,19 @@ function updateDashStats(){
   const monthSales=S.sales.filter(s=>s.date&&s.date.slice(0,7)===thisMonth);
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
   const mTotal=monthSales.reduce((a,s)=>a+s.total,0);
-  // All figures filtered to THIS MONTH only
-  const mProfit  = monthSales.reduce((a,s)=>a+(s.profit||0),0);
-  const mLoyDisc = monthSales.reduce((a,s)=>a+(s.redeemDisc||0),0);
-  const pending  = S.customers.reduce((a,c)=>a+(c.pending||0),0);
-  const npaTotal = (S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
-  // Tea income this month
-  const teaMonth = S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth)
-                    .reduce((a,e)=>a+(e.income||0),0);
+  const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
+  const loyDisc=mLoyDisc;
+  const npaTotal=(S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
+  const mProfit=monthSales.reduce((a,s)=>a+(s.profit||0),0);
+  const mLoyDisc=monthSales.reduce((a,s)=>a+(s.redeemDisc||0),0);
+  const teaMonth=S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth).reduce((a,e)=>a+(e.income||0),0);
   document.getElementById('d-profit').textContent='₹'+mProfit.toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
   document.getElementById('d-today').textContent='₹'+tTotal.toFixed(2);
   document.getElementById('d-monthly').textContent='₹'+mTotal.toFixed(2);
   document.getElementById('d-ctotal').textContent='₹'+(mTotal+teaMonth).toFixed(2);
   document.getElementById('d-cprofit').textContent='₹'+mProfit.toFixed(2);
-  const loyDisc = mLoyDisc;
   const ldEl=document.getElementById('d-loyalty-disc');
   if(ldEl) ldEl.textContent='₹'+loyDisc.toFixed(0);
   // NPA loss on dashboard
@@ -8734,7 +8515,7 @@ function renderDashPending(){
   if(dl) dl.innerHTML = pendCust.map(c=>`<option value="${c.name}">`).join('');
 
   // Table
-  const tb = document.getElementById('dash-pending-tbody');
+  const tb = document.getElementById('dp-tbody');
   if(!tb) return;
   if(!withDays.length){
     tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear. 🎊</p></div></td></tr>';
@@ -9172,7 +8953,6 @@ function generateInvoice(id){
     <div class="val" style="font-size:16px;color:#f9c846">#${invNo}</div>
     <div style="margin-top:8px"><div class="label">Date</div><div class="val">${s.date}</div></div>
     <div style="margin-top:8px"><div class="label">Payment Mode</div><div class="val">${s.mode||'Cash'}</div></div>
-    <div style="margin-top:8px"><div class="label">Order No</div><div class="val">${s.orderNum||'—'}</div></div>
     <div style="margin-top:8px"><div class="label">Status</div><span class="status-badge">${s.pending>0?'⏳ Partial':'✅ Paid'}</span></div>
   </div>
   <div class="right">
@@ -9414,8 +9194,8 @@ function getProductAnalytics(p, days){
   const now    = new Date();
   const cut1   = new Date(); cut1.setDate(cut1.getDate()-days);
   const cut2   = new Date(); cut2.setDate(cut2.getDate()-(days*2));
-  const c1Str  = cut1;
-  const c2Str  = cut2;
+  const c1Str  = cut1.toISOString().slice(0,10);
+  const c2Str  = cut2.toISOString().slice(0,10);
 
   const recentSales = S.sales.filter(s=>s.date>=c1Str);
   const prevSales   = S.sales.filter(s=>s.date>=c2Str && s.date<c1Str);
@@ -9439,12 +9219,12 @@ function getProductAnalytics(p, days){
   // Reorder point: (wAvgDaily * leadTime) + (wAvgDaily * safetyDays)
   const reorderPoint   = wAvgDaily > 0 ? Math.ceil(wAvgDaily * (leadTime + safetyDays)) : p.alert;
   const daysLeft       = wAvgDaily > 0 ? Math.floor(bal / wAvgDaily) : Infinity;
-  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000) : null;
+  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000).toISOString().slice(0,10) : null;
   const orderByDate    = wAvgDaily > 0
-    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000)
+    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000).toISOString().slice(0,10)
     : null;
   const expectedReceive= orderByDate
-    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000)
+    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000).toISOString().slice(0,10)
     : null;
 
   // Suggested reorder qty: target days supply, rounded to pack size
@@ -9612,7 +9392,7 @@ function soCalcDates(){
   const orderDate=document.getElementById('so-order-date')?.value;
   const lead=+document.getElementById('so-lead')?.value||3;
   if(!orderDate) return;
-  const exp=new Date(new Date(orderDate).getTime()+lead*86400000);
+  const exp=new Date(new Date(orderDate).getTime()+lead*86400000).toISOString().slice(0,10);
   const ed=document.getElementById('so-exp-date');
   if(ed) ed.value=exp;
   // Auto-calc total
@@ -10140,7 +9920,7 @@ function renderPackStock(){
       const monthUsed=m.type==='Sticker'?monthLog.reduce((a,r)=>a+r.stickersUsed,0):m.type==='Cover/Bag'?monthLog.reduce((a,r)=>a+r.coversUsed,0):0;
       const dailyUse=monthUsed/30;
       const daysLeft=dailyUse>0?Math.floor(m.qty/dailyUse):Infinity;
-      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000):null;
+      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000).toISOString().slice(0,10):null;
       let status='bg',statusTxt='✅ OK';
       if(m.qty<=0){ status='br'; statusTxt='🚨 Out'; }
       else if(m.qty<=m.minStock){ status='br'; statusTxt='🚨 Reorder Now'; }
@@ -10254,7 +10034,7 @@ function renderWeeklyChart(){
   const dateLabels = [];
   for(let i=6;i>=0;i--){
     const d=new Date(now); d.setDate(now.getDate()-i);
-    dateLabels.push(d);
+    dateLabels.push(d.toISOString().slice(0,10));
   }
   const dayVals = dateLabels.map(()=>0);
   S.sales.forEach(s=>{
@@ -10404,7 +10184,7 @@ function autoCreateReminderFromSale(sale){
       if(exists){
         exists.lastDate = sale.date;
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
-        exists.dueDate = due;
+        exists.dueDate = due.toISOString().slice(0,10);
         exists.snoozed = false;
       } else {
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
@@ -10412,7 +10192,7 @@ function autoCreateReminderFromSale(sale){
           id:Date.now()+Math.random(),
           custName:sale.customer,phone:sale.phone||'',
           product:p.name,lastDate:sale.date,days:rule.days,
-          dueDate:due,priority:rule.priority,
+          dueDate:due.toISOString().slice(0,10),priority:rule.priority,
           notes:'Auto-created from sale',
           msg:getWATmpl('reminder',{name:sale.customer,product:p.name}),
           sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -10433,7 +10213,7 @@ function autoCreateReminderFromSale(sale){
     const due = new Date(sale.date); due.setDate(due.getDate()+earliestDays);
     if(exists){
       exists.lastDate=sale.date;
-      exists.dueDate=due;
+      exists.dueDate=due.toISOString().slice(0,10);
       exists.snoozed=false;
     } else {
       const rule = S.productRules.find(r=>r.product===triggerProd.name&&r.autoCreate);
@@ -10441,7 +10221,7 @@ function autoCreateReminderFromSale(sale){
         id:Date.now()+Math.random(),
         custName:sale.customer,phone:sale.phone||'',
         product:allProdNames,lastDate:sale.date,days:earliestDays,
-        dueDate:due,priority:rule?.priority||'medium',
+        dueDate:due.toISOString().slice(0,10),priority:rule?.priority||'medium',
         notes:'Auto-created: '+sale.products.length+' products, earliest reorder '+earliestDays+'d',
         msg:getWATmpl('reminder',{name:sale.customer,product:allProdNames}),
         sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -10552,7 +10332,7 @@ function calcNextDue(){
   if(!lastDate || !days) return;
   const due = new Date(lastDate);
   due.setDate(due.getDate() + days);
-  document.getElementById('rem-due-date').value = due;
+  document.getElementById('rem-due-date').value = due.toISOString().slice(0,10);
 }
 
 function populateReminderDataLists(){
@@ -10604,7 +10384,7 @@ function addReminder(){
     product: prod,
     lastDate,
     days,
-    dueDate: due,
+    dueDate: due.toISOString().slice(0,10),
     priority: document.getElementById('rem-priority').value,
     notes: document.getElementById('rem-notes').value,
     msg: document.getElementById('rem-msg-custom').value || getWATmpl('reminder',{name:cust,product:prod}),
@@ -10675,7 +10455,7 @@ function snoozeReminder(id, extraDays){
   if(!r) return;
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + extraDays);
-  r.dueDate = due;
+  r.dueDate = due.toISOString().slice(0,10);
   r.snoozed = true;
   renderRemindersStats();
   renderRemindersToday();
@@ -10690,7 +10470,7 @@ function markReminderSent(id){
   // Advance due date by interval
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + r.days);
-  r.dueDate = due;
+  r.dueDate = due.toISOString().slice(0,10);
   r.lastDate = localDate();
   r.snoozed = false;
   renderRemindersStats();
@@ -11325,7 +11105,7 @@ async function gsMaybeSync(action, data){
 // ===== MODAL =====
 function openModal(id){
   document.querySelectorAll('.mo.open').forEach(function(m){m.classList.remove('open');m.style.display='';});
-  const el=document.getElementById(id); if(!el) return;
+  var el=document.getElementById(id);if(!el)return;
   el.style.display='flex';
   requestAnimationFrame(function(){el.classList.add('open');});
 }
@@ -11458,46 +11238,7 @@ window.addEventListener('DOMContentLoaded', function(){
     if(!ud.length)return;
     var ex=document.getElementById('undelivered-banner');if(ex)ex.remove();
     var bnr=document.createElement('div');bnr.id='undelivered-banner';
-    bnr.textContent=ud.length+' order'+(ud.length>1?'s':'')+' pending delivery';
-    bnr.style.cssText='position:fixed;bottom:70px;left:12px;right:12px;background:#c0392b;color:#fff;border-radius:12px;padding:12px 16px;z-index:9998;cursor:pointer;font-weight:700;text-align:center';
-    bnr.onclick=function(){nav('orders');bnr.remove();};
-    document.body.appendChild(bnr);
-  },1200);
-  S.customers.filter(function(x){return !x.custNum;}).forEach(function(x){x.custNum=nextCustNum();});
-  (function(){var yr=new Date().getFullYear(),pre=yr+'ORD',seen={};
-    S.orders.forEach(function(o){if(!o.orderNum||seen[o.orderNum]){o.orderNum=nextOrderNum();}seen[o.orderNum]=1;});
-  })();
-  addProductRow();buildSellUnitOptions();buildCustDatalist();
-  populateAdSourceDropdown();renderCategoryChips();
-  renderRemindersStats();loadLogoPreview();createDeviceBackup();
-  if(hadSaved){
-    console.log('Data restored: '+S.sales.length+' sales, '+S.products.length+' products, '+S.customers.length+' customers');
-  }
-
-yId('date-chip');if(dc)dc.textContent=now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  var dds=document.getElementById('dash-date-sub');if(dds)dds.textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' -- 0 orders today';
-  var today=localDate(now);
-  ['s-date','tc-date','rep-filter-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=today;});
-  window.addEventListener('beforeunload',persistState);
-  window.addEventListener('pagehide',persistState);
-  setInterval(persistState,30000);
-  var rd=document.getElementById('rep-date');if(rd)rd.value=today;
-  if(S.settings.bizName){var bn=document.getElementById('biz-name');if(bn)bn.value=S.settings.bizName;}
-  if(S.settings.owner){var on=document.getElementById('owner-name');if(on)on.value=S.settings.owner;}
-  renderWeeklyChart();renderStockOverview();renderProducts();updateDashStats();
-  renderInventory();renderSmartProfit();renderSalesForecast();
-  if(S.target&&S.target.set){
-    var sv2=function(id,v){var e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
-    sv2('dt-tgt-sales',S.target.sales);sv2('dt-tgt-profit',S.target.profit);sv2('dt-tgt-orders',S.target.orders);
-    sv2('tgt-sales',S.target.sales);sv2('tgt-profit',S.target.profit);sv2('tgt-orders',S.target.orders);
-    renderDashTarget();
-  }
-  setTimeout(function(){
-    var ud=S.orders.filter(function(o){return o.status!=='Delivered'&&o.status!=='Cancelled';});
-    if(!ud.length)return;
-    var ex=document.getElementById('undelivered-banner');if(ex)ex.remove();
-    var bnr=document.createElement('div');bnr.id='undelivered-banner';
-    bnr.textContent=ud.length+' order'+(ud.length>1?'s':'')+' pending delivery';
+    bnr.textContent=ud.length+' order'+(ud.length>1?'s':'')+' pending delivery -- tap to view';
     bnr.style.cssText='position:fixed;bottom:70px;left:12px;right:12px;background:#c0392b;color:#fff;border-radius:12px;padding:12px 16px;z-index:9998;cursor:pointer;font-weight:700;text-align:center';
     bnr.onclick=function(){nav('orders');bnr.remove();};
     document.body.appendChild(bnr);
