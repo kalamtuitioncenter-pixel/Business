@@ -3280,9 +3280,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     </div>
   </div>
 <!-- MODALS -->
-<!-- Student Partial Fee Payment Modal -->
-
-</div>
+<!-- NPA Write-Off Modal -->
+<div class="mo" id="npa-modal">
   <div class="mo-box" style="max-width:460px">
     <div class="mo-h" style="background:rgba(248,81,73,.08);border-bottom:1px solid rgba(248,81,73,.2)">
       <h2>🚫 Mark as NPA — Write Off</h2>
@@ -8310,15 +8309,15 @@ function updateDashStats(){
   const thisMonth=today.slice(0,7);
   const todaySales=S.sales.filter(s=>s.date===today);
   const monthSales=S.sales.filter(s=>s.date&&s.date.slice(0,7)===thisMonth);
-  const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
-  const mTotal=monthSales.reduce((a,s)=>a+s.total,0);
-  const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
-  const loyDisc=mLoyDisc;
-  const npaTotal=(S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
+  const tTotal   = todaySales.reduce((a,s)=>a+s.total,0);
+  const mTotal   = monthSales.reduce((a,s)=>a+s.total,0);
+  const mProfit  = monthSales.reduce((a,s)=>a+(s.profit||0),0);
+  const mLoyDisc = monthSales.reduce((a,s)=>a+(s.redeemDisc||0),0);
+  const teaMonth = S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth).reduce((a,e)=>a+(e.income||0),0);
+  const pending  = S.customers.reduce((a,c)=>a+(c.pending||0),0);
+  const loyDisc  = mLoyDisc;
+  const npaTotal = (S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
-  const mProfit=monthSales.reduce((a,s)=>a+(s.profit||0),0);
-  const mLoyDisc=monthSales.reduce((a,s)=>a+(s.redeemDisc||0),0);
-  const teaMonth=S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth).reduce((a,e)=>a+(e.income||0),0);
   document.getElementById('d-profit').textContent='₹'+mProfit.toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
   document.getElementById('d-today').textContent='₹'+tTotal.toFixed(2);
@@ -8345,7 +8344,9 @@ function updateDashStats(){
 function openNPAModal(custId){
   const c=S.customers.find(x=>x.id===custId);
   if(!c){toast('Customer not found');return;}
-  if(!(c.pending>0)){toast('⚠️ No pending amount for this customer');return;}
+  // Resync pending from sales before showing modal
+  c.pending = S.sales.filter(s=>s.customer===c.name).reduce((a,s)=>a+(s.pending||0),0);
+  if(!(c.pending>0)){toast('⚠️ No pending amount for '+c.name);return;}
   document.getElementById('npa-cust-id').value  = custId;
   document.getElementById('npa-cust-show').textContent = c.name;
   document.getElementById('npa-amount-show').textContent = '₹'+c.pending.toFixed(2);
