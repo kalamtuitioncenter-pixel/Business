@@ -366,6 +366,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   .card-h{ padding:8px 12px !important; }
   .card-h h3{ font-size:12px !important; }
   .sc-grid{ margin-bottom:8px !important; }
+
+  /* ── Compact page spacing ── */
+  .ph{ margin-bottom:6px !important; margin-top:0 !important; }
+  .ph h1{ font-size:15px !important; margin:0 0 0; }
+  .ph p{ font-size:10px !important; margin:2px 0 0; }
+  #content{ padding:8px !important; }
+  .card{ margin-bottom:8px !important; }
+  .card-h{ padding:8px 12px !important; }
+  .sc-grid{ margin-bottom:8px !important; }
+  .tab-bar{ margin-bottom:8px !important; }
 }
 
 /* ════════════════════════════════
@@ -3620,7 +3630,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
       </div>
 
-      <!-- Stock history note -->
+      <!-- Stock history note
+<!-- Stock history note -->
       <div id="ep-history-note" style="font-size:11px;color:var(--text3);padding:4px 0"></div>
     </div>
     <div class="mo-f" style="display:flex;gap:8px">
@@ -3632,8 +3643,13 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
 <div id="toast"></div>
 
+
+<div id="toast"></div>
+<div class="mo" id="exchange-modal"><div class="mo-box" style="max-width:500px"><div class="mo-h"><h2>Exchange / Return</h2><button class="xbtn" onclick="closeModal('exchange-modal')">X</button></div><div class="mo-b"><input type="hidden" id="ex-sale-id"><div id="ex-sale-info"></div><div class="fr2"><div class="fg"><label class="fl">Type</label><select class="fs" id="ex-type" onchange="exTypeChange()"><option value="exchange">Exchange</option><option value="return">Return</option><option value="partial_return">Partial Return</option></select></div><div class="fg"><label class="fl">Date</label><input class="fi" id="ex-date" type="date"></div></div><div id="ex-exchange-wrap"><div class="fr2"><div class="fg"><label class="fl">Product Returned</label><input class="fi" id="ex-return-prod"></div><div class="fg"><label class="fl">New Product</label><input class="fi" id="ex-new-prod"></div></div><div class="fr2"><div class="fg"><label class="fl">Price Diff (Rs)</label><input class="fi" id="ex-diff" type="number" value="0"></div><div class="fg"><label class="fl">Settled By</label><select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">None</option></select></div></div></div><div id="ex-return-wrap" style="display:none"><div class="fr2"><div class="fg"><label class="fl">Refund (Rs)</label><input class="fi" id="ex-refund-amt" type="number" placeholder="0"></div><div class="fg"><label class="fl">Refund Mode</label><select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select></div></div></div><div class="fg"><label class="fl">Reason</label><input class="fi" id="ex-reason" placeholder="Reason"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-y" style="flex:1" onclick="confirmExchange()">Confirm</button><button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button></div></div></div></div>
+
 <script>
-function localDate(d){const dt=d?new Date(d):new Date();return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+function localDate(d){const dt=d?new Date(d):new Date();return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");}
+
 
 // ===== STATE =====
 const S = {
@@ -3736,214 +3752,249 @@ function refreshAllFull(){
   checkUndeliveredOrders();
 }
 
-function nextOrderNum(){const year=new Date().getFullYear();const prefix=year+'ORD';const existing=S.orders.map(x=>x.orderNum||'').filter(n=>n.startsWith(prefix)).map(n=>parseInt(n.replace(prefix,''))||0);const next=existing.length>0?Math.max(...existing)+1:1;return prefix+String(next).padStart(3,'0');}
 
-function nextCustNum(){const year=new Date().getFullYear();const prefix=year+'GS';const existing=S.customers.map(x=>x.custNum||'').filter(n=>n.startsWith(prefix)).map(n=>parseInt(n.replace(prefix,''))||0);const next=existing.length>0?Math.max(...existing)+1:1;return prefix+String(next).padStart(3,'0');}
+function nextOrderNum(){const yr=new Date().getFullYear(),pre=yr+"ORD";const ex=S.orders.map(x=>x.orderNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
 
+function nextCustNum(){const yr=new Date().getFullYear(),pre=yr+"GS";const ex=S.customers.map(x=>x.custNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
 
 function resendBillWA(saleId){
-  const s=S.sales.find(x=>x.id===saleId);
+  var s=S.sales.find(function(x){return x.id===saleId;});
   if(!s){toast('Sale not found');return;}
-  const phone=s.phone||S.customers.find(x=>x.name===s.customer)?.phone||'';
-  if(!phone){toast('No phone for '+s.customer);return;}
-  const _rc=S.customers.find(x=>x.name===s.customer)||{};
-  const _items=(s.products||[{name:s.product,qty:s.qty||1,price:s.price||0,disc:s.disc||0}]);
-  const _billItems=_items.map((p,i)=>{
-    const lp=+p.price||0;const ld=+p.disc||0;const lt=p.qty*(lp-ld);
-    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ Rs.'+lp.toFixed(2)+(ld>0?' (disc -Rs.'+ld.toFixed(2)+')':'')+' = Rs.'+lt.toFixed(2);
+  var ph=s.phone||S.customers.find(function(x){return x.name===s.customer;})||{};
+  ph=typeof ph==='string'?ph:ph.phone||'';
+  if(!ph){toast('No phone for '+s.customer);return;}
+  var rc=S.customers.find(function(x){return x.name===s.customer;})||{};
+  var it=s.products||[{name:s.product||'',qty:s.qty||1,price:s.price||0,disc:s.disc||0}];
+  var bI=it.map(function(p,i){
+    var lp=+p.price||0,ld=+p.disc||0,lt=p.qty*(lp-ld);
+    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+lp.toFixed(2)+(ld>0?' (disc -\u20b9'+ld.toFixed(2)+')':'')+' = \u20b9'+lt.toFixed(2);
   }).join('\n')+'\n';
-  const _sub=_items.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
-  const _disc=_items.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
-  const invNo=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
-  const msg=getWATmpl('receipt',{
-    name:s.customer,product:_items.map(p=>p.name).join(', '),
-    items:_billItems,subtotal:_sub.toFixed(2),discount:_disc.toFixed(2),
-    amount:s.total.toFixed(2),mode:s.mode,date:s.date,
-    biz:S.settings.bizName||'Meenatchi Traders',
-    custnum:_rc.custNum||'',ordernum:s.orderNum||invNo
+  var bS=it.reduce(function(a,p){return a+(p.qty*(+p.price||0));},0);
+  var bD=it.reduce(function(a,p){return a+(p.qty*(+p.disc||0));},0);
+  var inv=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
+  openWA(ph,getWATmpl('receipt',{name:s.customer,product:it.map(function(p){return p.name;}).join(', '),items:bI,subtotal:bS.toFixed(2),discount:bD.toFixed(2),amount:(s.total||0).toFixed(2),mode:s.mode||'Cash',date:s.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:rc.custNum||'\u2014',ordernum:s.orderNum||inv}));
+}
+
+
+
+function renderInvoiceList(){
+  var tb=document.getElementById('invoice-list-tbody');if(!tb)return;
+  var q=(document.getElementById('inv-search')?document.getElementById('inv-search').value||'':'').toLowerCase();
+  var list=S.sales.slice().sort(function(a,b){return b.date>a.date?1:-1;});
+  if(q)list=list.filter(function(s){return (s.customer||'').toLowerCase().indexOf(q)>=0||(s.orderNum||'').indexOf(q)>=0||(s.date||'').indexOf(q)>=0;});
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">\uD83E\uDDFE</div><p>'+(q?'No results':'No sales yet')+'</p></div></td></tr>';return;}
+  var rows=list.map(function(s){
+    var co=S.customers.find(function(x){return x.name===s.customer;})||{};
+    var inv=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
+    var ph=s.phone||co.phone||'';
+    var pr=(s.products||[]).map(function(p){return p.name+'x'+p.qty;}).join(', ');
+    var sc=s.pending>0?'var(--red)':'var(--green)';
+    var row='<tr>';
+    row+='<td style="font-size:11px;font-family:monospace;color:var(--accent)">'+inv+'</td>';
+    row+='<td><div style="font-weight:700;font-size:12px">'+s.customer+'</div>';
+    if(co.custNum||ph)row+='<div style="font-size:9px;color:var(--text3)">'+(co.custNum||'')+' '+(ph?'\u00b7 '+ph:'')+'</div>';
+    row+='</td>';
+    row+='<td style="font-size:11px;color:var(--text3)">'+s.date+'</td>';
+    row+='<td style="font-size:10px">'+pr.slice(0,30)+(pr.length>30?'\u2026':'')+'</td>';
+    row+='<td style="font-weight:700;color:var(--green)">\u20b9'+(s.total||0).toFixed(0)+'</td>';
+    row+='<td style="font-weight:700;color:'+sc+'">'+(s.pending>0?'\u20b9'+s.pending.toFixed(0)+' due':'\u2705 Paid')+'</td>';
+    row+='<td style="display:flex;gap:4px">';
+    row+='<button class="btn btn-b" style="font-size:10px;padding:2px 6px" onclick="generateInvoice('+s.id+')">\uD83E\uDDFE PDF</button>';
+    if(ph)row+='<button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="resendBillWA('+s.id+')">\uD83D\uDCF1 WA</button>';
+    row+='</td></tr>';
+    return row;
   });
-  openWA(phone,msg);
+  tb.innerHTML=rows.join('');
 }
 
 function renderWeeklyReport(){
-  const dateVal=document.getElementById('rep-week-date')?.value||localDate();
-  const base=new Date(dateVal+'T00:00:00');
-  const day=base.getDay();
-  const monday=new Date(base);monday.setDate(base.getDate()-(day===0?6:day-1));
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const dates=days.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDate(d);});
-  const byDay=dates.map((dt,idx)=>{
-    const ds=S.sales.filter(s=>s.date===dt);
-    return{date:dt,day:days[idx],orders:ds.length,
-      rev:ds.reduce((a,s)=>a+s.total,0),profit:ds.reduce((a,s)=>a+s.profit,0)};
+  var dv=document.getElementById('rep-week-date')?document.getElementById('rep-week-date').value:localDate();
+  if(!dv)dv=localDate();
+  var base=new Date(dv+'T00:00:00'),day=base.getDay();
+  var mon=new Date(base);mon.setDate(base.getDate()-(day===0?6:day-1));
+  var dys=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var dates=dys.map(function(_,i){var d=new Date(mon);d.setDate(mon.getDate()+i);return localDate(d);});
+  var byDay=dates.map(function(dt,idx){
+    var ds=S.sales.filter(function(s){return s.date===dt;});
+    return{date:dt,day:dys[idx],orders:ds.length,rev:ds.reduce(function(a,s){return a+s.total;},0),profit:ds.reduce(function(a,s){return a+s.profit;},0)};
   });
-  const totalRev=byDay.reduce((a,d)=>a+d.rev,0);
-  const totalProfit=byDay.reduce((a,d)=>a+d.profit,0);
-  const totalOrders=byDay.reduce((a,d)=>a+d.orders,0);
-  const margin=totalRev>0?((totalProfit/totalRev)*100).toFixed(0):0;
-  const best=[...byDay].sort((a,b)=>b.rev-a.rev)[0];
-  const worst=[...byDay].sort((a,b)=>a.rev-b.rev)[0];
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  set('wk-rev','Rs.'+totalRev.toFixed(0));set('wk-orders',totalOrders+' orders');
-  set('wk-profit','Rs.'+totalProfit.toFixed(0));set('wk-margin',margin+'% margin');
-  set('wk-best-day',best.day);set('wk-best-amt','Rs.'+best.rev.toFixed(0));
-  set('wk-worst-day',worst.day);set('wk-worst-amt','Rs.'+worst.rev.toFixed(0));
-  const maxRev=Math.max(...byDay.map(d=>d.rev),1);
-  const chart=document.getElementById('wk-bar-chart');
-  if(chart){
-    chart.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding:8px 0">'+
-      byDay.map(d=>{const pct=(d.rev/maxRev*100).toFixed(0);
+  var tRev=byDay.reduce(function(a,d){return a+d.rev;},0);
+  var tPr=byDay.reduce(function(a,d){return a+d.profit;},0);
+  var tOr=byDay.reduce(function(a,d){return a+d.orders;},0);
+  var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  set('wk-rev','\u20b9'+tRev.toFixed(0));set('wk-orders',tOr+' orders');
+  set('wk-profit','\u20b9'+tPr.toFixed(0));set('wk-margin',(tRev>0?((tPr/tRev)*100).toFixed(0):0)+'% margin');
+  var best=byDay.slice().sort(function(a,b){return b.rev-a.rev;})[0];
+  var worst=byDay.slice().sort(function(a,b){return a.rev-b.rev;})[0];
+  set('wk-best-day',best.day);set('wk-best-amt','\u20b9'+best.rev.toFixed(0));
+  set('wk-worst-day',worst.day);set('wk-worst-amt','\u20b9'+worst.rev.toFixed(0));
+  var maxR=Math.max.apply(null,byDay.map(function(d){return d.rev;}).concat([1]));
+  var ch=document.getElementById('wk-bar-chart');
+  if(ch){
+    ch.innerHTML='<div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding:8px 0">'+
+      byDay.map(function(d){
+        var pct=Math.round(d.rev/maxR*100);
         return '<div style="display:flex;flex-direction:column;align-items:center;flex:1">'+
-          '<div style="font-size:8px;color:var(--accent);font-weight:700;margin-bottom:2px">'+(d.rev>0?'Rs.'+d.rev.toFixed(0):'')+
-          '</div><div style="background:var(--blue);width:100%;height:'+Math.max(pct,d.rev>0?4:1)+'%;border-radius:4px 4px 0 0;min-height:'+(d.rev>0?'4':'1')+'px"></div>'+
+          '<div style="font-size:8px;color:var(--accent);font-weight:700;margin-bottom:2px">'+(d.rev>0?'\u20b9'+d.rev.toFixed(0):'')+
+          '</div><div style="background:var(--blue);width:100%;height:'+Math.max(pct,d.rev>0?4:1)+'%;border-radius:4px 4px 0 0"></div>'+
           '<div style="font-size:9px;color:var(--text3);margin-top:3px">'+d.day+'</div></div>';
       }).join('')+'</div>';
   }
-  const tb=document.getElementById('wk-tbody');
+  var tb=document.getElementById('wk-tbody');
   if(tb){
-    if(!totalOrders){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">📊</div><p>No sales this week</p></div></td></tr>';return;}
-    tb.innerHTML=byDay.map(d=>'<tr><td style="font-weight:'+(d.orders?'700':'400')+'">'+d.day+'</td>'+
-      '<td style="font-size:11px;color:var(--text3)">'+d.date+'</td>'+
-      '<td style="color:'+(d.orders?'var(--accent)':'var(--text3)')+'">'+d.orders+'</td>'+
-      '<td style="color:var(--green);font-weight:'+(d.rev?'700':'400')+'">Rs.'+d.rev.toFixed(0)+'</td>'+
-      '<td style="color:'+(d.profit>=0?'var(--blue)':'var(--red)')+'">Rs.'+d.profit.toFixed(0)+'</td></tr>').join('');
+    if(!tOr){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">\uD83D\uDCCA</div><p>No sales this week</p></div></td></tr>';return;}
+    tb.innerHTML=byDay.map(function(d){
+      return '<tr><td style="font-weight:'+(d.orders?700:400)+'">'+d.day+'</td><td style="font-size:11px;color:var(--text3)">'+d.date+'</td><td>'+d.orders+'</td><td style="color:var(--green);font-weight:700">\u20b9'+d.rev.toFixed(0)+'</td><td style="color:'+(d.profit>=0?'var(--blue)':'var(--red)')+';">\u20b9'+d.profit.toFixed(0)+'</td></tr>';
+    }).join('');
   }
 }
 
 function renderProductReport(){
-  const tb=document.getElementById('prod-report-tbody');if(!tb)return;
-  const prodMap={};
-  S.sales.forEach(sale=>{
-    (sale.products||[{name:sale.product,qty:sale.qty||1,price:sale.price||0,disc:sale.disc||0,cost:sale.cost||0}]).forEach(p=>{
+  var tb=document.getElementById('prod-report-tbody');if(!tb)return;
+  var pm={};
+  S.sales.forEach(function(sale){
+    var ps=sale.products||[{name:sale.product,qty:sale.qty||1,price:sale.price||0,disc:sale.disc||0,cost:sale.cost||0}];
+    ps.forEach(function(p){
       if(!p.name)return;
-      if(!prodMap[p.name])prodMap[p.name]={name:p.name,soldQty:0,revenue:0,totalCost:0,profit:0};
-      const qty=p.qty||1;const price=+p.price||0;const disc=+p.disc||0;
-      const lineRev=qty*(price-disc);
-      const prodObj=S.products.find(x=>x.name===p.name)||{};
-      const unitCost=+p.cost>0?+p.cost:+(prodObj.cunit||0);
-      prodMap[p.name].soldQty+=qty;prodMap[p.name].revenue+=lineRev;
-      prodMap[p.name].profit+=(lineRev-qty*unitCost);
+      if(!pm[p.name])pm[p.name]={name:p.name,soldQty:0,revenue:0,profit:0};
+      var qty=p.qty||1,rev=qty*((+p.price||0)-(+p.disc||0));
+      var po=S.products.find(function(x){return x.name===p.name;})||{};
+      var uc=+p.cost>0?+p.cost:+(po.cunit||0);
+      pm[p.name].soldQty+=qty;pm[p.name].revenue+=rev;pm[p.name].profit+=(rev-qty*uc);
     });
   });
-  const rows=Object.values(prodMap).map(r=>{
-    const prod=S.products.find(p=>p.name===r.name)||{};
-    r.category=prod.cat||'—';r.stockLeft=prod.stock||0;r.buyPrice=+(prod.cunit||0);
-    r.margin=r.revenue>0?((r.profit/r.revenue)*100).toFixed(1)+'%':'—';
+  var rows=Object.values(pm).map(function(r){
+    var po=S.products.find(function(p){return p.name===r.name;})||{};
+    r.cat=po.cat||'\u2014';r.stock=po.stock||0;r.buyP=+(po.cunit||0);
+    r.margin=r.revenue>0?((r.profit/r.revenue)*100).toFixed(1)+'%':'\u2014';
     return r;
-  }).sort((a,b)=>b.revenue-a.revenue);
-  if(!rows.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>No sales data</p></div></td></tr>';return;}
-  const thead=tb.closest('table')?.querySelector('thead tr');
-  if(thead&&!thead.querySelector('.th-cost'))
-    thead.innerHTML='<th>Product</th><th>Category</th><th>Sold</th><th>Revenue</th><th>Cost/Unit</th><th>Profit</th><th>Margin</th><th>Stock</th>';
-  tb.innerHTML=rows.map(r=>{
-    const mv=parseFloat(r.margin);
-    const mc=isNaN(mv)?'var(--text3)':mv>30?'var(--green)':mv>10?'var(--accent)':mv>0?'var(--orange)':'var(--red)';
-    return '<tr><td><strong>'+r.name+'</strong></td><td style="font-size:10px;color:var(--text3)">'+r.category+'</td>'+
-      '<td style="color:var(--accent)">'+r.soldQty+'</td>'+
-      '<td style="color:var(--green);font-weight:700">Rs.'+r.revenue.toFixed(0)+'</td>'+
-      '<td style="color:var(--text2);font-size:11px">Rs.'+r.buyPrice.toFixed(0)+'</td>'+
-      '<td style="color:'+(r.profit>=0?'var(--blue)':'var(--red)')+';font-weight:700">Rs.'+r.profit.toFixed(0)+'</td>'+
-      '<td style="color:'+mc+';font-weight:700">'+r.margin+'</td>'+
-      '<td style="color:'+(r.stockLeft<5?'var(--red)':'var(--text2)')+'">'+r.stockLeft+'</td></tr>';
+  }).sort(function(a,b){return b.revenue-a.revenue;});
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">\uD83D\uDCE6</div><p>No sales data</p></div></td></tr>';return;}
+  var th=tb.closest('table')?tb.closest('table').querySelector('thead tr'):null;
+  if(th&&!th.querySelector('.th-c'))th.innerHTML='<th>Product</th><th>Cat</th><th>Sold</th><th>Revenue</th><th>Cost/Unit</th><th>Profit</th><th>Margin</th><th>Stock</th>';
+  tb.innerHTML=rows.map(function(r){
+    var mv=parseFloat(r.margin),mc=isNaN(mv)?'var(--text3)':mv>30?'var(--green)':mv>10?'var(--accent)':mv>0?'var(--orange)':'var(--red)';
+    return '<tr><td><strong>'+r.name+'</strong></td><td style="font-size:10px;color:var(--text3)">'+r.cat+'</td><td style="color:var(--accent)">'+r.soldQty+'</td><td style="color:var(--green);font-weight:700">\u20b9'+r.revenue.toFixed(0)+'</td><td style="font-size:11px">\u20b9'+r.buyP.toFixed(0)+'</td><td style="color:'+(r.profit>=0?'var(--blue)':'var(--red)')+';font-weight:700">\u20b9'+r.profit.toFixed(0)+'</td><td style="color:'+mc+';font-weight:700">'+r.margin+'</td><td style="color:'+(r.stock<5?'var(--red)':'var(--text2)')+'">'+r.stock+'</td></tr>';
   }).join('');
 }
 
-function renderInvoiceList(){
-  const tb=document.getElementById('invoice-list-tbody');if(!tb)return;
-  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
-  let list=[...S.sales].sort((a,b)=>b.date>a.date?1:-1);
-  if(q)list=list.filter(s=>(s.customer||'').toLowerCase().includes(q)||(s.orderNum||'').toLowerCase().includes(q)||(s.date||'').includes(q));
-  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">🧾</div><p>'+(q?'No results':'No sales yet')+'</p></div></td></tr>';return;}
-  tb.innerHTML=list.map(s=>{
-    const custObj=S.customers.find(x=>x.name===s.customer)||{};
-    const invNo=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
-    const phone=s.phone||custObj.phone||'';
-    const prodNames=(s.products||[]).map(p=>p.name+'x'+p.qty).join(', ');
-    const sc=s.pending>0?'var(--red)':'var(--green)';
-    return '<tr><td style="font-size:11px;font-family:monospace;color:var(--accent)">'+invNo+'</td>'+
-      '<td><div style="font-weight:700;font-size:12px">'+s.customer+'</div>'+
-      '<div style="font-size:9px;color:var(--text3)">'+(custObj.custNum||'')+' '+(phone?'· '+phone:'')+'</div></td>'+
-      '<td style="font-size:10px;color:var(--text3)">'+s.date+'</td>'+
-      '<td style="font-size:10px">'+prodNames.slice(0,30)+(prodNames.length>30?'…':'')+'</td>'+
-      '<td style="font-weight:700;color:var(--green)">Rs.'+s.total.toFixed(0)+'</td>'+
-      '<td style="font-weight:700;color:'+sc+'">'+(s.pending>0?'Rs.'+s.pending.toFixed(0)+' due':'Paid')+'</td>'+
-      '<td style="display:flex;gap:4px;flex-wrap:wrap">'+
-        '<button class="btn btn-b" style="font-size:10px;padding:2px 6px" onclick="generateInvoice('+s.id+')">🧾 PDF</button>'+
-        (phone?'<button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="resendBillWA('+s.id+')">📱 WA</button>':'')+'</td></tr>';
-  }).join('');
-}
+
 
 function calcSmartReminders(){
-  const reminders=[];const today=new Date();today.setHours(0,0,0,0);
-  S.customers.forEach(cust=>{
+  var reminders=[],today=new Date();today.setHours(0,0,0,0);
+  S.customers.forEach(function(cust){
     if(!cust.phone)return;
-    const byProd={};
-    (cust.purchaseHistory||[]).forEach(ph=>{
-      if(!byProd[ph.product])byProd[ph.product]=[];
-      byProd[ph.product].push({date:ph.date,qty:ph.qty||1});
+    var byP={};
+    (cust.purchaseHistory||[]).forEach(function(ph){if(!byP[ph.product])byP[ph.product]=[];byP[ph.product].push({date:ph.date,qty:ph.qty||1});});
+    var pr=[];
+    Object.keys(byP).forEach(function(prodName){
+      var purchases=byP[prodName].slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+      var rule=(S.productRules||[]).find(function(r){return r.product===prodName;}),dpq=rule?rule.days:30;
+      var sdl=0,lpd=null;
+      purchases.forEach(function(p){var pd=new Date(p.date+'T00:00:00');if(lpd){var el=Math.floor((pd-lpd)/86400000);sdl=Math.max(sdl-el,0);}sdl+=p.qty*dpq;lpd=pd;});
+      if(!lpd)return;
+      var dsl=Math.floor((today-lpd)/86400000),csd=Math.max(sdl-dsl,0);
+      if(csd<=3)pr.push({product:prodName,lastBuy:localDate(lpd),qty:purchases[purchases.length-1].qty,daysPerQty:dpq,stockDaysLeft:csd,dueDate:localDate(new Date(today.getTime()+csd*86400000)),daysUntilDue:csd,daysOverdue:csd<=0?Math.abs(csd):0,due:csd<=0});
     });
-    const prodReminders=[];
-    Object.entries(byProd).forEach(([prodName,purchases])=>{
-      purchases.sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const rule=(S.productRules||[]).find(r=>r.product===prodName);
-      const daysPerQty=rule?rule.days:30;
-      let stockDaysLeft=0;let lastPurchaseDate=null;
-      purchases.forEach(p=>{
-        const pDate=new Date(p.date+'T00:00:00');
-        if(lastPurchaseDate){
-          const elapsed=Math.floor((pDate-lastPurchaseDate)/86400000);
-          stockDaysLeft=Math.max(stockDaysLeft-elapsed,0);
-        }
-        stockDaysLeft+=p.qty*daysPerQty;lastPurchaseDate=pDate;
-      });
-      if(!lastPurchaseDate)return;
-      const daysSinceLast=Math.floor((today-lastPurchaseDate)/86400000);
-      const currentStockDays=Math.max(stockDaysLeft-daysSinceLast,0);
-      const dueDateMs=today.getTime()+currentStockDays*86400000;
-      const dueDate=localDate(new Date(dueDateMs));
-      if(currentStockDays<=3){
-        prodReminders.push({product:prodName,lastBuy:localDate(lastPurchaseDate),
-          qty:purchases[purchases.length-1].qty,daysPerQty,stockDaysLeft:currentStockDays,
-          dueDate,daysUntilDue:currentStockDays,daysOverdue:currentStockDays<=0?Math.abs(currentStockDays):0,
-          due:currentStockDays<=0});
-      }
-    });
-    if(prodReminders.length>0)reminders.push({custName:cust.name,phone:cust.phone,
-      products:prodReminders,anyDue:prodReminders.some(r=>r.due)});
+    if(pr.length)reminders.push({custName:cust.name,phone:cust.phone,products:pr,anyDue:pr.some(function(r){return r.due;})});
   });
-  return reminders.sort((a,b)=>Math.max(...b.products.map(r=>r.daysOverdue||0))-Math.max(...a.products.map(r=>r.daysOverdue||0)));
+  return reminders.sort(function(a,b){return Math.max.apply(null,b.products.map(function(r){return r.daysOverdue||0;}))-Math.max.apply(null,a.products.map(function(r){return r.daysOverdue||0;}));});
 }
 
-function renderPendingCust(){
-  const tb=document.getElementById('pending-cust-tbody');if(!tb)return;
-  const pendMap={};
-  S.sales.forEach(sale=>{
-    if((sale.pending||0)<=0)return;
-    const name=sale.customer||'Unknown';
-    if(!pendMap[name]){const custObj=S.customers.find(x=>x.name===name)||{};
-      pendMap[name]={name,phone:sale.phone||custObj.phone||'',custNum:custObj.custNum||'',id:custObj.id||null,pending:0,oldestDate:null};}
-    pendMap[name].pending+=(sale.pending||0);
-    if(!pendMap[name].oldestDate||sale.date<pendMap[name].oldestDate)pendMap[name].oldestDate=sale.date;
-  });
-  const list=Object.values(pendMap).filter(x=>x.pending>0).sort((a,b)=>b.pending-a.pending);
-  if(!list.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr>';return;}
-  const today=new Date();
-  tb.innerHTML=list.map(r=>{
-    const days=r.oldestDate?Math.floor((today-new Date(r.oldestDate+'T00:00:00'))/86400000):0;
-    const ac=days>90?'var(--red)':days>30?'var(--accent)':days>14?'var(--orange)':'var(--text3)';
-    const safeName=r.name.replace(/'/g,"\\'");const safePhone=(r.phone||'').replace(/'/g,"\\'");
-    return '<tr><td><div style="font-weight:700">'+r.name+'</div>'+
-      '<div style="font-size:10px;color:var(--text3)">'+(r.custNum?r.custNum+' · ':'')+r.phone+'</div></td>'+
-      '<td style="color:var(--text2);font-size:11px">'+r.phone+'</td>'+
-      '<td style="color:var(--red);font-weight:700">Rs.'+r.pending.toFixed(0)+'</td>'+
-      '<td style="color:'+ac+';font-weight:'+(days>14?'700':'400')+'">'+(days>0?days+'d':'-')+'</td>'+
-      '<td style="display:flex;gap:4px;flex-wrap:wrap">'+
-        '<button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendWA(\''+safeName+'\','+r.pending.toFixed(0)+',\''+safePhone+'\')">📱 Remind</button>'+
-        (r.id?'<button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="openNPAModal('+r.id+')">🚫 NPA</button>':'')+
-      '</td></tr>';
-  }).join('');
+function sendSmartReminderWA(custName){
+  var rem=calcSmartReminders();
+  var r=rem.find(function(x){return x.custName===custName;});
+  if(!r){toast('No data for '+custName);return;}
+  var cust=S.customers.find(function(x){return x.name===custName;})||{};
+  if(!cust.phone){toast('No phone for '+custName);return;}
+  var prod=r.products.map(function(p){return p.product+' ('+p.daysUntilDue+'d)';}).join(', ');
+  openWA(cust.phone,getWATmpl('reminder',{name:custName,product:prod,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||''}));
+  _dpRemindedToday++;
 }
 
+function sendAllSmartReminders(){
+  var rem=calcSmartReminders();if(!rem.length){toast('No reminders due');return;}
+  var i=0;
+  (function next(){if(i>=rem.length)return;var r=rem[i++];var co=S.customers.find(function(x){return x.name===r.custName;})||{};if(co.phone)sendSmartReminderWA(r.custName);setTimeout(next,1500);})();
+  toast('Sending '+rem.length+' reminders\u2026');
+}
+
+function recalcAllLoyaltyPoints(skipConfirm){
+  if(!skipConfirm&&!confirm('Recalculate loyalty points for ALL customers?'))return;
+  S.customers.forEach(function(cust){
+    cust.points=0;cust.pointsHistory=[];
+    S.sales.filter(function(s){return s.customer===cust.name;}).forEach(function(sale){
+      var pts=Math.floor((sale.total||0)/10);
+      if(pts>0){cust.points=(cust.points||0)+pts;(cust.pointsHistory=cust.pointsHistory||[]).push({date:sale.date,pts:pts,note:'Sale \u20b9'+sale.total,saleId:sale.id});}
+    });
+  });
+  autoSave();toast('\u2705 Loyalty points recalculated');
+  if(document.querySelector('.page.active')&&document.querySelector('.page.active').id==='p-loyalty')renderLeaderboard();
+}
+
+function getSourceRows(){
+  var rows=document.querySelectorAll('.sp-source-row'),result=[];
+  rows.forEach(function(row){
+    var id=row.dataset.id;
+    var prod=document.getElementById('sp-src-prod-'+id)?document.getElementById('sp-src-prod-'+id).value.trim():'';
+    var sizeG=+( document.getElementById('sp-src-size-'+id)?document.getElementById('sp-src-size-'+id).value:0)||0;
+    var qty=+(document.getElementById('sp-src-qty-'+id)?document.getElementById('sp-src-qty-'+id).value:0)||0;
+    if(prod&&qty>0)result.push({product:prod,sizeG:sizeG,qty:qty,total:sizeG*qty});
+  });
+  return result;
+}
+
+var _srcRowCount=0;
+function addSourceRow(){
+  _srcRowCount++;var id=_srcRowCount;
+  var opts=S.products.map(function(p){return '<option value="'+p.name+'">'+p.name+'</option>';}).join('');
+  var row=document.createElement('div');row.className='sp-source-row';row.dataset.id=id;
+  row.style.cssText='background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px';
+  row.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;font-weight:700;color:var(--text3)">Source '+id+'</span><button onclick="this.closest(\'.sp-source-row\').remove()" style="background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.25);color:var(--red);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px">\u2715</button></div><div class="fr2" style="gap:8px"><div class="fg" style="margin:0"><label class="fl">Product</label><select class="fs" id="sp-src-prod-'+id+'"><option value="">Select\u2026</option>'+opts+'</select></div><div class="fr2" style="gap:8px;margin:0"><div class="fg" style="margin:0"><label class="fl">Size (g)</label><input class="fi" type="number" id="sp-src-size-'+id+'" placeholder="e.g.100" min="1"></div><div class="fg" style="margin:0"><label class="fl">Qty</label><input class="fi" type="number" id="sp-src-qty-'+id+'" placeholder="1" min="1" value="1"></div></div></div><div style="font-size:10px;color:var(--text3);margin-top:4px" id="sp-src-total-'+id+'">0g | stock: \u2014</div>';
+  var cont=document.getElementById('sp-source-rows');if(cont)cont.appendChild(row);
+}
+
+
+
+function confirmExchange(){
+  var saleId=+document.getElementById('ex-sale-id').value;
+  var sale=S.sales.find(function(x){return x.id===saleId;});
+  if(!sale){toast('Sale not found');return;}
+  var type=document.getElementById('ex-type').value;
+  var date=document.getElementById('ex-date').value||localDate();
+  var reason=document.getElementById('ex-reason').value||'\u2014';
+  S.exchangeLog=S.exchangeLog||[];
+  if(type==='exchange'){
+    var retProd=document.getElementById('ex-return-prod').value;
+    var newProd=document.getElementById('ex-new-prod').value;
+    var diff=+document.getElementById('ex-diff').value||0;
+    var settled=document.getElementById('ex-settled').value;
+    S.exchangeLog.push({id:Date.now(),saleId:saleId,date:date,type:'exchange',retProd:retProd,newProd:newProd,diff:diff,settled:settled,reason:reason,customer:sale.customer});
+    if(diff>0&&settled==='credit')sale.pending=(sale.pending||0)+diff;
+    toast('\u2705 Exchange recorded');
+  } else {
+    var refund=+document.getElementById('ex-refund-amt').value||0;
+    var mode=document.getElementById('ex-refund-mode').value;
+    S.exchangeLog.push({id:Date.now(),saleId:saleId,date:date,type:type,refund:refund,mode:mode,reason:reason,customer:sale.customer});
+    sale.pending=Math.max((sale.pending||0)-refund,0);
+    toast('\u2705 Return recorded \u2014 \u20b9'+refund+' refund via '+mode);
+  }
+  autoSave();closeModal('exchange-modal');
+  if(typeof renderSalesTable==='function')renderSalesTable();
+  if(typeof renderCustomers==='function')renderCustomers();
+  if(typeof updateDashStats==='function')updateDashStats();
+}
+
+function exTypeChange(){
+  var type=document.getElementById('ex-type').value;
+  var ew=document.getElementById('ex-exchange-wrap');
+  var rw=document.getElementById('ex-return-wrap');
+  if(ew)ew.style.display=type==='exchange'?'':'none';
+  if(rw)rw.style.display=type!=='exchange'?'':'none';
+}
+
+
+function deleteCourse(id){toast("Course management removed");}
 
 function persistState(){
   try {
@@ -3992,6 +4043,7 @@ const PAGES = {dashboard:'📊',sales:'🧾',products:'📦',orders:'🚚',custo
 const TITLES = {dashboard:'Dashboard',sales:'Sales Entry',products:'Products & Stock',orders:'Order Tracking',customers:'Customer Management',whatsapp:'WhatsApp Reminders',teashop:'Tea & Coffee Shop',tuition:'Tuition Management',coursemanagement:'Course Management',advertisement:'Advertisement Management',inventory:'Inventory Intelligence',smartprofit:'Smart Profit Dashboard',demand:'Demand Prediction',autoreport:'Auto Business Report',reminders:'Customer Reminders',bulkwa:'Bulk WhatsApp',target:'Profit Target Tracker',salesforecast:'Sales Forecast AI',supplier:'Supplier Management',loyalty:'Loyalty & Referrals',bizanalytics:'Business Analytics',reports:'Reports & Analytics',settings:'Settings',reorder:'Smart Reorder Engine',repacktrack:'Repacking Tracker',packstock:'Packaging Stock'};
 
 function nav(page){
+  if(window.innerWidth<=768) closeSidebar();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('p-'+page).classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
@@ -4010,7 +4062,6 @@ function nav(page){
   }
   if(page==='customers'){ renderCustomers(); renderPendingCust(); }
   if(page==='whatsapp'){ renderWA(); }
-  if(page==='tuition'){ renderStudents(); renderStaffTable(); populateCourseDropdown(); }
   if(page==='inventory'){ renderInventory(); }
   if(page==='smartprofit'){ renderSmartProfit(); }
   if(page==='salesforecast'){ renderSalesForecast(); }
@@ -4020,6 +4071,7 @@ function nav(page){
   if(page==='packstock'){   renderPackStock(); }
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=localDate(); genReport(); }
+  if(page==='reports'){ genReport(); setTimeout(()=>renderBaMonthly(),100); }
   if(page==='target'){
     // Load saved targets into form inputs on every visit
     if(S.target.set){
@@ -4178,7 +4230,20 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `🏪 *{biz}*\nHi {name}! ✅ Your order is recorded.\n\n📦 Products: {product}\n💰 Total: ₹{amount}\n💳 Mode: {mode}\n\nThank you for shopping with us! 🙏\n⭐ You've earned loyalty points on this purchase.`,
+    `🏪 *{biz}*
+Customer: {name}
+Cust No: {custnum}
+Invoice No: {ordernum}
+Date: {date}
+--------------------------------
+Items:
+{items}--------------------------------
+Subtotal: ₹{subtotal}
+Discount: -₹{discount}
+Total: ₹{amount}
+Payment: {mode}
+--------------------------------
+Thank you for your purchase! 🙏`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
@@ -4264,7 +4329,12 @@ function getWATmpl(key, vars){
     .replace(/\{name\}/g,    vars.name    || '')
     .replace(/\{amount\}/g,  vars.amount  || '')
     .replace(/\{product\}/g, vars.product || '')
-    .replace(/\{mode\}/g,    vars.mode    || '');
+    .replace(/\{mode\}/g,    vars.mode    || '')
+    .replace(/\{custnum\}/g,  vars.custnum   || '—')
+    .replace(/\{ordernum\}/g, vars.ordernum  || '—')
+    .replace(/\{items\}/g,    vars.items     || '')
+    .replace(/\{subtotal\}/g, vars.subtotal  || '0')
+    .replace(/\{discount\}/g, vars.discount  || '0');
 }
 
 function waPreview(tmplId){
@@ -4593,6 +4663,7 @@ function remTab(el,id){tabSwitch(el,id,['rt-today','rt-all','rt-rules','rt-add',
 function sfTab(el,id){
   tabSwitch(el,id,['sf-ov','sf-tbl','sf-ins','sf-exp']);
   if(id==='sf-tbl') renderForecastTable();
+  if(id==='sf-ins') renderInsights();
 }
 function supTab(el,id){
   if(el)tabSwitch(el,id,['sup-all','sup-add','sup-cat']);
@@ -4727,6 +4798,7 @@ function getPtsSettings(){
   };
 }
 function savePtsSettings(silent){
+  const earnRateChanged=true; // rate check
   // Read from DOM (this is the ONLY place that reads from DOM inputs for pts settings)
   const ps = {
     perRupee:  +document.getElementById('pts-per-rupee')?.value  || 1,
@@ -4772,7 +4844,7 @@ function getPointsExpiry(c){
   if(!lastEarnDate) return null;
   const ps = getPtsSettings();
   const expDate = new Date(new Date(lastEarnDate).getTime() + ps.validity*86400000);
-  return expDate.toISOString().slice(0,10);
+  return expDate;
 }
 function isPointsExpired(c){
   const exp = getPointsExpiry(c);
@@ -4853,7 +4925,7 @@ function renderWeeklyPoints(){
   const ps = getPtsSettings();
   const today = new Date();
   const weekStart = new Date(today); weekStart.setDate(today.getDate()-7);
-  const wStr = weekStart.toISOString().slice(0,10);
+  const wStr = weekStart;
   const list = S.customers.filter(c=>(c.points||0)>0||c.pointsHistory?.length>0);
   if(!list.length){
     tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">📅</div><p>No points data yet</p></div></td></tr>';
@@ -5583,11 +5655,7 @@ function editCourse(id){
   cmTab(document.querySelectorAll('#p-coursemanagement .tab-bar .tab')[1],'cm-add');
 }
 
-function deleteCourse(id){
-  if(!confirm('Delete this course? Students enrolled will keep their data.')) return;
-  S.courses=S.courses.filter(c=>c.id!==id);
-  renderCourses(); renderCourseStats(); autoSave(); toast('🗑️ Course deleted');
-}
+
 
 function renderCourses(){
   const el=document.getElementById('courses-list-container'); if(!el) return;
@@ -5674,37 +5742,9 @@ function renderCourseReports(){
   }).join('');
 }
 
-// Populate course dropdown in Add Student form
-function populateCourseDropdown(){
-  const sel=document.getElementById('stu-course-sel'); if(!sel) return;
-  sel.innerHTML='<option value="">— No course / Custom —</option>'+
-    S.courses.map(c=>`<option value="${c.id}">${c.name}${c.subject?' ('+c.subject+')':''} — ${c.timing}</option>`).join('');
-}
 
-// Auto-fill student fees when course selected
-function onStudentCourseSelect(){
-  const sel   =document.getElementById('stu-course-sel');
-  const courseId=+sel?.value||0;
-  const course =S.courses.find(c=>c.id===courseId);
-  const idEl  =document.getElementById('stu-course-id');
-  if(idEl) idEl.value=courseId||'';
-  if(course){
-    const cf=document.getElementById('stu-course-fees');
-    const bf=document.getElementById('stu-book-fees');
-    const tm=document.getElementById('stu-timing');
-    if(cf) cf.value=course.courseFees||0;
-    if(bf) bf.value=course.bookFees||0;
-    if(tm) tm.value=course.timing||'';
-    // Auto-check both boxes
-    const cc=document.getElementById('stu-chk-course');
-    const bc=document.getElementById('stu-chk-book');
-    if(cc) cc.checked=true;
-    if(bc) bc.checked=(course.bookFees>0);
-    calcStudentTotal();
-  } else {
-    calcStudentTotal();
-  }
-}
+
+
 
 // Calculate total based on checked fee boxes
 function calcStudentTotal(){
@@ -5716,87 +5756,9 @@ function calcStudentTotal(){
   const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value=total;
 }
 
-// Updated addStudent with course support
-function addStudent(){
-  const name=document.getElementById('stu-name')?.value.trim();
-  if(!name){ toast('⚠️ Enter student name'); return; }
-  const courseId=+document.getElementById('stu-course-id')?.value||0;
-  const course  =S.courses.find(c=>c.id===courseId);
-  const cf=+document.getElementById('stu-course-fees')?.value||0;
-  const bf=+document.getElementById('stu-book-fees')?.value||0;
-  const cc=document.getElementById('stu-chk-course')?.checked;
-  const bc=document.getElementById('stu-chk-book')?.checked;
-  const totalFees=+document.getElementById('stu-fee')?.value||0;
-  const student={
-    id:Date.now(), name,
-    cls:document.getElementById('stu-class')?.value||'',
-    phone:document.getElementById('stu-phone')?.value||'',
-    parent:document.getElementById('stu-parent')?.value||'',
-    courseId:courseId||null,
-    courseName:course?course.name:'',
-    timing:document.getElementById('stu-timing')?.value||'',
-    courseFees:cf, bookFees:bf,
-    selectedFees:{course:!!cc, book:!!bc},
-    fee:totalFees, totalFees,
-    paid:0, pending:totalFees, balance:totalFees
-  };
-  S.students.push(student);
-  ['stu-name','stu-class','stu-phone','stu-parent','stu-timing','stu-course-fees','stu-book-fees'].forEach(id=>{
-    const e=document.getElementById(id); if(e) e.value='';
-  });
-  const sel=document.getElementById('stu-course-sel'); if(sel) sel.value='';
-  const feeEl=document.getElementById('stu-fee'); if(feeEl) feeEl.value='';
-  const cidEl=document.getElementById('stu-course-id'); if(cidEl) cidEl.value='';
-  const cc2=document.getElementById('stu-chk-course'); if(cc2) cc2.checked=true;
-  const bc2=document.getElementById('stu-chk-book'); if(bc2) bc2.checked=true;
-  renderStudents(); renderCourseStats(); autoSave();
-  toast('✅ Student added!'+(course?' ('+course.name+')':''));
-}
 
-function renderStudents(){
-  document.getElementById('t-total').textContent=S.students.length;
-  const fees=S.students.reduce((a,s)=>a+(s.paid||0),0);
-  const pend=S.students.reduce((a,s)=>a+(s.balance||0),0);
-  document.getElementById('t-fees').textContent='₹'+fees.toFixed(2);
-  document.getElementById('t-pend').textContent='₹'+pend.toFixed(2);
-  document.getElementById('d-stu').textContent=S.students.length;
-  // Staff dashboard stats
-  const staffDom=document.getElementById('t-staff');if(staffDom)staffDom.textContent=S.staff.length;
-  const salDue2=S.staff.reduce((a,s)=>a+(s.sal-s.paid),0);
-  const salDueEl=document.getElementById('t-saldue');if(salDueEl)salDueEl.textContent='₹'+Math.max(salDue2,0).toFixed(2);
-  const dStaff=document.getElementById('d-staff');if(dStaff)dStaff.textContent=S.staff.length;
-  const dSal=document.getElementById('d-sal');if(dSal)dSal.textContent='₹'+Math.max(salDue2,0).toFixed(2);
-  const dtf=document.getElementById('d-tfees');if(dtf)dtf.textContent='₹'+(S.students.reduce((a,s)=>a+(s.paid||0),0)).toFixed(2);
-  const dtp=document.getElementById('d-tpend');if(dtp)dtp.textContent='₹'+(S.students.reduce((a,s)=>a+(s.balance||s.pending||0),0)).toFixed(2);
-  const tb=document.getElementById('students-tbody');
-  if(!S.students.length){
-    tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">🎓</div><p>No students yet.</p></div></td></tr>';
-    return;
-  }
-  tb.innerHTML=S.students.map(s=>{
-    const bal=s.balance||s.pending||0;
-    const paid=s.paid||0;
-    const total=s.totalFees||s.fee||0;
-    const badge=bal>0
-      ?'<span class="badge br" style="font-size:9px">⏳ Due</span>'
-      :'<span class="badge bg" style="font-size:9px">✅ Paid</span>';
-    return `<tr>
-      <td><strong>${s.name}</strong>${s.parent?'<div style="font-size:10px;color:var(--text3)">'+s.parent+'</div>':''}</td>
-      <td>${s.courseName||s.cls||'—'}</td>
-      <td style="font-size:11px">${s.timing||'—'}</td>
-      <td>${s.phone||'—'}</td>
-      <td style="color:var(--accent);font-weight:700">₹${total.toFixed(0)}</td>
-      <td style="color:var(--green)">₹${paid.toFixed(0)}</td>
-      <td style="color:${bal>0?'var(--red)':'var(--text3)'}">₹${bal.toFixed(0)}</td>
-      <td>${badge}</td>
-      <td style="display:flex;gap:3px;flex-wrap:wrap">
-        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="openStudentPayModal(${s.id})">💰 Pay</button>
-        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="delStudent(${s.id})">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('');
-  renderDueFees();
-}
+
+
 
 function renderDueFees(){
   const tb=document.getElementById('due-students-tbody'); if(!tb) return;
@@ -7250,7 +7212,7 @@ function saveSale(){
   S.sales.push(sale);
   // Update customer
   let c=S.customers.find(x=>x.name===cust);
-  const sAddr=document.getElementById('s-addr')?.value.trim()||'';if(!c){c={id:Date.now(),name:cust,phone,addr:sAddr,paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:''};S.customers.push(c);}
+  const sAddr=document.getElementById('s-addr')?.value.trim()||'';if(!c){c={id:Date.now(),custNum:nextCustNum(),name:cust,phone,addr:sAddr,paid:0,pending:0,lastProd:products[0]?.name||'',mode:sale.mode,points:0,bday:'',referredBy:''};S.customers.push(c);}
   c.paid=(c.paid||0)+(sale.total-pending);
   c.pending=(c.pending||0)+pending;
   c.lastProd=products[0]?.name||c.lastProd;
@@ -7276,11 +7238,13 @@ function saveSale(){
   }
   // Then earn new points
   c.points=(c.points||0)+earnedPts;
+  if(earnedPts>0){c.purchaseHistory=c.purchaseHistory||[];c.purchaseHistory.push({date:sale.date,product:products.map(p=>p.name).join(','),qty:products.reduce((a,p)=>a+(p.qty||1),0),total:sale.total,pts:earnedPts});}
   c.pointsHistory=c.pointsHistory||[];
   c.pointsHistory.push({date:sale.date,earned:earnedPts,reason:'Sale ₹'+finalTotal.toFixed(0),balance:c.points});
   // Create order from sale
   if(products.length){
-    S.orders.push({id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
+    const _newOrderNum=nextOrderNum();
+  S.orders.push({orderNum:_newOrderNum,id:S.orderCounter++,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
   }
   // Targeted post-sale render — only update what changed
   renderSalesTable();
@@ -7301,7 +7265,19 @@ function saveSale(){
   gsMaybeSync('addSale', sale);
   autoSave();
   refreshCustDatalist();
-  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);clearSale();
+  toast('✅ Sale saved! ₹'+total.toFixed(2)+' · +'+earnedPts+' pts for '+cust);
+  const _waChk=document.getElementById('s-auto-wa');
+  const _sendWA=_waChk?_waChk.checked:(S.settings.autoWaReceipt!==false);
+  const _waPhone=phone||S.customers.find(x=>x.name===cust)?.phone||'';
+  if(_waPhone&&_sendWA){
+    const _bI=products.map((p,i)=>'  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+(+p.price).toFixed(2)+(+p.disc>0?' (disc -\u20b9'+(+p.disc).toFixed(2)+')':'')+' = \u20b9'+(p.qty*(+p.price-+p.disc)).toFixed(2)).join('\n')+'\n';
+    const _bS=products.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
+    const _bD=products.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
+    const _co=S.customers.find(x=>x.name===cust)||{};
+    const _wm=getWATmpl('receipt',{name:cust,product:products.map(p=>p.name).join(', '),items:_bI,subtotal:_bS.toFixed(2),discount:_bD.toFixed(2),amount:finalTotal.toFixed(2),mode:sale.mode,date:sale.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:_co.custNum||'\u2014',ordernum:sale.orderNum||'\u2014'});
+    setTimeout(()=>showWAConfirm(_waPhone,_wm,cust),400);
+  }
+  clearSale();
 }
 
 function clearSale(){
@@ -7445,17 +7421,15 @@ function renderSalesTable(){
   const todaySales=S.sales.filter(s=>s.date===today);
   const tb=document.getElementById('sales-tbody');
   const htb=document.getElementById('history-tbody');
-  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
+  const row=(s)=>`<tr><td>${s.date}</td><td><strong>${s.customer}</strong></td><td>${s.products.map(p=>p.name).join(', ')}</td><td>${s.products.reduce((a,p)=>a+p.qty,0)}</td><td>₹${s.products[0]?.price||0}</td><td>₹${s.products[0]?.disc||0}</td><td style="font-family:Poppins,sans-serif;font-weight:700;color:var(--accent)">₹${s.total.toFixed(2)}</td><td>₹${s.recv.toFixed(2)}</td><td style="color:${s.pending>0?'var(--red)':'var(--green)'}">₹${s.pending.toFixed(2)}</td><td><span class="badge ${s.mode==='Credit (Pending)'?'br':'bg'}">${s.mode}</span></td><td><span class="badge bb">${s.status}</span></td><td style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-y" style="font-size:9px;padding:2px 5px" onclick="openEditSale(${s.id})">✏️</button><button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="resendBillWA(${s.id})">📱</button><button class="btn btn-b" style="font-size:9px;padding:2px 5px" onclick="generateInvoice(${s.id})">🧾</button><button class="btn btn-r" style="font-size:9px;padding:2px 5px" onclick="deleteSale(${s.id})">🗑️</button></td></tr>`;
   tb.innerHTML=todaySales.length?todaySales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales today</p></div></td></tr>';
   htb.innerHTML=S.sales.length?S.sales.slice().reverse().map(row).join(''):'<tr><td colspan="12"><div class="empty"><div class="ei">📭</div><p>No sales history</p></div></td></tr>';
   // Update summary stats
-  const _today=localDate();const _thisMonth=_today.slice(0,7);
-  const _todayDt=new Date(_today+'T00:00:00');const _dayOfWk=_todayDt.getDay();
-  const _daysBack=_dayOfWk===0?6:_dayOfWk-1;const _monDt=new Date(_todayDt);
-  _monDt.setDate(_todayDt.getDate()-_daysBack);const _weekStart=localDate(_monDt);
-  const tTotal=S.sales.filter(s=>s.date===_today).reduce((a,s)=>a+s.total,0);
-  const wTotal=S.sales.filter(s=>s.date>=_weekStart&&s.date<=_today).reduce((a,s)=>a+s.total,0);
-  const mTotal2=S.sales.filter(s=>s.date&&s.date.slice(0,7)===_thisMonth).reduce((a,s)=>a+s.total,0);
+  const _td=localDate(),_tm=_td.slice(0,7),_tdt=new Date(_td+'T00:00:00'),_dw=_tdt.getDay();
+  const _mon=new Date(_tdt);_mon.setDate(_tdt.getDate()-(_dw===0?6:_dw-1));const _ws=localDate(_mon);
+  const tTotal=S.sales.filter(s=>s.date===_td).reduce((a,s)=>a+s.total,0);
+  const wTotal=S.sales.filter(s=>s.date>=_ws&&s.date<=_td).reduce((a,s)=>a+s.total,0);
+  const mTotal2=S.sales.filter(s=>s.date&&s.date.slice(0,7)===_tm).reduce((a,s)=>a+s.total,0);
   document.getElementById('s-today').textContent='₹'+tTotal.toFixed(0);
   document.getElementById('s-week').textContent='₹'+wTotal.toFixed(0);
   document.getElementById('s-month').textContent='₹'+mTotal2.toFixed(0);
@@ -7562,7 +7536,7 @@ function addCustomer(){
   if(!phone){toast('⚠️ Phone is required');return;}
   const bday=document.getElementById('c-bday').value;
   const ref=document.getElementById('c-ref').value.trim();
-  S.customers.push({id:Date.now(),name,phone,addr:document.getElementById('c-addr').value,paid:0,pending:0,lastProd:'—',mode:'Cash',points:0,bday,referredBy:ref,pointsHistory:[]});
+  S.customers.push({id:Date.now(),custNum:nextCustNum(),name,phone,addr:document.getElementById('c-addr').value,paid:0,pending:0,lastProd:'—',mode:'Cash',points:0,bday,referredBy:ref,pointsHistory:[]});
   // Track referral
   if(ref){
     const refC=S.customers.find(x=>x.name===ref);
@@ -7581,30 +7555,44 @@ function addCustomer(){
 function deleteCust(id){S.customers=S.customers.filter(c=>c.id!==id);renderCustomers();autoSave();toast('🗑️ Customer removed');}
 
 function renderPendingCust(){
-  const list=S.customers.filter(c=>c.pending>0);
-  const tb=document.getElementById('pending-cust-tbody');
-  if(!tb) return;
-  if(!list.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">🎉</div><p>No pending payments!</p></div></td></tr>';return;}
+  const tb=document.getElementById('pending-cust-tbody');if(!tb)return;
+  const pm={};
+  S.sales.forEach(function(sale){
+    if((sale.pending||0)<=0)return;
+    const name=sale.customer||'Unknown';
+    if(!pm[name]){const co=S.customers.find(function(x){return x.name===name;})||{};
+      pm[name]={name:name,phone:sale.phone||co.phone||'',custNum:co.custNum||'',id:co.id||null,pending:0,oldestDate:null};}
+    pm[name].pending+=(sale.pending||0);
+    if(!pm[name].oldestDate||sale.date<pm[name].oldestDate)pm[name].oldestDate=sale.date;
+  });
+  const list=Object.values(pm).filter(function(x){return x.pending>0;}).sort(function(a,b){return b.pending-a.pending;});
+  if(!list.length){tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending!</p></div></td></tr>';return;}
   const today=new Date();
-  tb.innerHTML=list.map(c=>{
-    // Find oldest pending sale date
-    const pendSales=S.sales.filter(s=>s.customer===c.name&&(s.pending||0)>0);
-    const oldest=pendSales.length?pendSales.reduce((a,s)=>s.date<a?s.date:a,pendSales[0].date):null;
-    const days=oldest?Math.floor((today-new Date(oldest+'T00:00:00'))/86400000):0;
-    const ageColor=days>90?'var(--red)':days>30?'var(--accent)':'var(--text3)';
-    const npaReady=days>90;
-    return `<tr>
-      <td><strong>${c.name}</strong></td>
-      <td>${c.phone||'—'}</td>
-      <td style="color:var(--red);font-weight:700">₹${c.pending.toFixed(2)}</td>
-      <td style="color:${ageColor};font-weight:${days>30?'700':'400'}">${days>0?days+'d':'-'}${npaReady?' ⚠️':''}</td>
-      <td style="display:flex;gap:4px;flex-wrap:wrap">
-        <button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="sendWA('${c.name.replace(/'/g,"\\'")}',${c.pending},'${c.phone||''}')">📱 Remind</button>
-        <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="openNPAModal(${c.id})" title="Mark as unrecoverable bad debt">🚫 NPA</button>
-      </td>
-    </tr>`;
+  tb.innerHTML=list.map(function(r){
+    const days=r.oldestDate?Math.floor((today-new Date(r.oldestDate+'T00:00:00'))/86400000):0;
+    const ac=days>90?'var(--red)':days>30?'var(--accent)':days>14?'var(--orange)':'var(--text3)';
+    const ph=r.phone?(' &middot; '+r.phone):'';
+    const cn=r.custNum?(r.custNum+' '):'';
+    let h='<tr><td><strong>'+r.name+'</strong><br><small style="color:var(--text3)">'+cn+ph+'</small></td>';
+    h+='<td style="color:var(--red);font-weight:700">&#8377;'+r.pending.toFixed(0)+'</td>';
+    h+='<td style="color:'+ac+'">'+(days>0?days+'d':'-')+'</td>';
+    h+='<td>';
+    const p2=r.phone||'';
+    h+='<button class="btn btn-g" style="font-size:10px;padding:2px 6px" onclick="quickRemindWA(this);" data-name="'+r.name.replace(/"/g,'&quot;')+'" data-phone="'+p2.replace(/"/g,'&quot;')+'" data-amt="'+r.pending.toFixed(0)+'">&#128241; Remind</button>';
+    if(r.id)h+=' <button class="btn btn-r" style="font-size:10px;padding:2px 6px" onclick="openNPAModal('+r.id+')">&#128683; NPA</button>';
+    h+='</td></tr>';
+    return h;
   }).join('');
 }
+
+function quickRemindWA(btn){
+  const name=btn.getAttribute('data-name');
+  const phone=btn.getAttribute('data-phone');
+  const amt=btn.getAttribute('data-amt');
+  sendWA(name,+amt,phone);
+}
+
+
 
 // ===== ORDERS =====
 function renderOrders(){
@@ -7718,7 +7706,7 @@ function openWA(phone, msg){
 
   } else {
     // ── Desktop ──────────────────────────────────────────────────
-    window.open('https://wa.me/' + clean + '?text=' + encoded,
+    window.open('whatsapp://send?phone=' + clean + '?text=' + encoded,
       '_blank', 'noopener,noreferrer');
   }
 }
@@ -7923,20 +7911,9 @@ function clearTeaForm(){
   if(info) info.style.display='none';
 }
 
-// ===== TUITION =====
-function addStaff(){
-  const name=document.getElementById('stf-name').value.trim();
-  if(!name){toast('⚠️ Enter name');return;}
-  S.staff.push({id:Date.now(),name,role:document.getElementById('stf-role').value,phone:document.getElementById('stf-phone').value,sal:+document.getElementById('stf-sal').value||0,paid:0});
-  ['stf-name','stf-role','stf-phone','stf-sal'].forEach(id=>document.getElementById(id).value='');
-  renderStaffTable();renderStudents();autoSave();toast('✅ Staff added!');
-}
 
-function renderStaffTable(){
-  const tb=document.getElementById('staff-tbody');
-  if(!S.staff.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">👨‍🏫</div><p>No staff yet.</p></div></td></tr>';return;}
-  tb.innerHTML=S.staff.map(s=>`<tr><td><strong>${s.name}</strong></td><td>${s.role||'—'}</td><td>${s.phone||'—'}</td><td>₹${s.sal.toFixed(2)}</td><td style="color:var(--green)">₹${s.paid.toFixed(2)}</td><td style="color:var(--red)">₹${Math.max(s.sal-s.paid,0).toFixed(2)}</td><td><button class="btn btn-g" style="font-size:10px;padding:3px 8px">Pay Salary</button></td></tr>`).join('');
-}
+
+
 
 // ===== INVENTORY =====
 function renderInventory(){
@@ -7948,9 +7925,9 @@ function renderInventory(){
   const days     = +document.getElementById('inv-period')?.value || 30;
   const now      = new Date();
   const cutoff   = new Date(); cutoff.setDate(cutoff.getDate()-days);
-  const cutStr   = cutoff.toISOString().slice(0,10);
+  const cutStr   = cutoff;
   const prevCut  = new Date(); prevCut.setDate(prevCut.getDate()-(days*2));
-  const prevStr  = prevCut.toISOString().slice(0,10);
+  const prevStr  = prevCut;
 
   // Compute analytics per product
   const products = S.products.map(p=>{
@@ -8189,7 +8166,7 @@ function renderProductPerformance(days){
   if(!S.products.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei">💡</div><p>No products</p></div></td></tr>';return;}
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate()-days);
-  const cutStr = cutoff.toISOString().slice(0,10);
+  const cutStr = cutoff;
   const periodSales = S.sales.filter(s=>s.date>=cutStr);
   const soldMap={};
   periodSales.forEach(s=>s.products?.forEach(p=>{soldMap[p.name]=(soldMap[p.name]||0)+p.qty;}));
@@ -8416,15 +8393,15 @@ function renderForecastTable(){
 // ===== DEMAND =====
 function renderDemand(){
   document.getElementById('dp-tracked').textContent=S.products.length;
-  const tb=document.getElementById('dp-tbody');
+  const tb=document.getElementById('dash-pending-tbody');
   if(!S.products.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">📦</div><p>Add products first</p></div></td></tr>';return;}
 
   const now    = new Date();
-  const today  = now.toISOString().slice(0,10);
-  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week.toISOString().slice(0,10);
-  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month.toISOString().slice(0,10);
-  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7.toISOString().slice(0,10);
-  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30.toISOString().slice(0,10);
+  const today  = now;
+  const week   = new Date(now); week.setDate(now.getDate()-7);   const weekStr  = week;
+  const month  = new Date(now); month.setDate(now.getDate()-30); const monthStr = month;
+  const prev7  = new Date(now); prev7.setDate(now.getDate()-14); const prev7Str = prev7;
+  const prev30 = new Date(now); prev30.setDate(now.getDate()-60);const prev30Str= prev30;
 
   tb.innerHTML=S.products.map(p=>{
     // Sales qty helper
@@ -8654,6 +8631,7 @@ function renderNPALog(){
 let _dpRemindedToday = 0;
 
 function renderDashPending(){
+  S.customers.forEach(cust=>{cust.pending=S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);});
   const pendCust = S.customers.filter(c=>c.pending>0);
   const total    = pendCust.reduce((a,c)=>a+(c.pending||0),0);
   const today    = new Date();
@@ -8684,7 +8662,7 @@ function renderDashPending(){
   if(dl) dl.innerHTML = pendCust.map(c=>`<option value="${c.name}">`).join('');
 
   // Table
-  const tb = document.getElementById('dp-tbody');
+  const tb = document.getElementById('dash-pending-tbody');
   if(!tb) return;
   if(!withDays.length){
     tb.innerHTML='<tr><td colspan="5"><div class="empty"><div class="ei">🎉</div><p>No pending payments! All clear. 🎊</p></div></td></tr>';
@@ -9026,7 +9004,9 @@ function generateInvoice(id){
   const addr  = S.settings.addr     || '';
   const gstin = S.settings.gstin    || '';
   const upi   = S.settings.upi      || '';
-  const invNo = 'INV-'+String(id).slice(-6);
+  const _co2=S.customers.find(x=>x.name===s.customer)||{};
+  const invNo=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(id).slice(-4);
+  const custNo=_co2.custNum||s.custNum||'—';
   const payAmt= s.pending > 0 ? s.pending : s.total;
 
   // ── UPI QR Code (Google Charts API — no library needed) ──────────────
@@ -9120,6 +9100,7 @@ function generateInvoice(id){
     <div class="val" style="font-size:16px;color:#f9c846">#${invNo}</div>
     <div style="margin-top:8px"><div class="label">Date</div><div class="val">${s.date}</div></div>
     <div style="margin-top:8px"><div class="label">Payment Mode</div><div class="val">${s.mode||'Cash'}</div></div>
+    <div style="margin-top:8px"><div class="label">Order No</div><div class="val">${s.orderNum||'—'}</div></div>
     <div style="margin-top:8px"><div class="label">Status</div><span class="status-badge">${s.pending>0?'⏳ Partial':'✅ Paid'}</span></div>
   </div>
   <div class="right">
@@ -9361,8 +9342,8 @@ function getProductAnalytics(p, days){
   const now    = new Date();
   const cut1   = new Date(); cut1.setDate(cut1.getDate()-days);
   const cut2   = new Date(); cut2.setDate(cut2.getDate()-(days*2));
-  const c1Str  = cut1.toISOString().slice(0,10);
-  const c2Str  = cut2.toISOString().slice(0,10);
+  const c1Str  = cut1;
+  const c2Str  = cut2;
 
   const recentSales = S.sales.filter(s=>s.date>=c1Str);
   const prevSales   = S.sales.filter(s=>s.date>=c2Str && s.date<c1Str);
@@ -9386,12 +9367,12 @@ function getProductAnalytics(p, days){
   // Reorder point: (wAvgDaily * leadTime) + (wAvgDaily * safetyDays)
   const reorderPoint   = wAvgDaily > 0 ? Math.ceil(wAvgDaily * (leadTime + safetyDays)) : p.alert;
   const daysLeft       = wAvgDaily > 0 ? Math.floor(bal / wAvgDaily) : Infinity;
-  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000).toISOString().slice(0,10) : null;
+  const stockoutDate   = wAvgDaily > 0 ? new Date(now.getTime() + daysLeft*86400000) : null;
   const orderByDate    = wAvgDaily > 0
-    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000).toISOString().slice(0,10)
+    ? new Date(now.getTime() + Math.max(daysLeft-leadTime-safetyDays,0)*86400000)
     : null;
   const expectedReceive= orderByDate
-    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000).toISOString().slice(0,10)
+    ? new Date(new Date(orderByDate).getTime() + leadTime*86400000)
     : null;
 
   // Suggested reorder qty: target days supply, rounded to pack size
@@ -9559,7 +9540,7 @@ function soCalcDates(){
   const orderDate=document.getElementById('so-order-date')?.value;
   const lead=+document.getElementById('so-lead')?.value||3;
   if(!orderDate) return;
-  const exp=new Date(new Date(orderDate).getTime()+lead*86400000).toISOString().slice(0,10);
+  const exp=new Date(new Date(orderDate).getTime()+lead*86400000);
   const ed=document.getElementById('so-exp-date');
   if(ed) ed.value=exp;
   // Auto-calc total
@@ -10087,7 +10068,7 @@ function renderPackStock(){
       const monthUsed=m.type==='Sticker'?monthLog.reduce((a,r)=>a+r.stickersUsed,0):m.type==='Cover/Bag'?monthLog.reduce((a,r)=>a+r.coversUsed,0):0;
       const dailyUse=monthUsed/30;
       const daysLeft=dailyUse>0?Math.floor(m.qty/dailyUse):Infinity;
-      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000).toISOString().slice(0,10):null;
+      const orderByDate=daysLeft!==Infinity&&daysLeft<30?new Date(now.getTime()+(daysLeft-m.leadTime)*86400000):null;
       let status='bg',statusTxt='✅ OK';
       if(m.qty<=0){ status='br'; statusTxt='🚨 Out'; }
       else if(m.qty<=m.minStock){ status='br'; statusTxt='🚨 Reorder Now'; }
@@ -10201,7 +10182,7 @@ function renderWeeklyChart(){
   const dateLabels = [];
   for(let i=6;i>=0;i--){
     const d=new Date(now); d.setDate(now.getDate()-i);
-    dateLabels.push(d.toISOString().slice(0,10));
+    dateLabels.push(d);
   }
   const dayVals = dateLabels.map(()=>0);
   S.sales.forEach(s=>{
@@ -10351,7 +10332,7 @@ function autoCreateReminderFromSale(sale){
       if(exists){
         exists.lastDate = sale.date;
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
-        exists.dueDate = due.toISOString().slice(0,10);
+        exists.dueDate = due;
         exists.snoozed = false;
       } else {
         const due = new Date(sale.date); due.setDate(due.getDate()+rule.days);
@@ -10359,7 +10340,7 @@ function autoCreateReminderFromSale(sale){
           id:Date.now()+Math.random(),
           custName:sale.customer,phone:sale.phone||'',
           product:p.name,lastDate:sale.date,days:rule.days,
-          dueDate:due.toISOString().slice(0,10),priority:rule.priority,
+          dueDate:due,priority:rule.priority,
           notes:'Auto-created from sale',
           msg:getWATmpl('reminder',{name:sale.customer,product:p.name}),
           sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -10380,7 +10361,7 @@ function autoCreateReminderFromSale(sale){
     const due = new Date(sale.date); due.setDate(due.getDate()+earliestDays);
     if(exists){
       exists.lastDate=sale.date;
-      exists.dueDate=due.toISOString().slice(0,10);
+      exists.dueDate=due;
       exists.snoozed=false;
     } else {
       const rule = S.productRules.find(r=>r.product===triggerProd.name&&r.autoCreate);
@@ -10388,7 +10369,7 @@ function autoCreateReminderFromSale(sale){
         id:Date.now()+Math.random(),
         custName:sale.customer,phone:sale.phone||'',
         product:allProdNames,lastDate:sale.date,days:earliestDays,
-        dueDate:due.toISOString().slice(0,10),priority:rule?.priority||'medium',
+        dueDate:due,priority:rule?.priority||'medium',
         notes:'Auto-created: '+sale.products.length+' products, earliest reorder '+earliestDays+'d',
         msg:getWATmpl('reminder',{name:sale.customer,product:allProdNames}),
         sentCount:0,snoozed:false,createdAt:new Date().toISOString()
@@ -10499,7 +10480,7 @@ function calcNextDue(){
   if(!lastDate || !days) return;
   const due = new Date(lastDate);
   due.setDate(due.getDate() + days);
-  document.getElementById('rem-due-date').value = due.toISOString().slice(0,10);
+  document.getElementById('rem-due-date').value = due;
 }
 
 function populateReminderDataLists(){
@@ -10551,7 +10532,7 @@ function addReminder(){
     product: prod,
     lastDate,
     days,
-    dueDate: due.toISOString().slice(0,10),
+    dueDate: due,
     priority: document.getElementById('rem-priority').value,
     notes: document.getElementById('rem-notes').value,
     msg: document.getElementById('rem-msg-custom').value || getWATmpl('reminder',{name:cust,product:prod}),
@@ -10622,7 +10603,7 @@ function snoozeReminder(id, extraDays){
   if(!r) return;
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + extraDays);
-  r.dueDate = due.toISOString().slice(0,10);
+  r.dueDate = due;
   r.snoozed = true;
   renderRemindersStats();
   renderRemindersToday();
@@ -10637,7 +10618,7 @@ function markReminderSent(id){
   // Advance due date by interval
   const due = new Date(r.dueDate);
   due.setDate(due.getDate() + r.days);
-  r.dueDate = due.toISOString().slice(0,10);
+  r.dueDate = due;
   r.lastDate = localDate();
   r.snoozed = false;
   renderRemindersStats();
@@ -11271,9 +11252,10 @@ async function gsMaybeSync(action, data){
 
 // ===== MODAL =====
 function openModal(id){
+  document.querySelectorAll('.mo.open').forEach(function(m){m.classList.remove('open');m.style.display='';});
   const el=document.getElementById(id); if(!el) return;
-  el.style.display='flex'; // force display first
-  requestAnimationFrame(()=>el.classList.add('open'));
+  el.style.display='flex';
+  requestAnimationFrame(function(){el.classList.add('open');});
 }
 function closeModal(id){
   const el=document.getElementById(id); if(!el) return;
@@ -11379,159 +11361,43 @@ function clearAllData(){
 
 // ===== INIT (runs after all functions defined) =====
 window.addEventListener('DOMContentLoaded', function(){
-  // ── Load persisted state from localStorage first ──
-  const hadSaved = loadPersistedState();
-
-  const now = new Date();
-  document.getElementById('date-chip').textContent = now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  document.getElementById('dash-date-sub').textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' — 0 orders today';
-  const today = now.toISOString().slice(0,10);
-  ['s-date','tc-date','rep-filter-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=today;});
-  // ── Restore biz name in settings form ──
-  if(S.settings.bizName){ const bn=document.getElementById('biz-name'); if(bn) bn.value=S.settings.bizName; }
-  if(S.settings.owner){   const on=document.getElementById('owner-name'); if(on) on.value=S.settings.owner; }
-  renderWeeklyChart(); renderStockOverview(); renderProducts(); updateDashStats();
-  renderInventory(); renderSmartProfit(); renderSalesForecast();
-
-  // ── Restore saved targets into dashboard inputs on every load ──────────
-  if(S.target && S.target.set){
-    const sv=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v;};
-    sv('dt-tgt-sales',  S.target.sales);
-    sv('dt-tgt-profit', S.target.profit);
-    sv('dt-tgt-orders', S.target.orders);
-    // Also restore the separate target page inputs
-    sv('tgt-sales',  S.target.sales);
-    sv('tgt-profit', S.target.profit);
-    sv('tgt-orders', S.target.orders);
-    renderDashTarget();  // show bars immediately
+  var hadSaved = loadPersistedState();
+  var now = new Date();
+  var dc=document.getElementById('date-chip');if(dc)dc.textContent=now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  var dds=document.getElementById('dash-date-sub');if(dds)dds.textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' -- 0 orders today';
+  var today=localDate(now);
+  ['s-date','tc-date','rep-filter-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=today;});
+  window.addEventListener('beforeunload',persistState);
+  window.addEventListener('pagehide',persistState);
+  setInterval(persistState,30000);
+  var rd=document.getElementById('rep-date');if(rd)rd.value=today;
+  if(S.settings.bizName){var bn=document.getElementById('biz-name');if(bn)bn.value=S.settings.bizName;}
+  if(S.settings.owner){var on=document.getElementById('owner-name');if(on)on.value=S.settings.owner;}
+  renderWeeklyChart();renderStockOverview();renderProducts();updateDashStats();
+  renderInventory();renderSmartProfit();renderSalesForecast();
+  if(S.target&&S.target.set){
+    var sv2=function(id,v){var e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
+    sv2('dt-tgt-sales',S.target.sales);sv2('dt-tgt-profit',S.target.profit);sv2('dt-tgt-orders',S.target.orders);
+    sv2('tgt-sales',S.target.sales);sv2('tgt-profit',S.target.profit);sv2('tgt-orders',S.target.orders);
+    renderDashTarget();
   }
-
-  // ── Undelivered order notification (persistent, re-checks on init) ──
-  setTimeout(()=>{
-    const undelivered = S.orders.filter(o=>
-      o.status!=='Delivered' && o.status!=='Cancelled'
-    );
-    if(!undelivered.length) return;
-    // Show as a badge on the topbar bell icon and as a dismissable card
-    const bellBtn = document.querySelector('.ico-btn');
-    if(bellBtn) bellBtn.innerHTML = '🔔<span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;border-radius:50%;width:14px;height:14px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700">' + undelivered.length + '</span>';
-    if(bellBtn) bellBtn.style.position='relative';
-    // Show banner
-    const existing = document.getElementById('undelivered-banner');
-    if(existing) existing.remove();
-    const banner = document.createElement('div');
-    banner.id = 'undelivered-banner';
-    banner.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:20px">📦</span>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:13px">${undelivered.length} order${undelivered.length>1?'s':''} pending delivery</div>
-          <div style="font-size:11px;opacity:.8;margin-top:2px">${undelivered.slice(0,2).map(o=>o.customer+' — '+o.status).join(' · ')}${undelivered.length>2?' · +'+(undelivered.length-2)+' more':''}</div>
-        </div>
-        <button onclick="nav('orders');document.getElementById('undelivered-banner').remove()"
-          style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">
-          View Orders →
-        </button>
-        <button onclick="document.getElementById('undelivered-banner').remove()"
-          style="background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0;line-height:1">✕</button>
-      </div>`;
-    banner.style.cssText = [
-      'position:fixed','bottom:70px','left:12px','right:12px',
-      'background:linear-gradient(135deg,#c0392b,#e74c3c)',
-      'color:#fff','border-radius:12px','padding:14px 16px',
-      'z-index:9998','box-shadow:0 4px 24px rgba(0,0,0,.4)',
-      'animation:slideUp .3s ease'
-    ].join(';');
-    document.body.appendChild(banner);
-    // Don't auto-dismiss — user must explicitly close or go to orders
-  }, 1200);
-  addProductRow();
-  buildSellUnitOptions();
-  buildCustDatalist();
-  populateAdSourceDropdown(); // populate ad dropdown on load
-  renderCategoryChips();
-  renderRemindersStats();
-  loadLogoPreview();
-  createDeviceBackup();
-
-  if(hadSaved){
-    console.log('Data restored: '+S.sales.length+' sales, '+S.products.length+' products, '+S.customers.length+' customers');
-  }
-
-window.addEventListener('beforeunload', persistState);
-window.addEventListener('pagehide', persistState);
-setInterval(persistState, 30000);
-
-  const rd=document.getElementById('rep-date');if(rd)rd.value=today;
-
-  // ── Restore biz name in settings form ──
-  if(S.settings.bizName){ const bn=document.getElementById('biz-name'); if(bn) bn.value=S.settings.bizName; }
-  if(S.settings.owner){   const on=document.getElementById('owner-name'); if(on) on.value=S.settings.owner; }
-  renderWeeklyChart(); renderStockOverview(); renderProducts(); updateDashStats();
-  renderInventory(); renderSmartProfit(); renderSalesForecast();
-
-  // ── Restore saved targets into dashboard inputs on every load ──────────
-  if(S.target && S.target.set){
-    const sv=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v;};
-    sv('dt-tgt-sales',  S.target.sales);
-    sv('dt-tgt-profit', S.target.profit);
-    sv('dt-tgt-orders', S.target.orders);
-    // Also restore the separate target page inputs
-    sv('tgt-sales',  S.target.sales);
-    sv('tgt-profit', S.target.profit);
-    sv('tgt-orders', S.target.orders);
-    renderDashTarget();  // show bars immediately
-  }
-
-  // ── Undelivered order notification (persistent, re-checks on init) ──
-  setTimeout(()=>{
-    const undelivered = S.orders.filter(o=>
-      o.status!=='Delivered' && o.status!=='Cancelled'
-    );
-    if(!undelivered.length) return;
-    // Show as a badge on the topbar bell icon and as a dismissable card
-    const bellBtn = document.querySelector('.ico-btn');
-    if(bellBtn) bellBtn.innerHTML = '🔔<span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;border-radius:50%;width:14px;height:14px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700">' + undelivered.length + '</span>';
-    if(bellBtn) bellBtn.style.position='relative';
-    // Show banner
-    const existing = document.getElementById('undelivered-banner');
-    if(existing) existing.remove();
-    const banner = document.createElement('div');
-    banner.id = 'undelivered-banner';
-    banner.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:20px">📦</span>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:13px">${undelivered.length} order${undelivered.length>1?'s':''} pending delivery</div>
-          <div style="font-size:11px;opacity:.8;margin-top:2px">${undelivered.slice(0,2).map(o=>o.customer+' — '+o.status).join(' · ')}${undelivered.length>2?' · +'+(undelivered.length-2)+' more':''}</div>
-        </div>
-        <button onclick="nav('orders');document.getElementById('undelivered-banner').remove()"
-          style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:700;white-space:nowrap">
-          View Orders →
-        </button>
-        <button onclick="document.getElementById('undelivered-banner').remove()"
-          style="background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0;line-height:1">✕</button>
-      </div>`;
-    banner.style.cssText = [
-      'position:fixed','bottom:70px','left:12px','right:12px',
-      'background:linear-gradient(135deg,#c0392b,#e74c3c)',
-      'color:#fff','border-radius:12px','padding:14px 16px',
-      'z-index:9998','box-shadow:0 4px 24px rgba(0,0,0,.4)',
-      'animation:slideUp .3s ease'
-    ].join(';');
-    document.body.appendChild(banner);
-    // Don't auto-dismiss — user must explicitly close or go to orders
-  }, 1200);
-  addProductRow();
-  buildSellUnitOptions();
-  buildCustDatalist();
-  populateAdSourceDropdown(); // populate ad dropdown on load
-  populateCourseDropdown();  // populate course dropdown on load
-  renderCategoryChips();
-  renderRemindersStats();
-  loadLogoPreview();
-  createDeviceBackup();
-
+  setTimeout(function(){
+    var ud=S.orders.filter(function(o){return o.status!=='Delivered'&&o.status!=='Cancelled';});
+    if(!ud.length)return;
+    var ex=document.getElementById('undelivered-banner');if(ex)ex.remove();
+    var bnr=document.createElement('div');bnr.id='undelivered-banner';
+    bnr.textContent=ud.length+' order'+(ud.length>1?'s':'')+' pending delivery';
+    bnr.style.cssText='position:fixed;bottom:70px;left:12px;right:12px;background:#c0392b;color:#fff;border-radius:12px;padding:12px 16px;z-index:9998;cursor:pointer;font-weight:700;text-align:center';
+    bnr.onclick=function(){nav('orders');bnr.remove();};
+    document.body.appendChild(bnr);
+  },1200);
+  S.customers.filter(function(x){return !x.custNum;}).forEach(function(x){x.custNum=nextCustNum();});
+  (function(){var yr=new Date().getFullYear(),pre=yr+'ORD',seen={};
+    S.orders.forEach(function(o){if(!o.orderNum||seen[o.orderNum]){o.orderNum=nextOrderNum();}seen[o.orderNum]=1;});
+  })();
+  addProductRow();buildSellUnitOptions();buildCustDatalist();
+  populateAdSourceDropdown();renderCategoryChips();
+  renderRemindersStats();loadLogoPreview();createDeviceBackup();
   if(hadSaved){
     console.log('Data restored: '+S.sales.length+' sales, '+S.products.length+' products, '+S.customers.length+' customers');
   }
