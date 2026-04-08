@@ -682,6 +682,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
     <div class="ni" id="ni-loyalty" onclick="nav('loyalty')"><span class="ico">⭐</span>Loyalty & Referrals</div>
     <div class="ni" id="ni-bizanalytics" onclick="nav('bizanalytics')"><span class="ico">📊</span>Business Analytics</div>
     <div class="ni" id="ni-reports" onclick="nav('reports')"><span class="ico">📋</span>Reports & Analytics</div>
+    
   </div>
   <div class="sb-section">
     <div class="sb-sec-label">Settings</div>
@@ -2722,6 +2723,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
     </div>
 
+    
+
     <!-- ===== SETTINGS ===== -->
     <div class="page" id="p-settings">
       <div class="ph"><h1>⚙️ Settings</h1><p>Connect Google Sheets, configure business info</p></div>
@@ -3482,7 +3485,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div class="bn-more-item" onclick="navMore('repacktrack')"><div class="bmi-ico">📦</div><div class="bmi-txt">Repack</div></div>
       <div class="bn-more-item" onclick="navMore('packstock')"><div class="bmi-ico">🎁</div><div class="bmi-txt">Pack Stock</div></div>
       <div class="bn-more-item" onclick="navMore('advertisement')"><div class="bmi-ico">📢</div><div class="bmi-txt">Ads</div></div>
-      <div class="bn-more-item" onclick="navMore('reports')"><div class="bmi-ico">📋</div><div class="bmi-txt">Reports</div></div>
+      <div class="bn-more-item" onclick="navMore('reports')"><div class="bmi-ico">📋</div>
+      <div class="bn-more-item" onclick="navMore('invoices')"><div class="bmi-ico">🧾</div><div class="bmi-txt">Invoices</div></div><div class="bmi-txt">Reports</div></div>
     </div>
   </div>
 </div><!-- /bn-more-menu -->
@@ -3626,28 +3630,9 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         </div>
         <div class="fr2" style="margin-top:6px">
           <div class="fg"><label class="fl">Sticker Cost (₹)</label><input class="fi" id="ep-sticker" type="number" placeholder="0" oninput="epCalcProfit()"></div>
-          <div class="fg"><label class="fl">Cover/Bag Cost (₹)</label><input class="fi" id="ep-cover" type="number" placeholder="0" oninput="epCalcProfit()"></div>
-        </div>
-      </div>
-
-      <!-- Stock history note
-<!-- Stock history note -->
-      <div id="ep-history-note" style="font-size:11px;color:var(--text3);padding:4px 0"></div>
-    </div>
-    <div class="mo-f" style="display:flex;gap:8px">
-      <button class="btn btn-o" onclick="closeModal('edit-product-modal')">Cancel</button>
-      <button class="btn btn-y" style="flex:1;justify-content:center" onclick="saveEditProduct()">💾 Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-
-<div id="toast"></div>
-<div class="mo" id="exchange-modal"><div class="mo-box" style="max-width:500px"><div class="mo-h"><h2>Exchange / Return</h2><button class="xbtn" onclick="closeModal('exchange-modal')">X</button></div><div class="mo-b"><input type="hidden" id="ex-sale-id"><div id="ex-sale-info"></div><div class="fr2"><div class="fg"><label class="fl">Type</label><select class="fs" id="ex-type" onchange="exTypeChange()"><option value="exchange">Exchange</option><option value="return">Return</option><option value="partial_return">Partial Return</option></select></div><div class="fg"><label class="fl">Date</label><input class="fi" id="ex-date" type="date"></div></div><div id="ex-exchange-wrap"><div class="fr2"><div class="fg"><label class="fl">Product Returned</label><input class="fi" id="ex-return-prod"></div><div class="fg"><label class="fl">New Product</label><input class="fi" id="ex-new-prod"></div></div><div class="fr2"><div class="fg"><label class="fl">Price Diff (Rs)</label><input class="fi" id="ex-diff" type="number" value="0"></div><div class="fg"><label class="fl">Settled By</label><select class="fs" id="ex-settled"><option value="cash">Cash</option><option value="credit">Add to Pending</option><option value="nil">None</option></select></div></div></div><div id="ex-return-wrap" style="display:none"><div class="fr2"><div class="fg"><label class="fl">Refund (Rs)</label><input class="fi" id="ex-refund-amt" type="number" placeholder="0"></div><div class="fg"><label class="fl">Refund Mode</label><select class="fs" id="ex-refund-mode"><option>Cash</option><option>UPI</option><option>Credit Note</option></select></div></div></div><div class="fg"><label class="fl">Reason</label><input class="fi" id="ex-reason" placeholder="Reason"></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-y" style="flex:1" onclick="confirmExchange()">Confirm</button><button class="btn btn-o" onclick="closeModal('exchange-modal')">Cancel</button></div></div></div></div>
 
 <script>
+
 function localDate(d){const dt=d?new Date(d):new Date();return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");}
 
 
@@ -3996,6 +3981,86 @@ function exTypeChange(){
 
 function deleteCourse(id){toast("Course management removed");}
 
+
+function renderInvoicePage(){
+  var today=localDate(),thisMonth=today.slice(0,7);
+  var all=S.sales,ms=all.filter(function(s){return s.date&&s.date.slice(0,7)===thisMonth;});
+  var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  set('inv-stat-total','Rs.'+all.reduce(function(a,s){return a+(s.total||0);},0).toFixed(0));
+  set('inv-stat-count',all.length+' invoice'+(all.length!==1?'s':''));
+  set('inv-stat-recv','Rs.'+all.reduce(function(a,s){return a+(s.recv||0);},0).toFixed(0));
+  set('inv-stat-pend','Rs.'+all.reduce(function(a,s){return a+(s.pending||0);},0).toFixed(0));
+  set('inv-stat-month','Rs.'+ms.reduce(function(a,s){return a+(s.total||0);},0).toFixed(0));
+  set('inv-stat-month-sub',ms.length+' bills this month');
+  var tb=document.getElementById('inv-pg-tbody');if(!tb)return;
+  var q=(document.getElementById('inv-pg-search')?document.getElementById('inv-pg-search').value||'':'').toLowerCase().trim();
+  var filter=document.getElementById('inv-pg-filter')?document.getElementById('inv-pg-filter').value||'all':'all';
+  var list=all.slice().sort(function(a,b){return b.date>a.date?1:-1;});
+  if(q)list=list.filter(function(s){return (s.customer||'').toLowerCase().indexOf(q)>=0||(s.orderNum||'').toLowerCase().indexOf(q)>=0||(s.date||'').indexOf(q)>=0;});
+  if(filter==='paid')list=list.filter(function(s){return (s.pending||0)===0;});
+  if(filter==='pending')list=list.filter(function(s){return (s.pending||0)>0;});
+  if(filter==='month')list=list.filter(function(s){return s.date&&s.date.slice(0,7)===thisMonth;});
+  if(!list.length){tb.innerHTML='<tr><td colspan="7"><div class="empty"><div class="ei">\uD83E\uDDFE</div><p>'+(q||filter!=='all'?'No results':'No invoices yet')+'</p></div></td></tr>';return;}
+  var rows=list.map(function(sale){
+    var co=S.customers.find(function(x){return x.name===sale.customer;})||{};
+    var inv=sale.orderNum?'MT-'+sale.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(sale.id).slice(-4);
+    var ph=sale.phone||co.phone||'';
+    var pr=(sale.products||[]).map(function(p){return p.name+'x'+p.qty;}).join(', ');
+    var paid=(sale.pending||0)===0;
+    var st=paid?'<span class="badge bg" style="font-size:10px">Paid</span>':'<span class="badge br" style="font-size:10px">Rs.'+sale.pending.toFixed(0)+' due</span>';
+    var acts='<button class="btn btn-b" style="font-size:10px;padding:3px 7px" onclick="generateInvoice('+sale.id+')">PDF</button>';
+    if(ph)acts+=' <button class="btn btn-g" style="font-size:10px;padding:3px 7px" onclick="resendBillWA('+sale.id+')">WA</button>';
+    if(!paid)acts+=' <button class="btn btn-y" style="font-size:10px;padding:3px 7px" onclick="quickCollectFromInvoice('+sale.id+')">Collect</button>';
+    return '<tr>'+
+      '<td style="font-weight:700;font-family:monospace;color:var(--accent);font-size:12px">'+inv+'</td>'+
+      '<td><div style="font-weight:700;font-size:12px">'+sale.customer+'</div>'+
+      '<div style="font-size:9px;color:var(--text3)">'+(co.custNum||'')+' '+(ph?'\u00b7 '+ph:'')+'</div></td>'+
+      '<td style="font-size:11px;color:var(--text3)">'+sale.date+'</td>'+
+      '<td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+pr.slice(0,25)+(pr.length>25?'\u2026':'')+'</td>'+
+      '<td style="font-weight:700;color:var(--green)">Rs.'+(sale.total||0).toFixed(0)+'</td>'+
+      '<td>'+st+'</td>'+
+      '<td style="min-width:130px">'+acts+'</td></tr>';
+  });
+  tb.innerHTML=rows.join('');
+}
+
+function quickCollectFromInvoice(saleId){
+  var sale=S.sales.find(function(x){return x.id===saleId;});
+  if(!sale||!sale.pending)return;
+  var input=prompt('Collect amount (pending: Rs.'+sale.pending.toFixed(0)+')',sale.pending.toFixed(0));
+  if(!input)return;
+  var amt=+input;if(isNaN(amt)||amt<=0)return;
+  var collected=Math.min(amt,sale.pending);
+  sale.recv=(sale.recv||0)+collected;
+  sale.pending=Math.max(sale.pending-collected,0);
+  if(sale.pending===0)sale.status='Delivered';
+  var cust=S.customers.find(function(x){return x.name===sale.customer;});
+  if(cust)cust.pending=S.sales.filter(function(s){return s.customer===cust.name;}).reduce(function(a,s){return a+(s.pending||0);},0);
+  autoSave();
+  toast('Collected Rs.'+collected.toFixed(0)+' from '+sale.customer);
+  renderInvoicePage();
+  updateDashStats();
+}
+
+function exportInvoiceCSV(){
+  var rows=[['Invoice No','Customer','Cust No','Date','Products','Total','Received','Pending','Status']];
+  S.sales.slice().sort(function(a,b){return b.date>a.date?1:-1;}).forEach(function(s){
+    var co=S.customers.find(function(x){return x.name===s.customer;})||{};
+    var inv=s.orderNum?'MT-'+s.orderNum.replace(/\D/g,'').slice(-4):'MT-'+String(s.id).slice(-4);
+    var pr=(s.products||[]).map(function(p){return p.name+'x'+p.qty;}).join('; ');
+    rows.push([inv,s.customer||'',co.custNum||'',s.date||'',pr,(s.total||0).toFixed(2),(s.recv||0).toFixed(2),(s.pending||0).toFixed(2),s.pending>0?'Pending':'Paid']);
+  });
+  var csv=rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='invoices_'+localDate()+'.csv';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
+  toast(S.sales.length+' invoices exported');
+}
+
+
 function persistState(){
   try {
     const toSave = Object.assign({}, S, { editProdId: null, _editSupplierId: null });
@@ -4072,6 +4137,7 @@ function nav(page){
   if(page==='demand'){ renderDemand(); }
   if(page==='autoreport'){ document.getElementById('rep-date').value=localDate(); genReport(); }
   if(page==='reports'){ genReport(); setTimeout(()=>renderBaMonthly(),100); }
+  if(page==='invoices'){ renderInvoicePage(); }
   if(page==='target'){
     // Load saved targets into form inputs on every visit
     if(S.target.set){
@@ -8462,16 +8528,22 @@ function updateDashStats(){
   const monthSales=S.sales.filter(s=>s.date&&s.date.slice(0,7)===thisMonth);
   const tTotal=todaySales.reduce((a,s)=>a+s.total,0);
   const mTotal=monthSales.reduce((a,s)=>a+s.total,0);
-  const pending=S.customers.reduce((a,c)=>a+(c.pending||0),0);
-  const loyDisc=S.sales.reduce((a,s)=>a+(s.redeemDisc||0),0);
-  const npaTotal=(S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
+  // All figures filtered to THIS MONTH only
+  const mProfit  = monthSales.reduce((a,s)=>a+(s.profit||0),0);
+  const mLoyDisc = monthSales.reduce((a,s)=>a+(s.redeemDisc||0),0);
+  const pending  = S.customers.reduce((a,c)=>a+(c.pending||0),0);
+  const npaTotal = (S.npaLog||[]).reduce((a,n)=>a+(n.amount||0),0);
+  // Tea income this month
+  const teaMonth = S.teaEntries.filter(e=>e.date&&e.date.slice(0,7)===thisMonth)
+                    .reduce((a,e)=>a+(e.income||0),0);
   document.getElementById('d-income').textContent='₹'+mTotal.toFixed(2);
-  document.getElementById('d-profit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
+  document.getElementById('d-profit').textContent='₹'+mProfit.toFixed(2);
   document.getElementById('d-pending').textContent='₹'+pending.toFixed(2);
   document.getElementById('d-today').textContent='₹'+tTotal.toFixed(2);
   document.getElementById('d-monthly').textContent='₹'+mTotal.toFixed(2);
-  document.getElementById('d-ctotal').textContent='₹'+(mTotal+S.teaEntries.reduce((a,e)=>a+e.income,0)).toFixed(2);
-  document.getElementById('d-cprofit').textContent='₹'+S.sales.reduce((a,s)=>a+s.profit,0).toFixed(2);
+  document.getElementById('d-ctotal').textContent='₹'+(mTotal+teaMonth).toFixed(2);
+  document.getElementById('d-cprofit').textContent='₹'+mProfit.toFixed(2);
+  const loyDisc = mLoyDisc;
   const ldEl=document.getElementById('d-loyalty-disc');
   if(ldEl) ldEl.textContent='₹'+loyDisc.toFixed(0);
   // NPA loss on dashboard
@@ -11401,7 +11473,47 @@ window.addEventListener('DOMContentLoaded', function(){
   if(hadSaved){
     console.log('Data restored: '+S.sales.length+' sales, '+S.products.length+' products, '+S.customers.length+' customers');
   }
+
+yId('date-chip');if(dc)dc.textContent=now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  var dds=document.getElementById('dash-date-sub');if(dds)dds.textContent=now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' -- 0 orders today';
+  var today=localDate(now);
+  ['s-date','tc-date','rep-filter-date'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=today;});
+  window.addEventListener('beforeunload',persistState);
+  window.addEventListener('pagehide',persistState);
+  setInterval(persistState,30000);
+  var rd=document.getElementById('rep-date');if(rd)rd.value=today;
+  if(S.settings.bizName){var bn=document.getElementById('biz-name');if(bn)bn.value=S.settings.bizName;}
+  if(S.settings.owner){var on=document.getElementById('owner-name');if(on)on.value=S.settings.owner;}
+  renderWeeklyChart();renderStockOverview();renderProducts();updateDashStats();
+  renderInventory();renderSmartProfit();renderSalesForecast();
+  if(S.target&&S.target.set){
+    var sv2=function(id,v){var e=document.getElementById(id);if(e&&v!==undefined)e.value=v;};
+    sv2('dt-tgt-sales',S.target.sales);sv2('dt-tgt-profit',S.target.profit);sv2('dt-tgt-orders',S.target.orders);
+    sv2('tgt-sales',S.target.sales);sv2('tgt-profit',S.target.profit);sv2('tgt-orders',S.target.orders);
+    renderDashTarget();
+  }
+  setTimeout(function(){
+    var ud=S.orders.filter(function(o){return o.status!=='Delivered'&&o.status!=='Cancelled';});
+    if(!ud.length)return;
+    var ex=document.getElementById('undelivered-banner');if(ex)ex.remove();
+    var bnr=document.createElement('div');bnr.id='undelivered-banner';
+    bnr.textContent=ud.length+' order'+(ud.length>1?'s':'')+' pending delivery';
+    bnr.style.cssText='position:fixed;bottom:70px;left:12px;right:12px;background:#c0392b;color:#fff;border-radius:12px;padding:12px 16px;z-index:9998;cursor:pointer;font-weight:700;text-align:center';
+    bnr.onclick=function(){nav('orders');bnr.remove();};
+    document.body.appendChild(bnr);
+  },1200);
+  S.customers.filter(function(x){return !x.custNum;}).forEach(function(x){x.custNum=nextCustNum();});
+  (function(){var yr=new Date().getFullYear(),pre=yr+'ORD',seen={};
+    S.orders.forEach(function(o){if(!o.orderNum||seen[o.orderNum]){o.orderNum=nextOrderNum();}seen[o.orderNum]=1;});
+  })();
+  addProductRow();buildSellUnitOptions();buildCustDatalist();
+  populateAdSourceDropdown();renderCategoryChips();
+  renderRemindersStats();loadLogoPreview();createDeviceBackup();
+  if(hadSaved){
+    console.log('Data restored: '+S.sales.length+' sales, '+S.products.length+' products, '+S.customers.length+' customers');
+  }
 });
+
 </script>
 </body>
 </html>
