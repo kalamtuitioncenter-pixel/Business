@@ -619,8 +619,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
       <div class="tab-bar" style="margin-bottom:14px">
         <div class="tab active" onclick="dTab(this,'dt-biz')"><span class="t-ico">💼</span>Business</div>
-        <div class="tab" onclick="dTab(this,'dt-tui')"><span class="t-ico">🎓</span>Tuition</div>
-        <div class="tab" onclick="dTab(this,'dt-com')"><span class="t-ico">📊</span>Combined</div>
         <div class="tab" id="dt-tab-target" onclick="dTab(this,'dt-target')"><span class="t-ico">🎯</span>Target</div>
         <div class="tab" id="dt-tab-pending" onclick="dTab(this,'dt-pending')"><span class="t-ico">⏳</span>Pending</div>
       </div>
@@ -678,25 +676,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               </table></div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ── Tuition Tab ── -->
-      <div id="dt-tui" style="display:none">
-        <div class="sc-grid">
-          <div class="sc p nav-card" onclick="nav('tuition')"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="d-stu">0</div><div class="sc-sub">Tap to manage ›</div></div>
-          <div class="sc g nav-card" onclick="nav('tuition')"><div class="sc-ico">💰</div><div class="sc-label">Total Fees</div><div class="sc-val" id="d-tfees">₹0.00</div><div class="sc-sub">Collected ›</div></div>
-          <div class="sc r nav-card" onclick="nav('tuition')"><div class="sc-ico">⚠️</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="d-tpend">₹0.00</div><div class="sc-sub">Tap to collect ›</div></div>
-          <div class="sc b nav-card" onclick="nav('tuition')"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="d-staff">0</div><div class="sc-sub">Members ›</div></div>
-          <div class="sc o nav-card" onclick="nav('tuition')"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="d-sal">₹0.00</div><div class="sc-sub">Tap to pay ›</div></div>
-        </div>
-      </div>
-
-      <!-- ── Combined Tab ── -->
-      <div id="dt-com" style="display:none">
-        <div class="sc-grid">
-          <div class="sc y nav-card" onclick="nav('reports')"><div class="sc-ico">🏦</div><div class="sc-label">Total Income</div><div class="sc-val" id="d-ctotal">₹0.00</div><div class="sc-sub">All businesses ›</div></div>
-          <div class="sc g nav-card" onclick="nav('smartprofit')"><div class="sc-ico">💎</div><div class="sc-label">Net Profit</div><div class="sc-val" id="d-cprofit">₹0.00</div><div class="sc-sub">Combined ›</div></div>
         </div>
       </div>
 
@@ -3560,7 +3539,7 @@ function resendBillWA(saleId){
   var it=s.products||[{name:s.product||'',qty:s.qty||1,price:s.price||0,disc:s.disc||0}];
   var bI=it.map(function(p,i){
     var lp=+p.price||0,ld=+p.disc||0,lt=p.qty*(lp-ld);
-    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+lp.toFixed(2)+(ld>0?' (disc -\u20b9'+ld.toFixed(2)+')':'')+' = \u20b9'+lt.toFixed(2);
+    return '  '+(i+1)+'. '+p.name.toUpperCase()+' x'+p.qty+' @ ₹'+lp.toFixed(2)+(ld>0?' (disc -₹'+ld.toFixed(2)+')':'')+' = ₹'+lt.toFixed(2);
   }).join('\n')+'\n';
   var bS=it.reduce(function(a,p){return a+(p.qty*(+p.price||0));},0);
   var bD=it.reduce(function(a,p){return a+(p.qty*(+p.disc||0));},0);
@@ -4087,7 +4066,7 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `🏪 *{biz}*
+    `*{biz}*
 Customer: {name}
 Cust No: {custnum}
 Invoice No: {ordernum}
@@ -4100,7 +4079,7 @@ Discount: -₹{discount}
 Total: ₹{amount}
 Payment: {mode}
 --------------------------------
-Thank you for your purchase! 🙏`,
+Thank you for your purchase!`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
@@ -7127,7 +7106,7 @@ function saveSale(){
   const _sendWA=_waChk?_waChk.checked:(S.settings.autoWaReceipt!==false);
   const _waPhone=phone||S.customers.find(x=>x.name===cust)?.phone||'';
   if(_waPhone&&_sendWA){
-    const _bI=products.map((p,i)=>'  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+(+p.price).toFixed(2)+(+p.disc>0?' (disc -\u20b9'+(+p.disc).toFixed(2)+')':'')+' = \u20b9'+(p.qty*(+p.price-+p.disc)).toFixed(2)).join('\n')+'\n';
+    const _bI=products.map((p,i)=>'  '+(i+1)+'. '+p.name.toUpperCase()+' x'+p.qty+' @ ₹'+(+p.price).toFixed(2)+(+p.disc>0?' (disc -₹'+(+p.disc).toFixed(2)+')':'')+' = ₹'+(p.qty*(+p.price-+p.disc)).toFixed(2)).join('\n')+'\n';
     const _bS=products.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
     const _bD=products.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
     const _co=S.customers.find(x=>x.name===cust)||{};
