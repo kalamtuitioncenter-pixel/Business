@@ -7111,8 +7111,8 @@ function saveSale(){
     const _bS=products.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
     const _bD=products.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
     const _co=S.customers.find(x=>x.name===cust)||{};
-    const _wm=getWATmpl('receipt',{name:cust,product:products.map(p=>p.name).join(', '),items:_bI,subtotal:_bS.toFixed(2),discount:_bD.toFixed(2),amount:finalTotal.toFixed(2),mode:sale.mode,date:sale.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:_co.custNum||'\u2014',ordernum:sale.orderNum||'\u2014'});
-    setTimeout(()=>showWAConfirm(_waPhone,_wm,cust),400);
+    const _wm=getWATmpl('receipt',{name:cust,product:products.map(p=>p.name).join(', '),items:_bI,subtotal:_bS.toFixed(2),discount:_bD.toFixed(2),amount:finalTotal.toFixed(2),mode:sale.mode,date:sale.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:_co.custNum||'\u2014',ordernum:_newOrderNum||'\u2014'});
+    setTimeout(()=>openWA(_waPhone,_wm),400);
   }
   clearSale();
 }
