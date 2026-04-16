@@ -3525,9 +3525,23 @@ function refreshAllFull(){
 }
 
 
-function nextOrderNum(){const yr=new Date().getFullYear(),pre=yr+"ORD";const ex=S.orders.map(x=>x.orderNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
+function nextOrderNum(){
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const pre = 'OD' + yy + mm;
+  const ex = S.orders.map(x=>x.orderNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);
+  return pre + String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");
+}
 
-function nextCustNum(){const yr=new Date().getFullYear(),pre=yr+"GS";const ex=S.customers.map(x=>x.custNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
+function nextCustNum(){
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const pre = 'CUST' + yyyy + mm;
+  const ex = S.customers.map(x=>x.custNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);
+  return pre + String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");
+}
 
 function resendBillWA(saleId){
   var s=S.sales.find(function(x){return x.id===saleId;});
@@ -4572,7 +4586,7 @@ function renderWaLoyalty(){
     else if(bal>=100)     statusBadge='<span class="badge bg" style="font-size:9px">✅ Can Redeem</span>';
     else                  statusBadge=`<span class="badge bb" style="font-size:9px">Need ${100-bal} more</span>`;
     return `<tr>
-      <td><strong>${c.name}</strong></td>
+      <td><strong>${c.name}</strong>${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
       <td style="font-size:11px">${c.phone||'<span style="color:var(--red)">No phone</span>'}</td>
       <td style="color:var(--accent);font-weight:700">${bal} pts</td>
       <td style="color:${+val>0?'var(--green)':'var(--text3)'};font-weight:600">₹${val}</td>
@@ -4610,7 +4624,7 @@ function renderLeaderboard(){
     const orders=S.sales.filter(s=>s.customer===c.name).length;
     return `<tr>
       <td style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">${medals[i]||('#'+(i+1))}</td>
-      <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:10px;margin-left:4px">🎂</span>':''}</td>
+      <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:10px;margin-left:4px">🎂</span>':''}${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
       <td>${c.phone||'—'}</td>
       <td>${orders}</td>
       <td style="color:var(--accent);font-weight:700">₹${(c.paid||0).toFixed(0)}</td>
@@ -4708,7 +4722,7 @@ function renderPointsLedger(){
     const expColor= expired ? 'var(--red)' : expiry && new Date(expiry)-new Date() < 7*86400000 ? 'var(--accent)' : 'var(--green)';
     const canRedeem = bal>=100 && !expired;
     return `<tr>
-      <td><strong>${c.name}</strong></td>
+      <td><strong>${c.name}</strong>${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
       <td>${c.phone||'—'}</td>
       <td style="color:var(--accent);font-weight:700">⭐ ${bal}${expired?'<span style="font-size:9px;color:var(--red);display:block">Expired</span>':''}</td>
       <td style="color:${+rupeeVal>0?'var(--green)':'var(--text3)'};font-weight:600">₹${rupeeVal}</td>
@@ -7315,7 +7329,7 @@ function renderCustomers(list){
   const tb=document.getElementById('customers-tbody');
   if(!list.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr>';return;}
   tb.innerHTML=list.map(c=>`<tr>
-    <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}</td>
+    <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
     <td>${c.phone||'—'}</td><td>${c.addr||'—'}</td>
     <td>${c.lastProd||'—'}</td>
     <td><span class="badge ${c.mode==='Credit (Pending)'?'br':'bg'}">${c.mode||'Cash'}</span></td>
