@@ -867,6 +867,10 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                   <option value="">📢 Ad Source (optional)</option>
                 </select>
               </div>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-left:8px">
+                <input type="checkbox" id="s-auto-wa">
+                <span>📱 Send WhatsApp</span>
+              </label>
               <button class="btn btn-y" style="margin-left:auto" onclick="saveSale()">💾 Save Sale</button>
               <button class="btn btn-o" onclick="clearSale()">Clear</button>
             </div>
@@ -7291,14 +7295,12 @@ function deleteSale(id){
     // Recalculate points balance from history
     cust.points=(cust.pointsHistory||[]).reduce((a,h)=>a+(h.earned||0)-(h.used||0),0);
     cust.points=Math.max(0,cust.points);
-    // Reverse pending
-    if((sale.pending||0)>0){
-      cust.pending=Math.max((cust.pending||0)-(sale.pending||0),0);
-    }
+    
     // Reverse paid amount
     if((sale.recv||0)>0){
       cust.paid=Math.max((cust.paid||0)-(sale.recv||0),0);
     }
+    
     // Restore product stock sold count
     (sale.products||[]).forEach(sp=>{
       const prod=S.products.find(p=>p.name===sp.name);
@@ -7308,6 +7310,12 @@ function deleteSale(id){
   // Remove matching order
   S.orders=S.orders.filter(o=>!(o.customer===sale.customer&&Math.abs(o.amount-sale.total)<0.01&&o.date===sale.date));
   S.sales=S.sales.filter(s=>s.id!==id);
+  
+  // Recalculate customer pending from all remaining sales
+  if(cust){
+    cust.pending = S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
+    cust.paid = S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.recv||0),0);
+  }
   renderSalesTable();updateDashStats();renderWeeklyChart();renderCustomers();renderWA();renderPendingCust();
   autoSave();toast('🗑️ Sale deleted and reversed');
 }
