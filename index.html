@@ -4080,20 +4080,11 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `*{biz}*
-
-Customer: {name}
-Cust No: {custnum}
-Invoice No: {ordernum}
-Date: {date}
---------------------------------
+    `{biz}
+Customer: {name} Cust No: {custnum} Invoice No: {ordernum} Date: {date}
 Items:
-{items}--------------------------------
-Subtotal: ₹{subtotal}
-Discount: -₹{discount}
-Total: ₹{amount}
-Payment: {mode}
---------------------------------
+
+{items}Subtotal: ₹{subtotal} Discount: -₹{discount} Total: ₹{amount} Payment: {mode}
 Thank you for your purchase!`,
 
   loyalty:
