@@ -619,6 +619,8 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
 
       <div class="tab-bar" style="margin-bottom:14px">
         <div class="tab active" onclick="dTab(this,'dt-biz')"><span class="t-ico">💼</span>Business</div>
+        <div class="tab" onclick="dTab(this,'dt-tui')"><span class="t-ico">🎓</span>Tuition</div>
+        <div class="tab" onclick="dTab(this,'dt-com')"><span class="t-ico">📊</span>Combined</div>
         <div class="tab" id="dt-tab-target" onclick="dTab(this,'dt-target')"><span class="t-ico">🎯</span>Target</div>
         <div class="tab" id="dt-tab-pending" onclick="dTab(this,'dt-pending')"><span class="t-ico">⏳</span>Pending</div>
       </div>
@@ -676,6 +678,25 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
               </table></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Tuition Tab ── -->
+      <div id="dt-tui" style="display:none">
+        <div class="sc-grid">
+          <div class="sc p nav-card" onclick="nav('tuition')"><div class="sc-ico">👤</div><div class="sc-label">Total Students</div><div class="sc-val" id="d-stu">0</div><div class="sc-sub">Tap to manage ›</div></div>
+          <div class="sc g nav-card" onclick="nav('tuition')"><div class="sc-ico">💰</div><div class="sc-label">Total Fees</div><div class="sc-val" id="d-tfees">₹0.00</div><div class="sc-sub">Collected ›</div></div>
+          <div class="sc r nav-card" onclick="nav('tuition')"><div class="sc-ico">⚠️</div><div class="sc-label">Pending Fees</div><div class="sc-val" id="d-tpend">₹0.00</div><div class="sc-sub">Tap to collect ›</div></div>
+          <div class="sc b nav-card" onclick="nav('tuition')"><div class="sc-ico">👨‍🏫</div><div class="sc-label">Staff</div><div class="sc-val" id="d-staff">0</div><div class="sc-sub">Members ›</div></div>
+          <div class="sc o nav-card" onclick="nav('tuition')"><div class="sc-ico">💸</div><div class="sc-label">Salary Due</div><div class="sc-val" id="d-sal">₹0.00</div><div class="sc-sub">Tap to pay ›</div></div>
+        </div>
+      </div>
+
+      <!-- ── Combined Tab ── -->
+      <div id="dt-com" style="display:none">
+        <div class="sc-grid">
+          <div class="sc y nav-card" onclick="nav('reports')"><div class="sc-ico">🏦</div><div class="sc-label">Total Income</div><div class="sc-val" id="d-ctotal">₹0.00</div><div class="sc-sub">All businesses ›</div></div>
+          <div class="sc g nav-card" onclick="nav('smartprofit')"><div class="sc-ico">💎</div><div class="sc-label">Net Profit</div><div class="sc-val" id="d-cprofit">₹0.00</div><div class="sc-sub">Combined ›</div></div>
         </div>
       </div>
 
@@ -867,10 +888,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
                   <option value="">📢 Ad Source (optional)</option>
                 </select>
               </div>
-              <label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-left:8px">
-                <input type="checkbox" id="s-auto-wa">
-                <span>📱 Send WhatsApp</span>
-              </label>
               <button class="btn btn-y" style="margin-left:auto" onclick="saveSale()">💾 Save Sale</button>
               <button class="btn btn-o" onclick="clearSale()">Clear</button>
             </div>
@@ -3529,23 +3546,9 @@ function refreshAllFull(){
 }
 
 
-function nextOrderNum(){
-  const now = new Date();
-  const yy = String(now.getFullYear()).slice(-2);
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const pre = 'OD' + yy + mm;
-  const ex = S.orders.map(x=>x.orderNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);
-  return pre + String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");
-}
+function nextOrderNum(){const yr=new Date().getFullYear(),pre=yr+"ORD";const ex=S.orders.map(x=>x.orderNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
 
-function nextCustNum(){
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const pre = 'CUST' + yyyy + mm;
-  const ex = S.customers.map(x=>x.custNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);
-  return pre + String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");
-}
+function nextCustNum(){const yr=new Date().getFullYear(),pre=yr+"GS";const ex=S.customers.map(x=>x.custNum||"").filter(n=>n.startsWith(pre)).map(n=>parseInt(n.replace(pre,""))||0);return pre+String(ex.length?Math.max(...ex)+1:1).padStart(3,"0");}
 
 function resendBillWA(saleId){
   var s=S.sales.find(function(x){return x.id===saleId;});
@@ -3557,7 +3560,7 @@ function resendBillWA(saleId){
   var it=s.products||[{name:s.product||'',qty:s.qty||1,price:s.price||0,disc:s.disc||0}];
   var bI=it.map(function(p,i){
     var lp=+p.price||0,ld=+p.disc||0,lt=p.qty*(lp-ld);
-    return '  '+(i+1)+'. '+p.name.toUpperCase()+' x'+p.qty+' @ ₹'+lp.toFixed(2)+(ld>0?' (disc -₹'+ld.toFixed(2)+')':'')+' = ₹'+lt.toFixed(2);
+    return '  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+lp.toFixed(2)+(ld>0?' (disc -\u20b9'+ld.toFixed(2)+')':'')+' = \u20b9'+lt.toFixed(2);
   }).join('\n')+'\n';
   var bS=it.reduce(function(a,p){return a+(p.qty*(+p.price||0));},0);
   var bD=it.reduce(function(a,p){return a+(p.qty*(+p.disc||0));},0);
@@ -4084,12 +4087,20 @@ const WA_TMPL_DEFAULTS = {
     `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n📦 Order: {product}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
-    `{biz}
-Customer: {name} Cust No: {custnum} Invoice No: {ordernum} Date: {date}
+    `🏪 *{biz}*
+Customer: {name}
+Cust No: {custnum}
+Invoice No: {ordernum}
+Date: {date}
+--------------------------------
 Items:
-
-{items}Subtotal: ₹{subtotal} Discount: -₹{discount} Total: ₹{amount} Payment: {mode}
-Thank you for your purchase!`,
+{items}--------------------------------
+Subtotal: ₹{subtotal}
+Discount: -₹{discount}
+Total: ₹{amount}
+Payment: {mode}
+--------------------------------
+Thank you for your purchase! 🙏`,
 
   loyalty:
     `🏪 *{biz}* — Your Rewards Update! ⭐\n\nHi {name},\n\nHere's your points summary:\n🌟 Current Points: *{points} pts*\n💰 Redeem Value: *₹{value}*\n📅 Valid Until: *{expiry}*\n\nUse your points on your next purchase for a discount!\nMinimum bill ₹250 required.\n\nThank you for shopping with us! 🙏`,
@@ -4581,7 +4592,7 @@ function renderWaLoyalty(){
     else if(bal>=100)     statusBadge='<span class="badge bg" style="font-size:9px">✅ Can Redeem</span>';
     else                  statusBadge=`<span class="badge bb" style="font-size:9px">Need ${100-bal} more</span>`;
     return `<tr>
-      <td><strong>${c.name}</strong>${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
+      <td><strong>${c.name}</strong></td>
       <td style="font-size:11px">${c.phone||'<span style="color:var(--red)">No phone</span>'}</td>
       <td style="color:var(--accent);font-weight:700">${bal} pts</td>
       <td style="color:${+val>0?'var(--green)':'var(--text3)'};font-weight:600">₹${val}</td>
@@ -4619,7 +4630,7 @@ function renderLeaderboard(){
     const orders=S.sales.filter(s=>s.customer===c.name).length;
     return `<tr>
       <td style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">${medals[i]||('#'+(i+1))}</td>
-      <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:10px;margin-left:4px">🎂</span>':''}${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
+      <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:10px;margin-left:4px">🎂</span>':''}</td>
       <td>${c.phone||'—'}</td>
       <td>${orders}</td>
       <td style="color:var(--accent);font-weight:700">₹${(c.paid||0).toFixed(0)}</td>
@@ -4717,7 +4728,7 @@ function renderPointsLedger(){
     const expColor= expired ? 'var(--red)' : expiry && new Date(expiry)-new Date() < 7*86400000 ? 'var(--accent)' : 'var(--green)';
     const canRedeem = bal>=100 && !expired;
     return `<tr>
-      <td><strong>${c.name}</strong>${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
+      <td><strong>${c.name}</strong></td>
       <td>${c.phone||'—'}</td>
       <td style="color:var(--accent);font-weight:700">⭐ ${bal}${expired?'<span style="font-size:9px;color:var(--red);display:block">Expired</span>':''}</td>
       <td style="color:${+rupeeVal>0?'var(--green)':'var(--text3)'};font-weight:600">₹${rupeeVal}</td>
@@ -7116,12 +7127,12 @@ function saveSale(){
   const _sendWA=_waChk?_waChk.checked:(S.settings.autoWaReceipt!==false);
   const _waPhone=phone||S.customers.find(x=>x.name===cust)?.phone||'';
   if(_waPhone&&_sendWA){
-    const _bI=products.map((p,i)=>'  '+(i+1)+'. '+p.name.toUpperCase()+' x'+p.qty+' @ ₹'+(+p.price).toFixed(2)+(+p.disc>0?' (disc -₹'+(+p.disc).toFixed(2)+')':'')+' = ₹'+(p.qty*(+p.price-+p.disc)).toFixed(2)).join('\n')+'\n';
+    const _bI=products.map((p,i)=>'  '+(i+1)+'. '+p.name+' x'+p.qty+' @ \u20b9'+(+p.price).toFixed(2)+(+p.disc>0?' (disc -\u20b9'+(+p.disc).toFixed(2)+')':'')+' = \u20b9'+(p.qty*(+p.price-+p.disc)).toFixed(2)).join('\n')+'\n';
     const _bS=products.reduce((a,p)=>a+(p.qty*(+p.price||0)),0);
     const _bD=products.reduce((a,p)=>a+(p.qty*(+p.disc||0)),0);
     const _co=S.customers.find(x=>x.name===cust)||{};
-    const _wm=getWATmpl('receipt',{name:cust,product:products.map(p=>p.name).join(', '),items:_bI,subtotal:_bS.toFixed(2),discount:_bD.toFixed(2),amount:finalTotal.toFixed(2),mode:sale.mode,date:sale.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:_co.custNum||'\u2014',ordernum:_newOrderNum||'\u2014'});
-    setTimeout(()=>openWA(_waPhone,_wm),400);
+    const _wm=getWATmpl('receipt',{name:cust,product:products.map(p=>p.name).join(', '),items:_bI,subtotal:_bS.toFixed(2),discount:_bD.toFixed(2),amount:finalTotal.toFixed(2),mode:sale.mode,date:sale.date,biz:S.settings.bizName||'Meenatchi Traders',phone:S.settings.phone||'',custnum:_co.custNum||'\u2014',ordernum:sale.orderNum||'\u2014'});
+    setTimeout(()=>showWAConfirm(_waPhone,_wm,cust),400);
   }
   clearSale();
 }
@@ -7295,12 +7306,14 @@ function deleteSale(id){
     // Recalculate points balance from history
     cust.points=(cust.pointsHistory||[]).reduce((a,h)=>a+(h.earned||0)-(h.used||0),0);
     cust.points=Math.max(0,cust.points);
-    
+    // Reverse pending
+    if((sale.pending||0)>0){
+      cust.pending=Math.max((cust.pending||0)-(sale.pending||0),0);
+    }
     // Reverse paid amount
     if((sale.recv||0)>0){
       cust.paid=Math.max((cust.paid||0)-(sale.recv||0),0);
     }
-    
     // Restore product stock sold count
     (sale.products||[]).forEach(sp=>{
       const prod=S.products.find(p=>p.name===sp.name);
@@ -7310,12 +7323,6 @@ function deleteSale(id){
   // Remove matching order
   S.orders=S.orders.filter(o=>!(o.customer===sale.customer&&Math.abs(o.amount-sale.total)<0.01&&o.date===sale.date));
   S.sales=S.sales.filter(s=>s.id!==id);
-  
-  // Recalculate customer pending from all remaining sales
-  if(cust){
-    cust.pending = S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.pending||0),0);
-    cust.paid = S.sales.filter(s=>s.customer===cust.name).reduce((a,s)=>a+(s.recv||0),0);
-  }
   renderSalesTable();updateDashStats();renderWeeklyChart();renderCustomers();renderWA();renderPendingCust();
   autoSave();toast('🗑️ Sale deleted and reversed');
 }
@@ -7328,7 +7335,7 @@ function renderCustomers(list){
   const tb=document.getElementById('customers-tbody');
   if(!list.length){tb.innerHTML='<tr><td colspan="9"><div class="empty"><div class="ei">👥</div><p>No customers yet</p></div></td></tr>';return;}
   tb.innerHTML=list.map(c=>`<tr>
-    <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}${c.custNum?`<div style="font-size:9px;color:var(--text3)">${c.custNum}</div>`:''}</td>
+    <td><strong>${c.name}</strong>${c.bday?'<span style="font-size:11px;margin-left:3px" title="Birthday: '+c.bday+'">🎂</span>':''}</td>
     <td>${c.phone||'—'}</td><td>${c.addr||'—'}</td>
     <td>${c.lastProd||'—'}</td>
     <td><span class="badge ${c.mode==='Credit (Pending)'?'br':'bg'}">${c.mode||'Cash'}</span></td>
@@ -8650,24 +8657,9 @@ function renderDashTarget(){
   const profitTgt  = +document.getElementById('dt-tgt-profit')?.value || tgt.profit || 0;
   const ordersTgt  = +document.getElementById('dt-tgt-orders')?.value || tgt.orders || 0;
 
-  // Get current month sales only
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  
-  const monthSales = S.sales.filter(s => {
-    const saleDate = new Date(s.date);
-    return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
-  });
-  
-  const monthOrders = S.orders.filter(o => {
-    const orderDate = new Date(o.date);
-    return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-  });
-
-  const mSales  = monthSales.reduce((a,s)=>a+(s.total||0),0);
-  const mProfit = monthSales.reduce((a,s)=>a+(s.profit||0),0);
-  const mOrders = monthOrders.length;
+  const mSales  = S.sales.reduce((a,s)=>a+s.total,0);
+  const mProfit = S.sales.reduce((a,s)=>a+s.profit,0);
+  const mOrders = S.orders.length;
 
   const sPct = salesTgt  > 0 ? Math.min((mSales/salesTgt)*100,100)   : 0;
   const pPct = profitTgt > 0 ? Math.min((mProfit/profitTgt)*100,100) : 0;
@@ -8745,34 +8737,15 @@ function delSup(id){S.suppliers=S.suppliers.filter(s=>s.id!==id);renderSuppliers
 // ===== PROFIT TARGET =====
 function saveTarget(){
   S.target={sales:+document.getElementById('tgt-sales').value||0,profit:+document.getElementById('tgt-profit').value||0,orders:+document.getElementById('tgt-orders').value||0,set:true};
-  
-  // Get current month sales only
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const monthName = ['January','February','March','April','May','June','July','August','September','October','November','December'][currentMonth];
-  
-  const monthSales = S.sales.filter(s => {
-    const saleDate = new Date(s.date);
-    return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
-  });
-  
-  const mSales = monthSales.reduce((a,s)=>a+(s.total||0),0);
-  const mProfit = monthSales.reduce((a,s)=>a+(s.profit||0),0);
-  const mOrders = monthSales.length;
-  
-  const salesPct = S.target.sales>0 ? Math.min(Math.round((mSales/S.target.sales)*100),100) : 0;
-  const profPct = S.target.profit>0 ? Math.min(Math.round((mProfit/S.target.profit)*100),100) : 0;
-  const ordersPct = S.target.orders>0 ? Math.min(Math.round((mOrders/S.target.orders)*100),100) : 0;
-  
+  const mSales=S.sales.reduce((a,s)=>a+s.total,0);
+  const mProfit=S.sales.reduce((a,s)=>a+s.profit,0);
+  const salesPct=S.target.sales>0?Math.min(Math.round((mSales/S.target.sales)*100),100):0;
+  const profPct=S.target.profit>0?Math.min(Math.round((mProfit/S.target.profit)*100),100):0;
   const el=document.getElementById('tgt-progress');
-  if(!el) { autoSave(); toast('🎯 Target saved!'); return; }
-  
   el.innerHTML=`<div style="padding:16px 0">
-    <h4 style="font-family:Poppins,sans-serif;font-size:13px;margin-bottom:14px">${monthName} ${currentYear} Progress</h4>
+    <h4 style="font-family:Poppins,sans-serif;font-size:13px;margin-bottom:14px">March 2026 Progress</h4>
     <div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--text2)">Sales</span><span style="color:var(--accent);font-weight:700">₹${mSales.toFixed(0)} / ₹${S.target.sales.toLocaleString()}</span></div><div class="sb-bg" style="height:10px;border-radius:5px"><div class="sb-fill" style="width:${salesPct}%;height:100%;border-radius:5px;background:var(--accent)"></div></div><div style="font-size:10px;color:var(--text3);margin-top:3px">${salesPct}% achieved</div></div>
     <div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--text2)">Profit</span><span style="color:var(--green);font-weight:700">₹${mProfit.toFixed(0)} / ₹${S.target.profit.toLocaleString()}</span></div><div class="sb-bg" style="height:10px;border-radius:5px"><div class="sb-fill" style="width:${profPct}%;height:100%;border-radius:5px;background:var(--green)"></div></div><div style="font-size:10px;color:var(--text3);margin-top:3px">${profPct}% achieved</div></div>
-    <div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--text2)">Orders</span><span style="color:var(--blue);font-weight:700">${mOrders} / ${S.target.orders}</span></div><div class="sb-bg" style="height:10px;border-radius:5px"><div class="sb-fill" style="width:${ordersPct}%;height:100%;border-radius:5px;background:var(--blue)"></div></div><div style="font-size:10px;color:var(--text3);margin-top:3px">${ordersPct}% achieved</div></div>
   </div>`;
   autoSave();toast('🎯 Target saved!');
 }
