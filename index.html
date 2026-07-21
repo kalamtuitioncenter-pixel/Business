@@ -982,7 +982,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
             </table></div>
           </div>
         </div>
-      </div>
       </div><!-- end st-new -->
 
       <!-- Sales History Tab -->
@@ -2560,7 +2559,6 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
       <div id="rep-monthly" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📆</div><p>Monthly report will appear here</p></div></div></div></div>
       <div id="rep-prod" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">📦</div><p>Product profit report</p></div></div></div></div>
       <div id="rep-cust" style="display:none"><div class="card"><div class="card-b"><div class="empty"><div class="ei">👥</div><p>Customer pending report</p></div></div></div></div>
-      </div>
     </div>
 
     <!-- ===== SETTINGS ===== -->
@@ -3927,19 +3925,19 @@ const WA_TMPL_DEFAULTS = {
     `Hi {name}! 🔔 It's time to reorder *{product}*.\n\nYou usually order every few weeks — don't run out!\n\nContact {biz} to place your order 😊\n📞 {phone}`,
 
   'order-pending':
-    `🏪 *{biz}*\nHi {name}, ✅ your order has been *Received*!\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nWe'll keep you updated — Packed, On the way & Delivered. Thank you 🙏`,
+    `🏪 *{biz}*\nHi {name}, ✅ your order has been *Received*!\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n🔢 Qty: {qty}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nWe'll keep you updated — Packed, On the way & Delivered. Thank you 🙏`,
 
   'order-processing':
-    `🏪 *{biz}*\nHi {name}, 📦 great news! Your order has been *Packed* and is ready to ship. 🔄\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nWe'll notify you once it's on the way!`,
+    `🏪 *{biz}*\nHi {name}, 📦 great news! Your order has been *Packed* and is ready to ship. 🔄\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n🔢 Qty: {qty}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nWe'll notify you once it's on the way!`,
 
   'order-ready':
-    `🏪 *{biz}*\nHi {name}, 🚚 your order is *On the way*! ✅\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n💰 Amount: ₹{amount}\n\nPlease contact us to arrange delivery.\n📞 {phone}`,
+    `🏪 *{biz}*\nHi {name}, 🚚 your order is *On the way*! ✅\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n🔢 Qty: {qty}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nPlease contact us to arrange delivery.\n📞 {phone}`,
 
   'order-delivered':
-    `🏪 *{biz}*\nHi {name}, your order has been *Delivered* successfully! 🎉\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n💰 Amount: ₹{amount}\n\nThank you for shopping with us! 🙏\nWe hope to see you again soon.`,
+    `🏪 *{biz}*\nHi {name}, your order has been *Delivered* successfully! 🎉\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n🔢 Qty: {qty}\n💰 Amount: ₹{amount}\n📅 Date: {date}\n\nThank you for shopping with us! 🙏\nWe hope to see you again soon.`,
 
   'order-cancelled':
-    `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n\nFor any queries please call us: 📞 {phone}`,
+    `🏪 *{biz}*\nHi {name}, we're sorry to inform you that your order has been *Cancelled*. ❌\n\n🔖 Customer: {custnum}\n📋 Order No: {ordernum}\n📦 Product: {product}\n🔢 Qty: {qty}\n📅 Date: {date}\n\nFor any queries please call us: 📞 {phone}`,
 
   receipt:
     `🏪 *{biz}* — Bill Receipt\n\nHi {name}! ✅ Thank you for your purchase.\n\n🔖 *Customer No:* {custnum}\n📋 *Order No:* {ordernum}\n\n📦 *Products:* {product}\n💰 *Total:* ₹{amount}\n💳 *Mode:* {mode}\n📅 *Date:* {date}\n\n⭐ Loyalty points earned on this purchase!\n\nThank you for shopping with us 🙏`,
@@ -4032,7 +4030,7 @@ function getWATmpl(key, vars){
                || WA_TMPL_DEFAULTS[key] || '';
   const biz   = S.settings.bizName  || 'Meenatchi Traders';
   const phone = S.settings.phone    || '';
-  const date  = fmtDate(new Date());
+  const date  = vars.date ? fmtDate(vars.date) : fmtDate(new Date());
   return tmpl
     .replace(/\{biz\}/g,      biz)
     .replace(/\{phone\}/g,    phone)
@@ -4040,6 +4038,7 @@ function getWATmpl(key, vars){
     .replace(/\{name\}/g,     vars.name      || '')
     .replace(/\{amount\}/g,   vars.amount    || '')
     .replace(/\{product\}/g,  vars.product   || '')
+    .replace(/\{qty\}/g,      vars.qty       || '')
     .replace(/\{mode\}/g,     vars.mode      || '')
     .replace(/\{discount\}/g, vars.discount  || '')
     .replace(/\{till\}/g,     vars.till      || '')
@@ -5269,7 +5268,8 @@ function addSourceRow(){
       </div>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:4px" id="sp-src-total-${id}">Total: 0g | In stock: —</div>`;
-  document.getElementById('sp-source-rows').appendChild(row);
+  const srcRows=document.getElementById('sp-source-rows');
+  if(srcRows) srcRows.appendChild(row);
 }
 
 function spSrcFill(id){
@@ -5580,18 +5580,17 @@ function cmTab(el, id){
 
 
 // Populate course dropdown in Add Student form
-
-
-// Auto-fill student fees when course selected
-
-
-// Calculate total based on checked fee boxes
-
-
-// Updated addStudent with course support
-
-
-
+// NOTE: the Course/Student-fees UI was removed from this build, but a few
+// call sites still reference these functions. Defining them as safe no-ops
+// prevents a ReferenceError from halting page initialization (which was
+// causing dashboard stats, category chips, logo, and other on-load renders
+// to silently never run).
+function populateCourseDropdown(){ /* course module not present in this build */ }
+function renderCourses(){ /* course module not present in this build */ }
+function renderCourseReports(){ /* course module not present in this build */ }
+function renderStaffTable(){ /* staff table module not present in this build */ }
+function renderStudents(){ /* student module not present in this build */ }
+function openStudentPayModal(){ toast('⚠️ Student fee payments are not available in this build.'); }
 
 function renderDueFees(){
   const tb=document.getElementById('due-students-tbody'); if(!tb) return;
@@ -7036,8 +7035,24 @@ function saveSale(){
   let _newOrderNum = '';
   if(products.length){
     _newOrderNum = nextOrderNum();
-  S.orders.push({id:S.orderCounter++,orderNum:_newOrderNum,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status});
+  const _newOrder={id:S.orderCounter++,orderNum:_newOrderNum,date:sale.date,customer:cust,phone,product:products.map(p=>p.name).join(', '),qty:products.reduce((a,p)=>a+p.qty,0),amount:total,status:sale.status};
+  S.orders.push(_newOrder);
   renumberOrders(); // keeps order numbers sequential
+  // ── Auto WA notification for the initial order status (e.g. Pending → Received) ──
+  const _newOrdCust = S.customers.find(x=>x.name===cust);
+  const _newOrdPhone = (_newOrdCust?.phone || phone || '').trim();
+  if(_newOrdPhone){
+    const _newOrdMsg = getWATmpl('order-'+(_newOrder.status||'pending').toLowerCase(),{
+      name:    cust,
+      product: _newOrder.product,
+      qty:     _newOrder.qty||'',
+      amount:  '₹'+(_newOrder.amount||0).toFixed(0),
+      custnum:  _newOrdCust?.custNum||'',
+      ordernum: _newOrder.orderNum||'',
+      date:     _newOrder.date||''
+    });
+    openWA(_newOrdPhone, _newOrdMsg);
+  }
   }
   // Targeted post-sale render — only update what changed
   renderSalesTable();
@@ -7339,10 +7354,12 @@ function renderSalesTable(){
   const today2=new Date().toDateString();
   const tTotal=S.sales.filter(s=>new Date(s.date).toDateString()===today2).reduce((a,s)=>a+s.total,0);
   const wTotal=S.sales.reduce((a,s)=>a+s.total,0);
-  document.getElementById('s-today').textContent='₹'+tTotal.toFixed(0);
-  document.getElementById('s-week').textContent='₹'+wTotal.toFixed(0);
-  document.getElementById('s-month').textContent='₹'+wTotal.toFixed(0);
-  document.getElementById('s-orders').textContent=S.orders.length;
+  const pendTotal=S.sales.reduce((a,s)=>a+(s.pending||0),0);
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setTxt('s-today','₹'+tTotal.toFixed(0));
+  setTxt('s-week','₹'+wTotal.toFixed(0));
+  setTxt('s-month','₹'+wTotal.toFixed(0));
+  setTxt('s-pending-total','₹'+pendTotal.toFixed(0));
 }
 
 function deleteSale(id){
@@ -7569,23 +7586,23 @@ function updateOrderStatus(id,status){
   checkUndeliveredOrders();
   toast('📦 Order '+( o.orderNum||('#'+(o.num||o.id)) )+' → '+status);
   // WA notification — look up CURRENT customer phone (not stale o.phone from order creation)
-  if(status!=='Pending'){
-    // Always get phone from S.customers for the order's customer — most reliable
-    const orderCust = S.customers.find(x=>x.name===o.customer);
-    const waPhone   = (orderCust?.phone || o.phone || '').trim();
-    if(waPhone){
-      const _ordCust = S.customers.find(x=>x.name===o.customer);
-      const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
-        name:    o.customer,
-        product: o.product,
-        amount:  '₹'+(o.amount||0).toFixed(0),
-        custnum:  _ordCust?.custNum||'',
-        ordernum: o.orderNum||''
-      });
-      openWA(waPhone, orderMsg);
-    } else {
-      toast('⚠️ No phone number saved for '+o.customer+'. Update in Customer Management.');
-    }
+  // (sent for every status, including Pending, so the customer always gets an update)
+  const orderCust = S.customers.find(x=>x.name===o.customer);
+  const waPhone   = (orderCust?.phone || o.phone || '').trim();
+  if(waPhone){
+    const _ordCust = S.customers.find(x=>x.name===o.customer);
+    const orderMsg = getWATmpl('order-'+status.toLowerCase(),{
+      name:    o.customer,
+      product: o.product,
+      qty:     o.qty||'',
+      amount:  '₹'+(o.amount||0).toFixed(0),
+      custnum:  _ordCust?.custNum||'',
+      ordernum: o.orderNum||'',
+      date:     o.date||''
+    });
+    openWA(waPhone, orderMsg);
+  } else {
+    toast('⚠️ No phone number saved for '+o.customer+'. Update in Customer Management.');
   }
 }
 function deleteOrder(id){
@@ -10171,7 +10188,8 @@ function clearPackForm(){
   document.getElementById('ps-lead').value=3;
   document.getElementById('ps-form-title').textContent='➕ Add Packaging Material';
   document.getElementById('ps-calc-hint').textContent='';
-  document.getElementById('ps-sheet-calc').textContent='';
+  const sheetCalc=document.getElementById('ps-sheet-calc');
+  if(sheetCalc) sheetCalc.textContent='';
   const wrap=document.getElementById('ps-sheet-wrap');
   if(wrap) wrap.style.display='none';
 }
