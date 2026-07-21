@@ -2673,7 +2673,7 @@ tr:hover td{background:rgba(255,255,255,.02);color:var(--text)}
         <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:14px">
           <button class="btn btn-o" onclick="exportJSON()">📤 Export JSON Backup</button>
           <button class="btn btn-o" onclick="importData()">📥 Import Data</button>
-          <button class="btn btn-y" onclick="createDeviceBackup();toast('🔄 Syncing...')">🔄 Sync to Sheets Now</button>
+          <button class="btn btn-y" onclick="gsSyncAll()">🔄 Sync to Sheets Now</button>
           <button class="btn btn-r" onclick="clearAllData()">🗑️ Clear All Data</button>
         </div>
       </div>
@@ -11320,6 +11320,8 @@ async function gsSyncAll(){
       customers:    S.customers,
       orders:       S.orders,
       teaEntries:   S.teaEntries,
+      students:     S.students||[],
+      staff:        S.staff||[],
       suppliers:    S.suppliers,
       reminders:    S.reminders||[],
       productRules: S.productRules||[],
@@ -11381,6 +11383,11 @@ async function gsLoadData(){
   gsLog('Loading all data from Google Sheets...','info');
   gsProgress(10,'Fetching from Google Sheets...');
   try {
+    // Safety net: snapshot current data as a device backup before overwriting,
+    // so the restore can be undone via Data Management → Auto Backups if needed.
+    createDeviceBackup();
+    gsLog('💾 Current data backed up locally before restore','info');
+
     const res = await gsGet('getAll');
     const d   = res.data;
     gsProgress(60,'Applying data...');
@@ -11396,15 +11403,19 @@ async function gsLoadData(){
     if(d.productRules) S.productRules = d.productRules;
     if(d.bdayGifts)    S.bdayGifts    = d.bdayGifts;
     if(d.referrals)    S.referrals    = d.referrals;
+    gsProgress(75,'Saving to this device...');
+    autoSaveNow(); // persist restored data to localStorage immediately — without this,
+                   // a page refresh would silently discard everything just restored
     gsProgress(85,'Refreshing views...');
     renderProducts(); renderCustomers(); renderOrders(); updateDashStats();
     renderInventory(); renderSmartProfit(); renderSalesForecast();
     renderRemindersStats(); renderWeeklyChart(); renderStockOverview();
+    refreshBackupList();
     gsProgress(100,'Load complete!');
     setTimeout(()=>gsProgress(null),2000);
-    gsLog('✅ Data loaded from Google Sheets successfully','ok');
+    gsLog('✅ Data loaded from Google Sheets and saved to this device','ok');
     gsLog('Sales: '+S.sales.length+' | Products: '+S.products.length+' | Customers: '+S.customers.length,'ok');
-    toast('✅ Data loaded from Google Sheets!');
+    toast('✅ Data restored from Google Sheets!');
   } catch(err){
     gsProgress(null);
     gsLog('❌ Load failed: ' + err.message,'err');
